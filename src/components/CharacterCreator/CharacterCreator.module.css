@@ -1,0 +1,27 @@
+.Creator {
+  width: 420px;
+  max-width: 100%;
+  padding: 24px;
+}
+
+.Button {
+  margin: 16px 0;
+}
+
+.Stats {
+  margin: 24px 0;
+}
+
+.StatBlock {
+  display: flex;
+  flex-direction: row;
+  margin: 16px 0;
+}
+
+.Value, .Label {
+  flex: 1 1;
+}
+
+.Label {
+  margin-right: 16px;
+}

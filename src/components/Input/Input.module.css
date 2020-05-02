@@ -1,0 +1,83 @@
+.Input,
+.Radio {
+  display: flex;
+  flex-direction: column;
+  margin: 16px 0;
+}
+
+.Label {
+  padding: 8px 0;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.Field {
+  border: none;
+  border-bottom: 1px solid black;
+  transition: box-shadow 200ms ease-in-out;
+  height: 32px;
+  font-size: 15px;
+}
+
+.Field:focus {
+  outline: none;
+  box-shadow: 0 2px 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.Options {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.Option {
+  flex: 1 1;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.OptionLabel {
+  margin-top: 4px;
+  margin-left: 4px;
+}
+
+.RadioButton {
+  -webkit-appearance: none;
+  position: relative;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.RadioButton:focus {
+  outline: none;
+}
+
+.RadioButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border: 1px solid black;
+  border-radius: 100%;
+}
+
+.RadioButton::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  bottom: 4px;
+  left: 4px;
+  background-color: black;
+  border-radius: 100%;
+  opacity: 0;
+  transition: opacity 200ms linear;
+}
+
+.RadioButton:checked::before {
+  opacity: 1;
+}
