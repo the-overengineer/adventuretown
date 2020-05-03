@@ -17,6 +17,7 @@
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
     "react-transition-group": "^4.3.0",
+    "snarkdown": "^1.2.2",
     "typescript": "~3.7.2"
   },
   "scripts": {

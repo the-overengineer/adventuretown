@@ -1,7 +1,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import {
-  Equality,
+  ClassEquality,
+  GenderEquality,
   Fortification,
   ITownSettings,
   Prosperity,
@@ -20,7 +21,8 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
     return (
       <div className={classNames(className, styles.TownDescription)}>
         {town.name} is {this.describeSize()}. It is {this.describeFortifications()}.
-        The town is {this.describeProsperity()}. The rights of its citizens are {this.describeEquality()}.
+        The town is {this.describeProsperity()}. The rights of its citizens are {this.describeClassEquality()}.
+        As for the sexes, {this.describeGenderEquality()}.
       </div>
     );
   }
@@ -65,16 +67,37 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
     }
   }
 
-  private describeEquality = () => {
+  private describeClassEquality = () => {
     const { town } = this.props;
 
     switch (town.equality) {
-      case Equality.GeneralSlavery: return 'non-existant, with fellow humans being kept as slaves an women and the poor having no say';
-      case Equality.RacialSlavery: return 'poor, with other races being kept as slaves, and women and the poor having very limited rights';
-      case Equality.GenderInequality: return 'not excellent, with everybody being a free citizen, technically, but with women and the poor having very limited rights';
-      case Equality.IncomeInequality: return 'about average for the region. The sexes have equal rights, but your political rights depend on your wealth';
-      case Equality.Stratified: return 'higher than most in the region, with everybody having equal rights on paper, but the poor having a harder time exercising them';
-      case Equality.Equal: return 'without comparison in the region, with everybody enjoying equal rights and responsibilities';
+      case ClassEquality.GeneralSlavery:
+          return 'non-existant for all but a few, with fellow humans being kept as slaves and the poor having no say in government matters';
+      case ClassEquality.RacialSlavery:
+        return 'poor, with non-human races being kept as slaves, the poor having few rights, and all true power in the hands of a few';
+      case ClassEquality.IncomeInequality:
+        return 'about average for the region. None may be kept as slaves, but if you do not have wealth or status, you have few options in life';
+      case ClassEquality.Stratified:
+        return 'higher than most in the region, with everybody having equal rights on paper, but the poor having a harder time exercising them';
+      case ClassEquality.Equal:
+        return 'without equal in the region, with everybody enjoying full rights and responsibilities of citizenship';
+    }
+  }
+
+  private describeGenderEquality = () => {
+    const { town } = this.props;
+
+    switch (town.genderEquality) {
+      case GenderEquality.Equal:
+        return 'they are fully equal. There is nothing that a woman is allowed to do that a man is not, and vice versa';
+      case GenderEquality.FemaleDominance:
+        return 'women hold more power in society, but that does not mean men are entirely without rights. Some, however, feel oppressed';
+      case GenderEquality.FemaleOppression:
+        return 'women are considered the property of their husband or male relatives, and have no rights of their own';
+      case GenderEquality.MaleDominance:
+        return 'men hold more power in society, but that does not mean women are entirely without rights. Some, however, feel oppressed';
+      case GenderEquality.MaleOppression:
+        return 'men are considered the property of their wives or female relatives, and have no rights of their own';
     }
   }
 }

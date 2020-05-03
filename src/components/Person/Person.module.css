@@ -1,0 +1,8 @@
+.Person {
+  display: flex;
+  flex-direction: row;
+}
+
+.Gender {
+  margin-left: 4px;
+}

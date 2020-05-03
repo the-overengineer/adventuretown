@@ -1,0 +1,77 @@
+.Game {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.ChatLog {
+  height: 140px;
+  padding: 24px 40px;
+  overflow-y: scroll;
+  color: #111111;
+  font-size: 14px;
+  line-height: 1.4;
+  border-top: 1px solid #35363C;
+}
+
+.Message {
+  margin-bottom: 16px;
+}
+
+.Mat {
+  flex: 1 1;
+  display: flex;
+  flex-direction: row;
+}
+
+.Sidebar {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  margin-left: 40px;
+  padding: 24px;
+  background-color: #35363C;
+  color: white;
+}
+
+.Stats {
+  margin: 16px 0;
+  padding: 16px 0;
+  border-top: 1px solid white;
+}
+
+.Stats > .Title {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.Screen {
+  position: relative;
+  flex: 1 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 40px;
+}
+
+.TownAscii {
+  padding: 16px;
+  margin: 24px;
+  white-space: pre;
+}
+
+.Actions {
+  width: 100%;
+  display: flex;
+  margin: 40px 0;
+  justify-content: center;
+}
+
+.Action {
+  margin: 0 24px;
+}

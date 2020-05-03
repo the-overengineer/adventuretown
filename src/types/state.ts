@@ -18,13 +18,20 @@ export enum Prosperity {
   Rich,
 }
 
-export enum Equality {
+export enum ClassEquality {
   GeneralSlavery,
   RacialSlavery,
-  GenderInequality,
   IncomeInequality,
   Stratified,
   Equal,
+}
+
+export enum GenderEquality {
+  FemaleOppression,
+  MaleDominance,
+  Equal,
+  FemaleDominance,
+  MaleOppression,
 }
 
 export enum Fortification {
@@ -36,35 +43,43 @@ export enum Fortification {
 }
 
 export enum Gender {
-  Male,
-  Female,
+  Male = 'Male',
+  Female = 'Female',
 }
 
 export enum Profession {
-  BarWorker,
-  Guard,
-  Farmer,
-  Trader,
-  Politician,
+  BarWorker = 'BarWorker',
+  Guard = 'Guard',
+  Farmer = 'Farmer',
+  Trader = 'Trader',
+  Politician = 'Politician',
 }
 
 export enum ProfessionLevel {
-  Entry,
-  Medium,
-  Leadership,
+  Entry = 'Entry',
+  Medium = 'Medium',
+  Leadership = 'Leadership',
 }
 
 export type OneToTen = number & { _oneToTen: never };
 export type ID = number & { _i: never };
 
 export type CharacterFlag =
-  | 'alive'
-  | 'dead'
+  | 'adventuring'
+  | 'equipped'
+  | 'focusPhysical'
+  | 'focusIntelligence'
+  | 'focusEducation'
+  | 'focusCharm'
+  | 'focusWealth'
+  | 'focusFood'
+  | 'focusRenown'
+  | 'focusFamily'
+  | 'focusFun'
   ;
 
 export type WorldFlag =
-  | 'this'
-  | 'that'
+  | 'hiredAdventurers'
   ;
 
 export interface IUserSettings {
@@ -76,7 +91,8 @@ export interface ITownSettings {
   name: string;
   size: Size;
   prosperity: Prosperity;
-  equality: Equality;
+  equality: ClassEquality;
+  genderEquality: GenderEquality;
   fortification: Fortification;
 }
 
@@ -106,44 +122,58 @@ export interface IRelationships {
 
 export interface IGameAction {
   text: string;
-  condition: (state: IGameState) => boolean;
-  perform: (state: IGameState) => IGameState;
+  condition?: (state: IGameState) => boolean;
+  perform?: (state: IGameState) => IGameState;
 }
 
 export interface IEvent {
   id: ID;
   /**
-   * Mean amount of seconds that need to pass for an event to happen
+   * Mean amount of ticks that need to pass for an event to happen
    */
-  meanTimeToHappen: boolean;
+  meanTimeToHappen: number;
   condition: (state: IGameState) => boolean;
   title: string;
-  getText: (state: IGameState) => boolean;
+  getText: (state: IGameState) => string;
   actions: IGameAction[];
 }
 
 export interface IQueuedEvent {
   id: ID;
-  meanTimeToHappen: boolean; // Duplicated for easier lookup
-  queuedAt: number;
+  meanTimeToHappen: number; // Duplicated for easier lookup
+  queuedAtDay: number;
 }
 
-export interface ICharacterFlags {
-  [key: string]: boolean;
+export interface ICharacterFinances {
+  coinIncome: number;
+  foodIncome: number;
+  renownIncome: number;
+  coinExpenses: number;
+  foodExpenses: number;
+  renownExpenses: number;
 }
 
-export interface IWorldFlags {
-  [key: string]: boolean;
+export type ICharacterFlags = {
+  [flag in CharacterFlag]?: boolean;
+}
+
+export type IWorldFlags = {
+  [flag in WorldFlag]?: boolean;
 }
 
 export interface IGameState {
+  daysPassed: number;
   settings: IUserSettings;
   town: ITownSettings;
   resources: IResources;
   character: ICharacter;
+  finances: ICharacterFinances;
   relationships: IRelationships;
   eventQueue: IQueuedEvent[];
   activeEvent?: ID;
   characterFlags: Partial<ICharacterFlags>;
   worldFlags: Partial<IWorldFlags>;
+  messages: string[];
 }
+
+export type StateTransformer = (gameState: IGameState) => IGameState;

@@ -22,20 +22,18 @@ export class Radio<T extends string> extends React.PureComponent<IRadio<T>> {
 
     return (
       <div className={classNames(styles.Radio, className, { [styles.Invalid]: error != null })}>
-        <label
-          htmlFor={name}
-          className={styles.Label}
-        >
+        <span className={styles.Label}>
           {label}
-        </label>
+        </span>
         <div className={styles.Options}>
           {
-            options.map((option) => (
+            options.map((option, index) => (
               <div
                 key={option}
                 className={styles.Option}
               >
                 <input
+                  id={`${name}-${index}`}
                   className={styles.RadioButton}
                   name={name}
                   value={option}
@@ -45,7 +43,12 @@ export class Radio<T extends string> extends React.PureComponent<IRadio<T>> {
                   onBlur={this.onBlur}
                   onFocus={this.onFocus}
                 />
-                <span className={styles.OptionLabel}>{option}</span>
+                <label
+                  htmlFor={`${name}-${index}`}
+                  className={styles.OptionLabel}
+                >
+                  {option}
+                </label>
               </div>
             ))
           }

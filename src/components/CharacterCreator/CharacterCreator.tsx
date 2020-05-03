@@ -1,8 +1,10 @@
 import classNames from 'classnames';
+import React from 'react';
+
 import { Button } from 'components/Button/Button';
 import { Input } from 'components/Input/Input';
 import { Radio } from 'components/Input/Radio';
-import React from 'react';
+import { StatBlock } from 'components/StatBlock/StatBlock';
 import {
   Gender,
   ICharacter,
@@ -13,36 +15,18 @@ import styles from './CharacterCreator.module.css';
 
 interface ICharacterCreator {
   className?: string;
+  townName: string;
   onSetCharacter: (character: ICharacter) => void;
+  prependMessage: (message: string) => void;
 }
 
 interface ICharacterCreatorState {
   character: Partial<ICharacter>;
 }
 
-interface IStatBlock {
-  label: string;
-  value: OneToTen;
-}
-
-type GenderLabel = 'Male' | 'Female';
-
 type StatKey = 'physical' | 'intelligence' | 'education' | 'charm';
 
-const getGender = (label: GenderLabel): Gender =>
-  label === 'Male' ? Gender.Male : Gender.Female;
-
-const getLabel = (gender: Gender): GenderLabel =>
-  gender === Gender.Male ? 'Male' : 'Female';
-
-const genderOptions: GenderLabel[] = ['Female', 'Male'];
-
-const StatBlock: React.FC<IStatBlock> = ({ label, value }) => (
-  <div className={styles.StatBlock}>
-    <div className={styles.Label}>{label}</div>
-    <div className={styles.Value}>{value}</div>
-  </div>
-);
+const genderOptions: Gender[] = [Gender.Female, Gender.Male];
 
 export class CharacterCreator extends React.PureComponent<ICharacterCreator, ICharacterCreatorState> {
   public state: ICharacterCreatorState = {
@@ -68,7 +52,7 @@ export class CharacterCreator extends React.PureComponent<ICharacterCreator, ICh
           className={styles.Input}
           name='gender'
           label='Your Gender'
-          value={gender ? getLabel(gender) : undefined}
+          value={gender}
           options={genderOptions}
           onChange={this.onChangeGender}
         />
@@ -111,11 +95,18 @@ export class CharacterCreator extends React.PureComponent<ICharacterCreator, ICh
   private onChangeName = (_: any, name: string) =>
     this.setState({ character: { ...this.state.character, name } });
 
-  private onChangeGender = (_: any, gender: GenderLabel) =>
-    this.setState({ character: { ...this.state.character, gender: getGender(gender) } });
+  private onChangeGender = (_: any, gender: Gender) =>
+    this.setState({ character: { ...this.state.character, gender } });
 
-  private onSetCharacter = () =>
-    this.props.onSetCharacter(this.state.character as ICharacter)
+  private onSetCharacter = () => {
+    const { onSetCharacter, prependMessage, townName } = this.props;
+    const { character } = this.state;
+
+    onSetCharacter(character as ICharacter)
+    prependMessage(
+      `${character.name!} is ready to start ${character.gender === Gender.Male ? 'his' : 'her'} adult life in the town of ${townName}!`,
+    );
+  }
 
   private generateStats = () => {
     const baseStats: Pick<ICharacter, StatKey> = {

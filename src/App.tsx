@@ -14,14 +14,21 @@ import {
   ITownSettings,
   IUserSettings,
   IWorldFlags,
+  ICharacterFinances,
+  IEvent,
 } from 'types/state';
 import styles from './App.module.css';
+import { GameScreen } from 'components/GameScreen/GameScreen';
+import { prependMessage } from 'utils/message';
+import { events, eventMap } from './events';
+import { IEventVM } from 'components/Event/Event';
 
-export const TICK_DURATION: number = 10 * 1000; // 10s
+export const TICK_DURATION: number = 5 * 1000; // 5s
 
 interface IAppState {
   town?: ITownSettings;
   character?: ICharacter;
+  finances: ICharacterFinances;
   settings: IUserSettings;
   resources: IResources;
   relationships: IRelationships;
@@ -29,6 +36,9 @@ interface IAppState {
   activeEvent?: ID;
   characterFlags: Partial<ICharacterFlags>;
   worldFlags: Partial<IWorldFlags>;
+  isRunning: boolean;
+  daysPassed: number;
+  messages: string[];
 }
 
 export class App extends React.PureComponent<{}, IAppState> {
@@ -39,6 +49,14 @@ export class App extends React.PureComponent<{}, IAppState> {
       food: 10,
       renown: 0,
     },
+    finances: {
+      coinIncome: 0,
+      coinExpenses: 0,
+      foodExpenses: 0,
+      foodIncome: 0,
+      renownExpenses: 0,
+      renownIncome: 0
+    },
     relationships: {
       children: [],
     },
@@ -48,13 +66,15 @@ export class App extends React.PureComponent<{}, IAppState> {
     },
     characterFlags: {},
     worldFlags: {},
+    isRunning: false,
+    daysPassed: 0,
+    messages: [],
   };
 
   private ticker: number | undefined;
-  private tickCounter: number = 0;
 
   public componentDidMount() {
-    // this.ticker = window.setInterval(this.handleTick, TICK_DURATION);
+    this.ticker = window.setInterval(this.handleTick, TICK_DURATION);
   }
 
   public componentWillUnmount() {
@@ -72,7 +92,16 @@ export class App extends React.PureComponent<{}, IAppState> {
   }
 
   private renderGameScreen = () => {
-    const { character, town } = this.state;
+    const {
+      character,
+      town,
+      finances,
+      daysPassed,
+      isRunning,
+      resources,
+      relationships,
+      messages,
+    } = this.state;
 
     return (
       <>
@@ -80,14 +109,48 @@ export class App extends React.PureComponent<{}, IAppState> {
           <QuickStart onSetTown={this.onSetTown} />
         </Fade>
         <Fade in={town != null && character == null}>
-          <CharacterCreator onSetCharacter={this.onSetCharacter} />
+          <CharacterCreator
+            townName={town?.name ?? 'Your town'}
+            onSetCharacter={this.onSetCharacter}
+            prependMessage={this.prependMessage}
+          />
         </Fade>
         <Fade in={town != null && character != null}>
-          <span />
+          <GameScreen
+            daysPassed={daysPassed}
+            event={this.getEventVM()}
+            isRunning={isRunning}
+            character={character!}
+            finances={finances}
+            town={town!}
+            resources={resources}
+            relationships={relationships}
+            messages={messages}
+            manuallyTriggerEvent={this.manuallyTriggerEvent}
+            onPauseOrUnpause={this.onPauseOrUnpause}
+          />
         </Fade>
       </>
     );
   }
+
+  private manuallyTriggerEvent = (id: ID) => {
+    const { activeEvent } = this.state;
+    if (activeEvent != null) {
+      console.warn('Event already active');
+      return;
+    }
+
+    const event = events.find((it: IEvent) => it.id === id);
+    if (event != null) {
+      this.setState({ activeEvent: id });
+    } else {
+      console.warn('No such event found');
+    }
+  }
+
+  private onPauseOrUnpause = () =>
+    this.setState({ isRunning: !this.state.isRunning })
 
   private onSetTown = (town: ITownSettings) =>
     this.setState({ town });
@@ -95,13 +158,50 @@ export class App extends React.PureComponent<{}, IAppState> {
   private onSetCharacter = (character: ICharacter) =>
     this.setState({ character });
 
+  private prependMessage = (message: string) =>
+    this.setState({ messages: prependMessage(this.state.messages, message )})
+
   private handleTick = () => {
-    if (this.state.town != null && this.state.character == null) {
-      this.tickCounter++;
-      const updatedState = processTick(this.state as IGameState, this.tickCounter);
-      this.setState({
-        ...updatedState,
-      });
+    if (this.state.town != null && this.state.character != null && this.state.isRunning) {
+      try {
+        this.setState(processTick(this.state as IGameState));
+      } catch (error) {
+        console.warn('Failed to process a day');
+        console.error(error);
+      }
+    }
+  }
+
+  private getEventVM = (): IEventVM | undefined => {
+    if (this.state.activeEvent == null) {
+      return;
+    }
+
+    const event = eventMap[this.state.activeEvent];
+
+    if (event == null) {
+      console.warn('Event activated but could not be found');
+      this.setState({ activeEvent: undefined });
+      return;
+    }
+
+    return {
+      title: event.title,
+      text: event.getText(this.state as IGameState),
+      actions: event.actions.map((action) => ({
+        disabled: action.condition != null && !action.condition(this.state as IGameState),
+        text: action.text,
+        onClick: () => {
+          const updatedState = action.perform
+            ? action.perform(this.state as IGameState)
+            : this.state;
+          this.setState({
+            ...updatedState,
+            isRunning: this.state.isRunning,
+            activeEvent: undefined,
+          });
+        },
+      })),
     }
   }
 }

@@ -2,7 +2,8 @@ import { Button } from 'components/Button/Button';
 import { TownDescription } from 'components/TownDescription/TownDescription';
 import React from 'react';
 import {
-  Equality,
+  ClassEquality,
+  GenderEquality,
   Fortification,
   ITownSettings,
   Prosperity,
@@ -43,12 +44,29 @@ export class QuickStart extends React.PureComponent<IQuickStart, IQuickStartStat
           </>
         </Fade>
         <Fade in={town == null}>
-          <Button
-            className={styles.Button}
-            onClick={this.generateTown}
-          >
-            Generate a Town
-          </Button>
+          <>
+            <div className={styles.Description}>
+              Welcome to Adventure Town!
+
+              <p>
+                In many classic tabletop RPGs, you take on the role of a hero, doing daring deeds and living the high life.
+                Not so here. In this event-based game, you take on the role of a citizen of a town somewhere in the land.
+                You are not cut out to be a proper adventurer, though you can go on smaller adventures of your own, but most
+                of your life revolves about living in the town, trying to improve your position and the position of your children,
+                and living through both visiting adventurers and marauding monsters.
+              </p>
+              <p>
+                Please note that this game contains mature themes relating to death, violence, slavery, rape, and others.
+                Play it at your own risk.
+              </p>
+            </div>
+            <Button
+              className={styles.Button}
+              onClick={this.generateTown}
+            >
+              Generate a Town
+            </Button>
+          </>
         </Fade>
       </main>
     );
@@ -59,7 +77,8 @@ export class QuickStart extends React.PureComponent<IQuickStart, IQuickStartStat
       name: this.getName(),
       size: pickOne([Size.Tiny, Size.Small, Size.Modest]),
       prosperity: pickOne([Prosperity.Poor, Prosperity.Decent, Prosperity.Average]),
-      equality: pickOne([Equality.RacialSlavery, Equality.GenderInequality, Equality.IncomeInequality]),
+      equality: pickOne([ClassEquality.GeneralSlavery, ClassEquality.IncomeInequality, ClassEquality.RacialSlavery, ClassEquality.Stratified]),
+      genderEquality: pickOne([GenderEquality.FemaleDominance, GenderEquality.Equal, GenderEquality.MaleDominance]),
       fortification: pickOne([Fortification.None, Fortification.Ditch, Fortification.Palisade]),
     };
 

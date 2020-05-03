@@ -11,17 +11,3 @@
 .Stats {
   margin: 24px 0;
 }
-
-.StatBlock {
-  display: flex;
-  flex-direction: row;
-  margin: 16px 0;
-}
-
-.Value, .Label {
-  flex: 1 1;
-}
-
-.Label {
-  margin-right: 16px;
-}

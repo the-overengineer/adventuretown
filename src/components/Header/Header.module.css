@@ -1,0 +1,80 @@
+.Header {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.Content {
+  width: 800px;
+  max-width: 100%;
+  background-color: #35363C;
+  color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border-bottom-left-radius: 9px;
+  padding: 4px 16px;
+}
+
+.Controls {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+}
+
+.Control {
+  cursor: pointer;
+  transition: opacity 200ms linear;
+  margin-right: 16px;
+}
+
+.Control:hover {
+  opacity: 0.9;
+}
+
+.Resources {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.Resource {
+  display: flex;
+  flex-direction: row;
+  margin: 0 24px;
+}
+
+.ResourceIcon {
+  border: 2px solid white;
+  border-radius: 100%;
+  padding: 4px;
+}
+
+.ResourceAmount {
+  font-weight: bold;
+  margin: 4px 0 4px 16px;
+}
+
+.Day {
+  min-width: 90px;
+}
+
+.Character {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 0 16px;
+}
+
+.Name {
+  font-weight: bold;
+}
+
+.Age {
+  margin: 0 12px;
+}
+
+.Gender {
+
+}
