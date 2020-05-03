@@ -22,6 +22,7 @@ import { GameScreen } from 'components/GameScreen/GameScreen';
 import { prependMessage } from 'utils/message';
 import { events, eventMap } from './events';
 import { IEventVM } from 'components/Event/Event';
+import { hasSavedGame, loadGame } from 'utils/storage';
 
 export const TICK_DURATION: number = 5 * 1000; // 5s
 
@@ -74,6 +75,11 @@ export class App extends React.PureComponent<{}, IAppState> {
   private ticker: number | undefined;
 
   public componentDidMount() {
+    if (hasSavedGame()) {
+      this.setState({
+        ...loadGame(),
+      });
+    }
     this.ticker = window.setInterval(this.handleTick, TICK_DURATION);
   }
 
@@ -163,6 +169,10 @@ export class App extends React.PureComponent<{}, IAppState> {
 
   private handleTick = () => {
     if (this.state.town != null && this.state.character != null && this.state.isRunning) {
+      if (this.state.settings.pauseOnEvents && this.state.activeEvent != null) {
+        return;
+      }
+
       try {
         this.setState(processTick(this.state as IGameState));
       } catch (error) {

@@ -13,6 +13,7 @@ import {
   updateWealth,
 } from './wealth/wealthHandler';
 import { compose } from 'utils/functional';
+import { saveGame } from './storage/storage';
 
 const handlers: StateTransformer[] = [
   incrementTime,
@@ -20,6 +21,7 @@ const handlers: StateTransformer[] = [
   updateEventQueue,
   updateActiveEvent,
   updateWealth,
+  saveGame,
 ];
 
 export const processTick = compose<IGameState>(...handlers);

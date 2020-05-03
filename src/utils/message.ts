@@ -5,5 +5,5 @@ export const prependMessage = (messages: string[], message: string): string[] =>
 
 export const notify = (message: string) => (state: IGameState): IGameState => ({
   ...state,
-  messages: prependMessage(state.messages, message),
+  messages: prependMessage(state.messages, `[Day ${state.daysPassed}] ${message}`),
 });
