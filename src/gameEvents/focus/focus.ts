@@ -19,6 +19,7 @@ const focusFlags: CharacterFlag[] = [
   'focusRenown',
   'focusFamily',
   'focusFun',
+  'focusCity',
 ]
 
 export const lowerFocusFlags = compose(
@@ -100,6 +101,13 @@ export const chooseFocus: IEvent = {
       perform: compose(
         setFocusFlag('focusFun'),
         notify('What is there to life if you do not enjoy yourself?'),
+      ),
+    },
+    {
+      text: 'Changing things around town',
+      perform: compose(
+        setFocusFlag('focusCity'),
+        notify(`It's about time things changed around here.`),
       ),
     },
   ],

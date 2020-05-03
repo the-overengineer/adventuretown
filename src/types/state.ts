@@ -76,10 +76,18 @@ export type CharacterFlag =
   | 'focusRenown'
   | 'focusFamily'
   | 'focusFun'
+  | 'focusCity'
+  | 'anythingToKeepTheJob'
+  | 'tooImportantToFire'
+  | 'unknowinglyPregnant'
+  | 'pregnant'
   ;
 
 export type WorldFlag =
-  | 'hiredAdventurers'
+  | 'pregnantLover'
+  | 'pregnantLoverKnown'
+  | 'spousePregnant'
+  | 'spousePregnantDiscovered'
   ;
 
 export interface IUserSettings {
@@ -109,14 +117,13 @@ export interface ICharacter {
   intelligence: OneToTen;
   education: OneToTen;
   charm: OneToTen;
+  dayOfBirth: number;
   profession?: Profession;
   professionLevel?: ProfessionLevel;
-  isPregnant: boolean;
 }
 
 export interface IRelationships {
   spouse?: ICharacter;
-  lover?: ICharacter;
   children: ICharacter[];
 }
 

@@ -17,9 +17,9 @@ import { TownDescription } from 'components/TownDescription/TownDescription';
 import { Button } from 'components/Button/Button';
 import { IEventVM, Event as EventPopup } from 'components/Event/Event';
 import { Fade } from 'components/Fade/Fade';
-import { chooseFocus } from 'events/focus/focus';
-import { goOnAdventure } from 'events/adventure/adventure';
-import { changeCurrentJob, seekJob } from 'events/job/general';
+import { chooseFocus } from 'gameEvents/focus/focus';
+import { goOnAdventure } from 'gameEvents/adventure/adventure';
+import { changeCurrentJob, seekJob } from 'gameEvents/job/general';
 
 interface IGameScreen {
   className?: string;
@@ -108,13 +108,7 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
             </Stats>
             <Stats title='Status'>
               <StatBlock label='Job' value={describeJob(character)} />
-              {
-                character.isPregnant ? (
-                  <StatBlock label='Pregnant' value='Yes' />
-                ) : null
-              }
               <StatBlock label='Spouse' value={relationships.spouse ? <Person person={relationships.spouse} /> : 'Unmarried'} />
-              <StatBlock label='Lover' value={relationships.lover ? <Person person={relationships.lover} /> : 'None'} />
               {
                 relationships.children.map((child, index) => (
                   <StatBlock

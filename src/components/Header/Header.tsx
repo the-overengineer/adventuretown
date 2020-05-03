@@ -55,7 +55,7 @@ export class Header extends React.PureComponent<IHeader> {
           </div>
           <div className={styles.Character}>
             <div className={styles.Name}>{this.showName()}</div>
-            <div className={styles.Age}>{getAge(daysPassed)} years old</div>
+            <div className={styles.Age}>{getAge(daysPassed, character.dayOfBirth)} years old</div>
             <i
               className={classNames(styles.Gender, character.gender === Gender.Female ? 'fas fa-venus' : 'fas fa-mars')}
             />

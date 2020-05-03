@@ -31,7 +31,7 @@ const genderOptions: Gender[] = [Gender.Female, Gender.Male];
 export class CharacterCreator extends React.PureComponent<ICharacterCreator, ICharacterCreatorState> {
   public state: ICharacterCreatorState = {
     character: {
-      isPregnant: false,
+      dayOfBirth: -18 * 365, // First character was born 18 years before game start
     },
   };
 

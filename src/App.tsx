@@ -20,7 +20,7 @@ import {
 import styles from './App.module.css';
 import { GameScreen } from 'components/GameScreen/GameScreen';
 import { prependMessage } from 'utils/message';
-import { events, eventMap } from './events';
+import { events, eventMap } from './gameEvents';
 import { IEventVM } from 'components/Event/Event';
 import { hasSavedGame, loadGame } from 'utils/storage';
 
