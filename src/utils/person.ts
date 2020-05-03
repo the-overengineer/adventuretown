@@ -29,10 +29,12 @@ export const createChild = (state: IGameState): IGameState => ({
   },
 });
 
-export const createLover = (gender: Gender) => (state: IGameState): IGameState => ({
+type Stat = 'physical' | 'intelligence' | 'education' | 'charm';
+
+export const changeStat = (stat: Stat, by: number) => (state: IGameState): IGameState => ({
   ...state,
-  relationships: {
-    ...state.relationships,
-    lover: generateCharacter(state.daysPassed, gender), // Technically makes them a baby, but whatever
+  character: {
+    ...state.character,
+    [stat]: Math.max(0, Math.min(10, state.character[stat] + by)),
   },
 });

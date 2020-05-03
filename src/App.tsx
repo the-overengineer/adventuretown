@@ -22,9 +22,9 @@ import { GameScreen } from 'components/GameScreen/GameScreen';
 import { prependMessage } from 'utils/message';
 import { events, eventMap } from './gameEvents';
 import { IEventVM } from 'components/Event/Event';
-import { hasSavedGame, loadGame } from 'utils/storage';
+import { hasSavedGame, loadGame, saveGame } from 'utils/storage';
 
-export const TICK_DURATION: number = 5 * 1000; // 5s
+export const TICK_DURATION: number = 3 * 1000; // 3s
 
 interface IAppState {
   town?: ITownSettings;
@@ -42,35 +42,37 @@ interface IAppState {
   messages: string[];
 }
 
+const initialState: IAppState = {
+  eventQueue: [],
+  resources: {
+    coin: 10,
+    food: 10,
+    renown: 0,
+  },
+  finances: {
+    coinIncome: 0,
+    coinExpenses: 0,
+    foodExpenses: 0,
+    foodIncome: 0,
+    renownExpenses: 0,
+    renownIncome: 0
+  },
+  relationships: {
+    children: [],
+  },
+  settings: {
+    autoSave: true,
+    pauseOnEvents: true,
+  },
+  characterFlags: {},
+  worldFlags: {},
+  isRunning: false,
+  daysPassed: 0,
+  messages: [],
+};
+
 export class App extends React.PureComponent<{}, IAppState> {
-  public state: IAppState = {
-    eventQueue: [],
-    resources: {
-      coin: 10,
-      food: 10,
-      renown: 0,
-    },
-    finances: {
-      coinIncome: 0,
-      coinExpenses: 0,
-      foodExpenses: 0,
-      foodIncome: 0,
-      renownExpenses: 0,
-      renownIncome: 0
-    },
-    relationships: {
-      children: [],
-    },
-    settings: {
-      autoSave: true,
-      pauseOnEvents: true,
-    },
-    characterFlags: {},
-    worldFlags: {},
-    isRunning: false,
-    daysPassed: 0,
-    messages: [],
-  };
+  public state: IAppState = initialState;
 
   private ticker: number | undefined;
 
@@ -134,6 +136,7 @@ export class App extends React.PureComponent<{}, IAppState> {
             messages={messages}
             manuallyTriggerEvent={this.manuallyTriggerEvent}
             onPauseOrUnpause={this.onPauseOrUnpause}
+            onReset={this.onReset}
           />
         </Fade>
       </>
@@ -153,6 +156,12 @@ export class App extends React.PureComponent<{}, IAppState> {
     } else {
       console.warn('No such event found');
     }
+  }
+
+  private onReset = () => {
+    const state = { ...initialState, town: undefined, character: undefined };
+    this.setState(state);
+    saveGame(state as unknown as IGameState);
   }
 
   private onPauseOrUnpause = () =>

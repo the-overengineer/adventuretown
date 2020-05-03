@@ -34,6 +34,7 @@ interface IGameScreen {
   isRunning: boolean;
   manuallyTriggerEvent: (id: ID) => void;
   onPauseOrUnpause: () => void;
+  onReset: () => void;
 }
 
 export class GameScreen extends React.PureComponent<IGameScreen> {
@@ -50,6 +51,7 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
       relationships,
       isRunning,
       onPauseOrUnpause,
+      onReset,
       manuallyTriggerEvent,
     } = this.props;
 
@@ -62,6 +64,7 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
           finances={finances}
           isRunning={isRunning}
           onPauseOrUnpause={onPauseOrUnpause}
+          onReset={onReset}
         />
         <main className={styles.Mat}>
           <Fade in={event != null}>

@@ -10,6 +10,17 @@ import {
   doYouKnowWhoIAmFailure,
   doYouKnowWhoIAmSuccess,
 } from './general';
+import {
+  secretOverheard,
+  aGoodNightAtWork,
+  barFight,
+  barFightFightBad,
+  barFightFightOk,
+  barFightHideBad,
+  barFightHideOk,
+  barFightTalkBad,
+  barFightTalkOk,
+} from './bar';
 
 export const events: IEvent[] = [
   seekJob,
@@ -20,4 +31,13 @@ export const events: IEvent[] = [
   anythingToKeepTheJobSuccess,
   doYouKnowWhoIAmFailure,
   doYouKnowWhoIAmSuccess,
+  secretOverheard,
+  aGoodNightAtWork,
+  barFight,
+  barFightFightBad,
+  barFightFightOk,
+  barFightHideBad,
+  barFightHideOk,
+  barFightTalkBad,
+  barFightTalkOk,
 ];

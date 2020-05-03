@@ -13,7 +13,8 @@ import { isOppressed, hasLimitedRights } from 'utils/rights';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
 import { changeResource } from 'utils/resources';
-import { setCharacterFlag, pregnancyChance } from 'utils/setFlag';
+import { pregnancyChance } from 'utils/setFlag';
+import { eventChain } from 'utils/eventChain';
 
 export const JOB_PREFIX = 1_000;
 
@@ -173,12 +174,85 @@ export const promotedToLeading: IEvent = {
   ],
 };
 
+export const anythingToKeepTheJobFailure: IEvent = {
+  id: JOB_PREFIX + 6 as ID,
+  meanTimeToHappen: 0,
+  condition: _ => false,
+  title: 'Scorned',
+  getText: _ => `Your employer looks at you with disgust. "You would offer your body for this?
+    You disgust me, you ${_.character.gender === Gender.Male ? 'man-whore' : 'slut'}! My decision stands!`,
+  actions: [
+    {
+      text: 'All this for nothing!',
+      perform: compose(
+        removeJob,
+        changeResource('renown', -5),
+        notify('Not only did you lose your job, word of your actions got around town'),
+      ),
+    },
+  ]
+};
+
+export const anythingToKeepTheJobSuccess: IEvent = {
+  id: JOB_PREFIX + 7 as ID,
+  meanTimeToHappen: 0,
+  condition: _ => false,
+  title: 'A price to pay',
+  getText: _ => `Your employer looks you up and down, and then smiles.
+    "Very well, then, that seems fair to me. Meet me in the back room."`,
+  actions: [
+    {
+      text: 'You follow',
+      perform: compose(
+        pregnancyChance,
+        notify('You had to offer your body, but you kept your job'),
+      ),
+    },
+    {
+      text: 'The job is not worth this',
+      perform: compose(
+        removeJob,
+        notify('You lost your job, but kept your pride'),
+      ),
+    },
+  ],
+};
+
+export const doYouKnowWhoIAmFailure: IEvent = {
+  id: JOB_PREFIX + 8 as ID,
+  meanTimeToHappen: 0,
+  condition: _ => false,
+  title: 'Who are you?',
+  getText: _ => `"I don't care who you are. Get out!" your former employer is not impressed, and not open to any further attempts at placating.`,
+  actions: [
+    {
+      text: 'Nothing to do',
+      perform: compose(
+        removeJob,
+        notify(`You've lost your job, but you can always find another`),
+      ),
+    },
+  ],
+};
+
+export const doYouKnowWhoIAmSuccess: IEvent = {
+  id: JOB_PREFIX + 9 as ID,
+  meanTimeToHappen: 4,
+  condition: _ => false,
+  title: 'Too important to fire',
+  getText: _ => `"R-right, I'm sorry, I didn't mean that!" your employer stammers nervously as they remember your connections "Of course you can keep the job!"`,
+  actions: [
+    {
+      text: '"I thought as much"',
+      perform:  notify(`You have influence in this town, too much influence to be fired just like that`),
+    },
+  ],
+};
+
 export const firedEntry: IEvent = {
   id: JOB_PREFIX + 5 as ID,
   meanTimeToHappen: 3 * 30, // 3 months
   condition: _ => _.character.professionLevel === ProfessionLevel.Entry
-    && _.characterFlags.anythingToKeepTheJob !== true
-    && _.characterFlags.tooImportantToFire !== true
     && (isOppressed(_, _.character) || _.character.intelligence < 3 || _.character.education < 3 || _.character.charm < 3),
   title: 'A firing offence',
   getText: _ => isOppressed(_, _.character)
@@ -199,12 +273,20 @@ export const firedEntry: IEvent = {
     {
       condition: _ => _.character.charm > 3,
       text: '"I will do ANYTHING to keep this job"',
-      perform: setCharacterFlag('anythingToKeepTheJob', true),
+      perform: eventChain([
+        { id: anythingToKeepTheJobFailure.id, weight: 2 },
+        { id: anythingToKeepTheJobSuccess.id, weight: 4 },
+        { id: anythingToKeepTheJobSuccess.id, weight: 4, condition: _ => _.character.charm > 5 },
+      ])
     },
     {
       condition: _ => _.resources.renown >= 50,
       text: '"Fire ME?! Do you know who I am?!"',
-      perform: setCharacterFlag('tooImportantToFire', true),
+      perform: eventChain([
+        { id: doYouKnowWhoIAmFailure.id, weight: 3 },
+        { id: doYouKnowWhoIAmSuccess.id, weight: 2 },
+        { id: doYouKnowWhoIAmSuccess.id, weight: 5, condition: _ => _.resources.renown >= 200 },
+      ]),
     },
     {
       text: `I didn't want this job, anyway`,
@@ -215,86 +297,3 @@ export const firedEntry: IEvent = {
     },
   ],
 };
-
-export const anythingToKeepTheJobFailure: IEvent = {
-  id: JOB_PREFIX + 6 as ID,
-  meanTimeToHappen: 3,
-  condition: _ => _.characterFlags.anythingToKeepTheJob === true,
-  title: 'Scorned',
-  getText: _ => `Your employer looks at you with disgust. "You would offer your body for this?
-    You disgust me, you ${_.character.gender === Gender.Male ? 'man-whore' : 'slut'}! My decision stands!`,
-  actions: [
-    {
-      text: 'All this for nothing!',
-      perform: compose(
-        removeJob,
-        setCharacterFlag('anythingToKeepTheJob', false),
-        changeResource('renown', -5),
-        notify('Not only did you lose your job, word of your actions got around town'),
-      ),
-    },
-  ]
-};
-
-export const anythingToKeepTheJobSuccess: IEvent = {
-  id: JOB_PREFIX + 7 as ID,
-  meanTimeToHappen: 3,
-  condition: _ => _.characterFlags.anythingToKeepTheJob === true,
-  title: 'A price to pay',
-  getText: _ => `Your employer looks you up and down, and then smiles.
-    "Very well, then, that seems fair to me. Meet me in the back room."`,
-  actions: [
-    {
-      text: 'You follow',
-      perform: compose(
-        pregnancyChance,
-        setCharacterFlag('anythingToKeepTheJob', false),
-        notify('You had to offer your body, but you kept your job'),
-      ),
-    },
-    {
-      text: 'The job is not worth this',
-      perform: compose(
-        removeJob,
-        setCharacterFlag('anythingToKeepTheJob', false),
-        notify('You lost your job, but kept your pride'),
-      ),
-    },
-  ],
-};
-
-export const doYouKnowWhoIAmFailure: IEvent = {
-  id: JOB_PREFIX + 8 as ID,
-  meanTimeToHappen: 5,
-  condition: _ => _.characterFlags.tooImportantToFire === true,
-  title: 'Who are you?',
-  getText: _ => `"I don't care who you are. Get out!" your former employer is not impressed, and not open to any further attempts at placating.`,
-  actions: [
-    {
-      text: 'Nothing to do',
-      perform: compose(
-        removeJob,
-        setCharacterFlag('tooImportantToFire', false),
-        notify(`You've lost your job, but you can always find another`),
-      ),
-    },
-  ],
-};
-
-export const doYouKnowWhoIAmSuccess: IEvent = {
-  id: JOB_PREFIX + 9 as ID,
-  meanTimeToHappen: 4,
-  condition: _ => _.characterFlags.tooImportantToFire === true,
-  title: 'Too important to fire',
-  getText: _ => `"R-right, I'm sorry, I didn't mean that!" your employer stammers nervously as they remember your connections "Of course you can keep the job!"`,
-  actions: [
-    {
-      text: '"I thought as much"',
-      perform: compose(
-        setCharacterFlag('tooImportantToFire', false),
-        notify(`You have influence in this town, too much influence to be fired just like that`),
-      ),
-    },
-  ],
-};
-

@@ -30,14 +30,23 @@ interface IHeader {
   resources: IResources;
   isRunning: boolean;
   onPauseOrUnpause: () => void;
+  onReset: () => void;
 }
 
 export class Header extends React.PureComponent<IHeader> {
   public render() {
-    const { daysPassed, character, resources, isRunning, onPauseOrUnpause } = this.props;
+    const { daysPassed, character, resources, isRunning, onPauseOrUnpause, onReset } = this.props;
 
     return (
       <div className={styles.Header}>
+        <div className={styles.SpecialActions}>
+          <div
+            className={styles.SpecialAction}
+            onClick={onReset}
+          >
+            Reset
+          </div>
+        </div>
         <div className={styles.Content}>
           <div className={styles.Controls}>
             <i
@@ -55,7 +64,7 @@ export class Header extends React.PureComponent<IHeader> {
           </div>
           <div className={styles.Character}>
             <div className={styles.Name}>{this.showName()}</div>
-            <div className={styles.Age}>{getAge(daysPassed, character.dayOfBirth)} years old</div>
+            <div className={styles.Age}>{getAge(character.dayOfBirth, daysPassed)} years old</div>
             <i
               className={classNames(styles.Gender, character.gender === Gender.Female ? 'fas fa-venus' : 'fas fa-mars')}
             />

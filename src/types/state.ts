@@ -77,10 +77,9 @@ export type CharacterFlag =
   | 'focusFamily'
   | 'focusFun'
   | 'focusCity'
-  | 'anythingToKeepTheJob'
-  | 'tooImportantToFire'
   | 'unknowinglyPregnant'
   | 'pregnant'
+  | 'spreadRumoursAboutPolitician'
   ;
 
 export type WorldFlag =
