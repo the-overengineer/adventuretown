@@ -423,5 +423,5 @@ export const djinnFound = createEvent.regular({
       text: 'Wish to change your gender',
       perform: eventChain(wishGenderChange.id),
     },
-  ]
-})
+  ],
+});

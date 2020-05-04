@@ -119,4 +119,5 @@ export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState =>
   state.characterFlags.focusFun ? changeFinance('coinExpenses', 1) : undefined,
   state.characterFlags.focusFun ? changeFinance('renownIncome', 1) : undefined,
   state.characterFlags.gardener ? changeFinance('foodIncome', 1) : undefined,
+  state.characterFlags.poet ? changeFinance('renownIncome', 1) : undefined,
 ].filter(_ => _ != null) as StateTransformer[])(state);

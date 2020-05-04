@@ -1,5 +1,5 @@
 import { eventCreator } from 'utils/events';
-import { Prosperity, Size, Gender, GenderEquality, IGameState } from 'types/state';
+import { Prosperity, Size, GenderEquality, IGameState } from 'types/state';
 import { compose } from 'utils/functional';
 import { setWorldFlag } from 'utils/setFlag';
 import { notify } from 'utils/message';

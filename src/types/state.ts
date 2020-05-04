@@ -88,6 +88,7 @@ export type CharacterFlag =
   | 'fundedCaravan'
   | 'criminalActivity'
   | 'gardener'
+  | 'poet'
   ;
 
 export type WorldFlag =

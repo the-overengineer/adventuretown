@@ -19,8 +19,12 @@ export const setWorldFlag = (flag: WorldFlag, to: boolean) =>
   });
 
 export const pregnancyChance = (state: IGameState): IGameState => {
-  if (Math.random() > 0.1) {
-    return state; //No chance
+  const chance = state.characterFlags.focusFamily!
+    ? 0.2
+    : 0.1;
+
+  if (Math.random() > chance) {
+    return state; //No baby here
   }
 
   if (state.character.gender === Gender.Male) {

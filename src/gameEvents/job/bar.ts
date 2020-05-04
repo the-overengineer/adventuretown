@@ -186,7 +186,7 @@ export const barFight = createEvent.regular({
 
 export const aNightOfFun = createEvent.triggered({
   title: 'A night of fun',
-  getText: _ => `You had an enjoyable night, but when you wake up your lover is gone, without ever having even learned their name`,
+  getText: _ => `You had an enjoyable night, but when you wake up your lover is gone, without you ever having even learned their name`,
   actions: [
     {
       text: 'Pleasurable, at least',

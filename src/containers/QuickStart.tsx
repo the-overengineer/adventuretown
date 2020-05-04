@@ -63,7 +63,7 @@ export class QuickStart extends React.PureComponent<IQuickStart, IQuickStartStat
               <p>
                 The game is based on series of events (currently {events.length} events in the game). The player's choices,
                 as well as luck, determine how they fare in the world. Most of the game is passive, with the player only able
-                to influence which events will fire in the future.
+                to influence which events will fire in the future, and react to the events that do trigger.
               </p>
             </div>
             <Button

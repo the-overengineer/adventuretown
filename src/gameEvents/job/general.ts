@@ -113,7 +113,7 @@ export const seekJob: IEvent = {
 
 export const changeCurrentJob: IEvent = {
   id: JOB_PREFIX + 2 as ID,
-  meanTimeToHappen: 30 * 3, // 3 months
+  meanTimeToHappen: 4 * 30,
   condition: (state: IGameState) => state.character.professionLevel === ProfessionLevel.Entry,
   title: 'Find a better job',
   getText: (state) => state.character.professionLevel === ProfessionLevel.Entry
@@ -122,7 +122,8 @@ export const changeCurrentJob: IEvent = {
 
       Maybe it's time you found a job that suited you better?`
     : `Is this job all there is to life? It's not as challenging or interesting as it used
-      to be, and there may be lucrative opportunities elsewhere, or at least a change of pace`,
+      to be, and there may be lucrative opportunities elsewhere, or at least a change of pace.
+      The downside is that you would start at an entry-level position.`,
   actions: jobActions,
 };
 

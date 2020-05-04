@@ -1,12 +1,14 @@
-import { CharacterFlag, ClassEquality } from 'types/state';
+import { CharacterFlag, ClassEquality, Gender, Profession, ProfessionLevel, Prosperity } from 'types/state';
 import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
-import { setCharacterFlag } from 'utils/setFlag';
-import { changeStat, removeLastChild } from 'utils/person';
+import { setCharacterFlag, pregnancyChance } from 'utils/setFlag';
+import { changeStat, removeLastChild, addSpouse } from 'utils/person';
 import { changeResource } from 'utils/resources';
 import { eventChain } from 'utils/eventChain';
 import { banishment } from 'gameEvents/life/general';
+import { isOppressed } from 'utils/rights';
+import { inIntRange } from 'utils/random';
 
 export const FOCUS_PREFIX = 3_000;
 
@@ -34,7 +36,18 @@ export const setFocusFlag = (flag: CharacterFlag) => compose(
   setCharacterFlag(flag, true),
 );
 
-export const chooseFocus = createEvent.triggered({
+export const chooseFocus = createEvent.regular({
+  meanTimeToHappen: 3,
+  condition: _ => !_.characterFlags.focusCharm
+    && !_.characterFlags.focusCity
+    && !_.characterFlags.focusEducation
+    && !_.characterFlags.focusFamily
+    && !_.characterFlags.focusFood
+    && !_.characterFlags.focusFun
+    && !_.characterFlags.focusIntelligence
+    && !_.characterFlags.focusPhysical
+    && !_.characterFlags.focusRenown
+    && !_.characterFlags.focusWealth,
   title: 'Choose a focus',
   getText: () => `
     It's time to decide what your direction in life will be. Where will most of
@@ -104,6 +117,7 @@ export const chooseFocus = createEvent.triggered({
       ),
     },
     {
+      condition: _ => _.resources.renown >= 100 || _.resources.coin >= 100,
       text: 'Changing things around town',
       perform: compose(
         setFocusFlag('focusCity'),
@@ -539,6 +553,31 @@ export const lostCourtCase = createEvent.triggered({
         notify('You have been found guilty but paid the fine. Your reputation suffered as well'),
       ),
     },
+    {
+      text: 'Accept banishment',
+      perform: eventChain(banishment.id),
+    },
+  ],
+});
+
+export const blameSpouseForCrime = createEvent.triggered({
+  title: 'Spouse banished',
+  getText: _ => `You claim that you could not be possibly be blamed, due to your feeble gender. If anything, your spouse
+    is the one who should take the blame. The court can find no fault in this argument.`,
+  actions: [
+    {
+      text: 'Look at how oppressed I am!',
+      perform: compose(
+        (state) => ({
+          ...state,
+          relationships: {
+            ...state.relationships,
+            spouse: undefined,
+          },
+        }),
+        notify('You have blamed your spouse for your crimes and they have been banished'),
+      ),
+    },
   ],
 });
 
@@ -572,6 +611,532 @@ export const caughtBlackMarket = createEvent.regular({
     {
       text: 'Accept banishment',
       perform: eventChain(banishment.id),
+    },
+  ],
+});
+
+export const plantingAGarden = createEvent.regular({
+  meanTimeToHappen: 3 * 30,
+  condition: _ => !_.characterFlags.gardener
+    && _.characterFlags.focusFood!,
+  title: 'Planting a garden',
+  getText: _ => `Thinking about how to provide for your family, you find yourself looking at a plot of land
+    behind your house. It would take a little bit of money, but you could start a garden there, which would
+    provide additional food`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 10,
+      text: 'Invest in a garden',
+      perform: compose(
+        setCharacterFlag('gardener', true),
+        changeResource('coin', -10),
+        notify('You pay for some seeds and tools, and start a garden in your yard'),
+      ),
+    },
+    {
+      text: `Rather not`,
+    },
+  ],
+});
+
+export const gardenEaten = createEvent.regular({
+  meanTimeToHappen: 24 * 30,
+  condition: _ => _.characterFlags.gardener!
+    && _.character.intelligence < 6
+    && _.character.education < 6,
+  title: 'Pests destroy garden',
+  getText: _ => `For some time now, pests have been attacking your garden and eating your plants.
+    You have tried everything but you must now admit defeat`,
+  actions: [
+    {
+      text: 'Damnation!',
+      perform: compose(
+        setCharacterFlag('gardener', false),
+        notify('Your garden is no more'),
+      ),
+    },
+  ],
+});
+
+export const gardenDestroyedByWeather = createEvent.regular({
+  meanTimeToHappen: 32 * 30,
+  condition: _ => _.characterFlags.gardener!,
+  title: 'Harsh winter',
+  getText: _ => `An early and harsh winter has destroyed your garden. There is nothing to be done against
+    the merciless elements.`,
+  actions: [
+    {
+      text: 'Damnation!',
+      perform: compose(
+        setCharacterFlag('gardener', false),
+        notify('Your garden is no more'),
+      ),
+    },
+  ],
+});
+
+export const foodSale = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.characterFlags.focusFood!,
+  title: 'Food sale',
+  getText: _ => `You were keeping an eye out on ways to get more food, and you hear about a local form selling their
+    produce at much lower prices than usually. You are suspicious at first, but you discover that the food is good.`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 10,
+      text: 'Buy some',
+      perform: compose(
+        changeResource('coin', -10),
+        changeResource('food', 30),
+        notify('You bought food stores at a reasonable price'),
+      ),
+    },
+    {
+      condition: _ => _.resources.coin >= 30,
+      text: 'Buy plenty',
+      perform: compose(
+        changeResource('coin', -30),
+        changeResource('food', 100),
+        notify('You bought large amounts of food at a reasonable price'),
+      ),
+    },
+    {
+      text: 'Not this time',
+    },
+  ],
+});
+
+export const hiringBardSuccess = createEvent.triggered({
+  title: 'Bardic tales',
+  getText: _ => `Word comes back to you of bard spreading tales of your majesty. People are starting to look
+    at you with more respect now`,
+  actions: [
+    {
+      text: 'I deserve it',
+      perform: compose(
+        changeResource('renown', 60),
+        notify('Bards spread tales about you and increase your fame'),
+      ),
+    },
+  ],
+});
+
+export const hiringBardFailure = createEvent.triggered({
+  title: 'Good for nothing bard',
+  getText: _ => `It seems the bard you hired simply drank your money away and vanished the next day.
+    That might not have been the wisest investment`,
+  actions: [
+    {
+      text: 'I should have known!',
+      perform: notify('You wasted your money on a bard, but nothing came out of it'),
+    },
+  ],
+});
+
+export const hiringABard = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.characterFlags.focusRenown!,
+  title: 'Bard offers service',
+  getText: _ => `A travelling bard offers their services to you, promising to spread word
+    about your name across town and the region if you would just give them some money.`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 20,
+      text: 'Pay a little',
+      perform: eventChain([
+        { id: hiringBardSuccess.id, weight: 1 },
+        { id: hiringBardFailure.id, weight: 3 },
+      ]),
+    },
+    {
+      condition: _ => _.resources.coin >= 50,
+      text: 'Pay more',
+      perform: eventChain([
+        { id: hiringBardFailure.id, weight: 1},
+        { id: hiringBardSuccess.id, weight: 3 },
+      ]),
+    },
+    {
+      text: `Can't trust a bard`,
+    },
+  ],
+});
+
+export const becomesPoet = createEvent.triggered({
+  title: 'A star is born',
+  getText: _ => `Your attempt at poetry is well-received! You continue writing poetry and people are
+    starting to notice, increasing your fame and renown`,
+  actions: [
+    {
+      text: 'I will be famous!',
+      perform: compose(
+        setCharacterFlag('poet', true),
+        notify('You have decided to become a famous poet'),
+      ),
+    },
+  ],
+});
+
+export const terriblePoetry = createEvent.triggered({
+  title: 'Failed poet',
+  getText: _ => `You are very proud of your attempts at poetry, but nobody else seems to agree. Even the
+    friend who originally made the suggestion seems to regret their idea.`,
+  actions: [
+    {
+      text: `They don't understand art`,
+      perform: notify('It seems that poetry is not your thing after all'),
+    },
+  ],
+});
+
+export const attemptedPoetry = createEvent.regular({
+  meanTimeToHappen: 9 * 30,
+  condition: _ => _.characterFlags.focusRenown!
+    && !_.characterFlags.poet,
+  title: 'Attempted poetry',
+  getText: _ => `One day at a tavern, a friend of yours brings up a way that you can become more well-known in the region.
+    "Why not try your hand at poetry?" they suggest merrily, though some of that can surely be ascribed to the drinks the
+    two of you had imbibed.`,
+  actions: [
+    {
+      text: `Doesn't sound like me`,
+    },
+    {
+      text: `Start writing`,
+      perform: eventChain([
+        { id: terriblePoetry.id, weight: 1 },
+        { id: becomesPoet.id, weight: 1 },
+        { id: becomesPoet.id, weight: 3, condition: _ => _.character.intelligence >= 5 || _.character.education >= 5 },
+      ]),
+    },
+  ],
+});
+
+export const writersBlock = createEvent.regular({
+  meanTimeToHappen: 18 * 30,
+  condition: _ => _.characterFlags.poet!,
+  title: `Writer's block`,
+  getText: _ => `After some time, your attempts at poetry are getting more and more feeble. You cannot find the muse
+    anymore, and no amount of trying or even praying seems to help.`,
+  actions: [
+    {
+      text: 'It was nice while it lasted',
+      perform: compose(
+        setCharacterFlag('poet', false),
+        notify('You have stopped working on poetry'),
+      ),
+    },
+  ],
+});
+
+export const proposalAccepted = createEvent.triggered({
+  title: 'Proposal accepted!',
+  getText: _ => `"Yes, yes, a thousand times yes!" they say, seemingly excited that you would ask.
+    Within days, a wedding is planned, and officiated by the local priest.`,
+  actions: [
+    {
+      text: 'I am so glad!',
+      perform: compose(
+        addSpouse,
+        notify('Your proposal was accepted and you got married'),
+      ),
+    },
+  ],
+});
+
+export const proposalRejected = createEvent.triggered({
+  title: 'Proposal rejected',
+  getText: _ => `"Marry you? Are you insane? Don't you see what a catch I am?" they answer, seemingly
+    shocked that you would even ask`,
+  actions: [
+    {
+      text: 'My self-esteem hurts',
+      perform: notify('Your marriage proposal was rudely rejected'),
+    },
+  ],
+})
+
+export const potentialSpouse = createEvent.regular({
+  meanTimeToHappen: 9 * 30,
+  condition: _ => _.characterFlags.focusFamily!
+    && _.relationships.spouse == null
+    && !isOppressed(_, _.character),
+  title: 'Marriage prospect',
+  getText: _ => {
+    const otherNoun = _.character.gender === Gender.Male ? 'woman' : 'man';
+    const otherPosessive = _.character.gender === Gender.Male ? 'her' : 'his';
+
+    return `After some time spent looking for love, you have found a potential spouse
+      for yourself. This ${otherNoun} is not only attractive and intelligent, but even
+      seems to have all of ${otherPosessive} teeth. Will you propose?`;
+  },
+  actions: [
+    {
+      text: 'Not now',
+    },
+    {
+      text: 'Propose',
+      perform: eventChain([
+        { id: proposalRejected.id, weight: 1 },
+        { id: proposalAccepted.id, weight: 2 },
+        { id: proposalAccepted.id, weight: 2, condition: _ => _.character.charm >= 5 || _.resources.coin >= 100 || _.resources.renown >= 100 },
+      ]),
+    }
+  ]
+});
+
+export const proposedTo = createEvent.regular({
+  meanTimeToHappen: 9 * 30,
+  condition: _ => _.characterFlags.focusFamily!
+    && _.relationships.spouse == null
+    && isOppressed(_, _.character),
+  title: 'Proposal received',
+  getText: _ => `For some months now, you have been getting close to a ${_.character.gender === Gender.Male ? 'beautiful lady' : 'handsome gentleman'},
+    but due to your gender it was impossible for you to make the first move. After all this time, they fall to one knee and ask for you to marry them.`,
+  actions: [
+    {
+      text: '"Yes, my love!"',
+      perform: compose(
+        addSpouse,
+        notify('You have been married, after some time looking for love'),
+      ),
+    },
+    {
+      text: 'This is not what I want',
+    },
+  ],
+});
+
+export const pushForChildren = createEvent.regular({
+  meanTimeToHappen: 3 * 30,
+  condition: _ => _.characterFlags.focusFamily!
+    && !_.relationships.spouse != null
+    && _.relationships.children.length < 4,
+  title: 'Desire for children',
+  getText: _ => `You have been thinking about some time now how ${_.relationships.children.length > 0 ? 'a' : 'another'} child could not
+    hurt, and might make your home seem more lively. Maybe this is something you should talk to your spouse about?`,
+  actions: [
+    {
+      condition: _ => isOppressed(_, _.relationships.spouse!),
+      text: 'Talk? They have no choice',
+      perform: compose(
+        pregnancyChance,
+        notify(`You force your spouse to attend to you in bed every night in hopes of a pregnancy`),
+      ),
+    },
+    {
+      text: 'I should do that',
+      perform: compose(
+        pregnancyChance,
+        notify('You and your spouse spend more time in bed, in hopes of a pregnancy'),
+      ),
+    },
+    {
+      text: 'Rather not',
+    },
+  ],
+});
+
+export const gamblingNight = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.characterFlags.focusFun!
+    && _.resources.coin >= 20,
+  title: 'Gambling night',
+  getText: _ => `You see some gambling happening in the local tavern one night. It's risky, but if Lady Luck kisses you,
+    it might help you earn some coin, and be some fun besides!`,
+  actions: [
+    {
+      text: '"Deal me in!"',
+      perform: compose(
+        _ => changeResource('coin', inIntRange(-20, 20) + _.character.intelligence)(_),
+        notify('You spend a fun night gambling'),
+      ),
+    },
+  ],
+});
+
+export const randomRelationsWithAGoat = createEvent.triggered({
+  title: 'Inter-species fun',
+  getText: _ => `After some investigation, you find out the truth, and it does not seem pleasant. Apparently, you have
+    had relations with a goat, in the middle of the town square. This will not serve your reputation well.`,
+  actions: [
+    {
+      text: `And I don't even remember it!`,
+      perform: compose(
+        changeResource('renown', -50),
+        notify(`You've hard relations with a goat in the middle of the city while drunk. This won't help your reputation`),
+      ),
+    },
+  ],
+});
+
+export const randomSoldSpouse = createEvent.triggered({
+  title: 'Sold spouse',
+  getText: _ => `After some investigation, you found out the truth, and it does not seem pleasant. Apparently, you have
+    sold your spouse into slavery. On the bright side, you've made some coin`,
+  actions: [
+    {
+      text: 'At least the nagging will stop',
+      perform: compose(
+        changeResource('coin', 50),
+        (state) => ({
+          ...state,
+          relationships: {
+            ...state.relationships,
+            spouse: undefined,
+          },
+        }),
+        notify(`Apparently, you've sold your spouse as a slave during a drunken stupor`)
+      ),
+    },
+  ],
+});
+
+export const randomBoughtFood = createEvent.triggered({
+  title: 'Food supplies',
+  getText: _ => `After some investigation, you found out the truth, and it's hard to explain. Apparently, you've purchased
+    large amounts of food and spread them out all over your house`,
+  actions: [
+    {
+      text: `At least I won't starve`,
+      perform: compose(
+        changeResource('coin', -10),
+        changeResource('food', 20),
+        notify('In a drunken stupor, you seem to have bought quite a bit of food'),
+      ),
+    },
+  ],
+});
+
+export const randomBurnDownGuildHall = createEvent.triggered({
+  title: 'Guild hall burned down',
+  getText: _ => `After some investigation, it would appear that, while drunk, you burned down the guild hall, including their vaunted
+    treasury. It might take some time for the city economy to recover`,
+  actions: [
+    {
+      text: `They can't prove it was me`,
+      perform: compose(
+        (state) => ({
+          ...state,
+          town: {
+            ...state.town,
+            prosperity: state.town.prosperity - 1,
+          },
+        }),
+        notify('In a drunken adventure, you burned down the guild hall. It will take the economy years to recover'),
+      ),
+    },
+  ],
+});
+
+export const randomCouncilCandidate = createEvent.triggered({
+  title: 'Almost in the council',
+  getText: _ => `After some investigation, it would appear that, while drunk, you tried to join the nobles' council ruling the city,
+    and came very close to becoming a member. While nothing was achieved, your reputation grew`,
+  actions: [
+    {
+      text: 'That went well!',
+      perform: compose(
+        changeResource('renown', 50),
+        notify('In a drunken adventure, you tries to join the council of nobles, and almost made it, making you famous'),
+      ),
+    },
+  ],
+});
+
+export const randomCouncilMember = createEvent.triggered({
+  title: 'Joined the council of nobles',
+  getText: _ => `After some investigation, it would appear that, while drunk, you managed to talk your way into the council of nobles.
+    Somehow, you are now one of the people who rule this city.`,
+  actions: [
+    {
+      text: 'They said drinking was bad for me',
+      perform: compose(
+        (state) => ({
+          ...state,
+          character: {
+            ...state.character,
+            profession: Profession.Politician,
+            professionLevel: ProfessionLevel.Leadership,
+          },
+        }),
+        notify('Somehow, you managed to become a leading figure in the city during a drunken adventure'),
+      ),
+    },
+  ],
+});
+
+export const randomFired = createEvent.triggered({
+  title: 'Lost your job',
+  getText: _ => `After some investigation, it would appear that, while drunk, you urinated on the floor during the work shift,
+    and then had a severe argument with your employer. You no longer have a job`,
+  actions: [
+    {
+      text: `That does sound like me`,
+      perform: compose(
+        (state) => ({
+          ...state,
+          character: {
+            ...state.character,
+            profession: undefined,
+            professionLevel: undefined,
+          },
+        }),
+        notify('You lost your job by being a drunken mess'),
+      ),
+    },
+  ],
+});
+
+export const randomGotMoney = createEvent.triggered({
+  title: 'Won money',
+  getText: _ => `After some investigation, it would appear that, while drunk, you gambled and won quite a bit of money`,
+  actions: [
+    {
+      text: 'I should do this again!',
+      perform: compose(
+        changeResource('coin', inIntRange(20, 100)),
+        notify('You managed to earn money gambling while roaring drunk'),
+      ),
+    },
+  ],
+});
+
+export const randomNothing = createEvent.triggered({
+  title: '...Nothing?',
+  getText: _ => `Though you've investigated, you can't find evidence that you did anything at all during your drunken stupor.`,
+  actions: [
+    {
+      text: 'Could be worse',
+    },
+  ],
+});
+
+export const randomDrinking = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.focusFun!,
+  title: 'Drunken adventure',
+  getText: _ => `You wake up in your home, and everything hurts. Your entire house looks a mess.
+    ${_.relationships.spouse ? `You've never seen your spouse looking this upset.` : ''} It turns out
+    that you got drunk and have no recollection of the last two days. What could you have done?`,
+  actions: [
+    {
+      text: `I don't want to know`,
+      perform: notify(`You've gotten exceedingly drunk, but decide not to investigate what might have happened`),
+    },
+    {
+      text: 'Investigate',
+      perform: eventChain([
+        { id: randomBoughtFood.id, weight: 1 },
+        { id: randomBurnDownGuildHall.id, weight: 1, condition: _ => _.town.prosperity >= Prosperity.Decent },
+        { id: randomCouncilCandidate.id, weight: 1, condition: _ => !isOppressed(_, _.character), },
+        { id: randomCouncilMember.id, weight: 1, condition: _ => !isOppressed(_, _.character) },
+        { id: randomFired.id, weight: 1, condition: _ => _.character.profession != null },
+        { id: randomGotMoney.id, weight: 1 },
+        { id: randomNothing.id, weight: 1 },
+        { id: randomRelationsWithAGoat.id, weight: 1 },
+        { id: randomSoldSpouse.id, weight: 1, condition: _ => !isOppressed(_, _.character) && _.town.equality === ClassEquality.GeneralSlavery && _.relationships.spouse != null },
+      ]),
     },
   ],
 });

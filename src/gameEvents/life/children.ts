@@ -1,4 +1,4 @@
-import { GenderEquality } from 'types/state';
+import { GenderEquality, Gender } from 'types/state';
 import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
@@ -8,6 +8,7 @@ import { isOppressed } from 'utils/rights';
 import {
   setCharacterFlag,
   setWorldFlag,
+  pregnancyChance,
 } from 'utils/setFlag';
 
 export const CHILDREN_PREFIX = 5_000;
@@ -195,6 +196,42 @@ export const wifeGivesBirth = createEvent.regular({
         setWorldFlag('spousePregnantDiscovered', false),
         createChild,
         notify('Your wife has given birth to your child'),
+      ),
+    },
+  ],
+});
+
+export const becomePregnantWithSpouse = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.character.gender === Gender.Female
+    && _.relationships.spouse != null,
+  title: 'Bliss in bed',
+  getText: _ => `You and your husband have been quite active in bed recently. Not only is it a good way
+    to spend time, it might leave you with child as well!`,
+  actions: [
+    {
+      text: 'Who know?',
+      perform: compose(
+        pregnancyChance,
+        notify('Beds are not just for sleeping'),
+      ),
+    },
+  ],
+});
+
+export const spouseBecomesPregnant = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.character.gender === Gender.Male
+    && _.relationships.spouse != null,
+  title: 'Bliss in bed',
+  getText: _ => `You and your wife have been quite active in bed recently. Not only is it a good way
+    to spend time, it might leave her with child as well!`,
+  actions: [
+    {
+      text: 'Who know?',
+      perform: compose(
+        pregnancyChance,
+        notify('Beds are not just for sleeping'),
       ),
     },
   ],

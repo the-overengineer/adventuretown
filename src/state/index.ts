@@ -20,9 +20,9 @@ const handlers: StateTransformer[] = [
   incrementTime,
   calculateResourceAllocation,
   modifyIncomeExpensesFromTraits,
+  updateWealth,
   updateEventQueue,
   updateActiveEvent,
-  updateWealth,
   saveGame,
 ];
 
