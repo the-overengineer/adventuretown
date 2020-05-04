@@ -425,3 +425,16 @@ export const djinnFound = createEvent.regular({
     },
   ],
 });
+
+export const deathOfOldAge = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => getAge(_.character.dayOfBirth, _.daysPassed) >= 60,
+  title: 'Time waits for nobody',
+  getText: _ => `You have lived a long life, and it has come to an end`,
+  actions: [
+    {
+      text: 'It was a good life',
+      perform: eventChain(death.id),
+    },
+  ],
+})

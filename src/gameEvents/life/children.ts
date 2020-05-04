@@ -83,7 +83,7 @@ export const loverPregnantDiscovered = createEvent.regular({
   meanTimeToHappen: 21,
   condition: _ => _.worldFlags.pregnantLover === true,
   title: 'One in the oven',
-  getText: _ => 'You meet the person you recently had an amorous affair with. She smiles at you nervously and informs you that she is wish child',
+  getText: _ => 'You meet the person you recently had an amorous affair with. She smiles at you nervously and informs you that she is with child',
   actions: [
     {
       condition: _ => _.town.genderEquality === GenderEquality.FemaleOppression,

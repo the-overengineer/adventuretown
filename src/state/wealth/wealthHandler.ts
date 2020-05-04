@@ -8,6 +8,7 @@ import {
 import { getProfessionMap } from 'utils/employment';
 import { changeFinance } from 'utils/resources';
 import { compose } from 'utils/functional';
+import { isOppressed } from 'utils/town';
 
 const coinsFromProfession = getProfessionMap({
   [Profession.BarWorker]: {
@@ -93,6 +94,11 @@ const renownFromProfession = getProfessionMap({
   },
 }, 0);
 
+const getSpouseFoodConsumption = (state: IGameState): number =>
+  state.relationships.spouse != null && isOppressed(state, state.relationships.spouse!)
+    ? 1
+    : 0;
+
 export const calculateResourceAllocation = (state: IGameState): IGameState => ({
   ...state,
   finances: {
@@ -100,7 +106,8 @@ export const calculateResourceAllocation = (state: IGameState): IGameState => ({
     foodIncome: foodFromProfession(state.character),
     renownIncome: renownFromProfession(state.character),
     coinExpenses: 0,
-    foodExpenses: 1 + state.relationships.children.length, // You and all your children need to be fed
+    // You and all your children need to be fed, and spouses who cannot work
+    foodExpenses: 1 + state.relationships.children.length + getSpouseFoodConsumption(state),
     renownExpenses: 0,
   },
 });
