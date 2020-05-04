@@ -1,19 +1,20 @@
-import {
-  ID,
-  IEvent,
-  GenderEquality,
-} from 'types/state';
-import { setCharacterFlag, setWorldFlag } from 'utils/setFlag';
+import { GenderEquality } from 'types/state';
+import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
-import { changeResource } from 'utils/resources';
 import { notify } from 'utils/message';
-import { isOppressed } from 'utils/rights';
 import { createChild } from 'utils/person';
+import { changeResource } from 'utils/resources';
+import { isOppressed } from 'utils/rights';
+import {
+  setCharacterFlag,
+  setWorldFlag,
+} from 'utils/setFlag';
 
 export const CHILDREN_PREFIX = 5_000;
 
-export const pregnancyDiscovered: IEvent = {
-  id: CHILDREN_PREFIX + 1 as ID,
+const createEvent = eventCreator(CHILDREN_PREFIX);
+
+export const pregnancyDiscovered = createEvent.regular({
   meanTimeToHappen: 21,
   condition: _ => _.characterFlags.unknowinglyPregnant === true && _.resources.coin >= 5,
   title: 'One in the oven',
@@ -41,11 +42,10 @@ export const pregnancyDiscovered: IEvent = {
       ),
     },
   ],
-}
+});
 
-export const pregnancyFailed: IEvent = {
-  id: CHILDREN_PREFIX + 2 as ID,
-  meanTimeToHappen: 10 * 30, // 10 months
+export const pregnancyFailed = createEvent.regular({
+  meanTimeToHappen: 10 * 30, // 10 months, uncommon therefore
   condition: _ => Boolean(_.characterFlags.unknowinglyPregnant || _.characterFlags.pregnant),
   title: 'Pregnancy lost',
   getText: _ => `Through a tragedy of biology, you discover that you will not give birth to a child you were expecting.`,
@@ -59,10 +59,9 @@ export const pregnancyFailed: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const giveBirthToChild: IEvent = {
-  id: CHILDREN_PREFIX + 3 as ID,
+export const giveBirthToChild = createEvent.regular({
   meanTimeToHappen: 8 * 30, // 8 months, to account for late discovery
   condition: _ => _.characterFlags.pregnant === true,
   title: 'A child is born!',
@@ -77,10 +76,9 @@ export const giveBirthToChild: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const loverPregnantDiscovered: IEvent = {
-  id: CHILDREN_PREFIX + 4 as ID,
+export const loverPregnantDiscovered = createEvent.regular({
   meanTimeToHappen: 21,
   condition: _ => _.worldFlags.pregnantLover === true,
   title: 'One in the oven',
@@ -103,10 +101,9 @@ export const loverPregnantDiscovered: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const loverPregnancyFails: IEvent = {
-  id: CHILDREN_PREFIX + 5 as ID,
+export const loverPregnancyFails = createEvent.regular({
   meanTimeToHappen: 10 * 30,
   condition: _ => _.worldFlags.pregnantLover === true || _.worldFlags.pregnantLoverKnown === true,
   title: 'Pregnancy lost',
@@ -121,10 +118,9 @@ export const loverPregnancyFails: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const loverGivesBirth: IEvent = {
-  id: CHILDREN_PREFIX + 6 as ID,
+export const loverGivesBirth = createEvent.regular({
   meanTimeToHappen: 8 * 30,
   condition: _ => _.worldFlags.pregnantLover === true || _.worldFlags.pregnantLoverKnown === true,
   title: 'A child is born!',
@@ -141,10 +137,9 @@ export const loverGivesBirth: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const wifePregnantDiscovered: IEvent = {
-  id: CHILDREN_PREFIX + 7 as ID,
+export const wifePregnantDiscovered = createEvent.regular({
   meanTimeToHappen: 21,
   condition: _ => _.worldFlags.spousePregnant === true,
   title: 'One in the oven',
@@ -167,10 +162,9 @@ export const wifePregnantDiscovered: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const wifePregnancyFails: IEvent = {
-  id: CHILDREN_PREFIX + 8 as ID,
+export const wifePregnancyFails = createEvent.regular({
   meanTimeToHappen: 10 * 30,
   condition: _ => _.worldFlags.spousePregnant === true || _.worldFlags.spousePregnantDiscovered === true,
   title: 'Pregnancy lost',
@@ -185,10 +179,9 @@ export const wifePregnancyFails: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const wifeGivesBirth: IEvent = {
-  id: CHILDREN_PREFIX + 9 as ID,
+export const wifeGivesBirth = createEvent.regular({
   meanTimeToHappen: 8 * 30,
   condition: _ => _.worldFlags.spousePregnant === true || _.worldFlags.spousePregnantDiscovered === true,
   title: 'A child is born!',
@@ -205,4 +198,4 @@ export const wifeGivesBirth: IEvent = {
       ),
     },
   ],
-};
+});

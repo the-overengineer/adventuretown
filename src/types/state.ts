@@ -56,9 +56,9 @@ export enum Profession {
 }
 
 export enum ProfessionLevel {
-  Entry = 'Entry',
-  Medium = 'Medium',
-  Leadership = 'Leadership',
+  Entry,
+  Medium,
+  Leadership,
 }
 
 export type OneToTen = number & { _oneToTen: never };
@@ -79,7 +79,10 @@ export type CharacterFlag =
   | 'focusCity'
   | 'unknowinglyPregnant'
   | 'pregnant'
-  | 'spreadRumoursAboutPolitician'
+  | 'enemiesInHighPlaces'
+  | 'friendsInHighPlaces'
+  | 'tookBribe'
+  | 'lover'
   ;
 
 export type WorldFlag =

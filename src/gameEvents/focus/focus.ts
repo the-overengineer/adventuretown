@@ -1,13 +1,12 @@
-import {
-  ID,
-  IEvent,
-  CharacterFlag,
-} from 'types/state';
+import { CharacterFlag } from 'types/state';
+import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
-import { setCharacterFlag } from 'utils/setFlag';
 import { notify } from 'utils/message';
+import { setCharacterFlag } from 'utils/setFlag';
 
 export const FOCUS_PREFIX = 3_000;
+
+const createEvent = eventCreator(FOCUS_PREFIX);
 
 const focusFlags: CharacterFlag[] = [
   'focusPhysical',
@@ -31,10 +30,7 @@ export const setFocusFlag = (flag: CharacterFlag) => compose(
   setCharacterFlag(flag, true),
 );
 
-export const chooseFocus: IEvent = {
-  id: FOCUS_PREFIX + 1 as ID,
-  meanTimeToHappen: 0,
-  condition: () => false, // This is only triggered manually
+export const chooseFocus = createEvent.triggered({
   title: 'Choose a focus',
   getText: () => `
     It's time to decide what your direction in life will be. Where will most of
@@ -111,4 +107,4 @@ export const chooseFocus: IEvent = {
       ),
     },
   ],
-}
+});

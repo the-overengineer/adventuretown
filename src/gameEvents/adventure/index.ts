@@ -1,7 +1,8 @@
 import { IEvent } from 'types/state';
+import { collectEvents } from 'utils/events';
 
-import { goOnAdventure } from './adventure';
+import * as adventure from './adventure';
 
 export const events: IEvent[] = [
-  goOnAdventure,
+  ...collectEvents(adventure),
 ]

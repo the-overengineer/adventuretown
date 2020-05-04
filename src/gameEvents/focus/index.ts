@@ -1,7 +1,8 @@
 import { IEvent } from 'types/state';
+import { collectEvents } from 'utils/events';
 
-import { chooseFocus } from './focus';
+import * as focus from './focus';
 
 export const events: IEvent[] = [
-  chooseFocus,
+  ...collectEvents(focus),
 ];

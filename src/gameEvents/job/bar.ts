@@ -1,15 +1,17 @@
-import { IEvent, ID, Profession } from 'types/state';
+import { Profession, Gender } from 'types/state';
 import { compose } from 'utils/functional';
 import { changeResource } from 'utils/resources';
 import { notify } from 'utils/message';
 import { eventChain } from 'utils/eventChain';
 import { changeStat } from 'utils/person';
-import { setCharacterFlag } from 'utils/setFlag';
+import { setCharacterFlag, pregnancyChance } from 'utils/setFlag';
+import { eventCreator } from 'utils/events';
 
 const BAR_JOB_PREFIX: number = 31_000;
 
-export const secretOverheard: IEvent = {
-  id: BAR_JOB_PREFIX + 1 as ID,
+const createEvent = eventCreator(BAR_JOB_PREFIX);
+
+export const secretOverheard = createEvent.regular({
   meanTimeToHappen: 4 * 30,
   condition: _ => _.character.profession === Profession.BarWorker,
   title: 'Secret overheard',
@@ -27,7 +29,7 @@ export const secretOverheard: IEvent = {
       text: 'Spread rumours',
       perform: compose(
         changeResource('renown', 20),
-        setCharacterFlag('spreadRumoursAboutPolitician', true),
+        setCharacterFlag('enemiesInHighPlaces', true),
         notify('You spread rumours, which turn out to be true, about a politician. People think well of you for revealing this'),
       ),
     },
@@ -35,10 +37,9 @@ export const secretOverheard: IEvent = {
       text: 'Keep your mouth shut',
     },
   ],
-};
+});
 
-export const aGoodNightAtWork: IEvent = {
-  id: BAR_JOB_PREFIX + 2 as ID,
+export const aGoodNightAtWork = createEvent.regular({
   meanTimeToHappen: 3 * 30,
   condition: _ => _.character.profession === Profession.BarWorker,
   title: 'Busy night',
@@ -51,12 +52,9 @@ export const aGoodNightAtWork: IEvent = {
       )
     }
   ]
-}
+});
 
-export const barFightHideOk: IEvent = {
-  id: BAR_JOB_PREFIX + 4 as ID,
-  meanTimeToHappen: 0,
-  condition: _ => false, // chain only
+export const barFightHideOk = createEvent.triggered({
   title: 'Bar fight ends',
   getText: _ => `A few people are bruised, a few glasses smashed, but no serious harm was done`,
   actions: [
@@ -64,12 +62,9 @@ export const barFightHideOk: IEvent = {
       text: `That's a relief`,
     },
   ],
-};
+});
 
-export const barFightHideBad: IEvent = {
-  id: BAR_JOB_PREFIX + 5 as ID,
-  meanTimeToHappen: 0,
-  condition: _ => false,
+export const barFightHideBad = createEvent.triggered({
   title: 'Bar smashed',
   getText: _ => `By the time the situation clears, the bar looks like a battlefield. People are bleeding on the ground, tables and chairs smashed.
     It looks like some of the damage will be coming out of your paycheck`,
@@ -82,12 +77,9 @@ export const barFightHideBad: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const barFightFightOk: IEvent = {
-  id: BAR_JOB_PREFIX + 6 as ID,
-  meanTimeToHappen: 0,
-  condition: _ => false,
+export const barFightFightOk = createEvent.triggered({
   title: 'Cracking skulls',
   getText: _ => `You go in with your own bottle in hand, waving around. When the coast clear, the rowdiest of the bunch are on the ground and the rest scatter`,
   actions: [
@@ -105,12 +97,9 @@ export const barFightFightOk: IEvent = {
       perform: notify('You broke up a bar fight without breaking a sweat'),
     },
   ],
-};
+});
 
-export const barFightTalkBad: IEvent = {
-  id: BAR_JOB_PREFIX + 7 as ID,
-  meanTimeToHappen: 0,
-  condition: _ => false,
+export const barFightTalkBad = createEvent.triggered({
   title: 'Negotiations failed',
   getText: _ => `You climb the bar and start trying to convince everybody to calm down. You are not two sentences in before somebody
     tackles you to the ground and starts beating you`,
@@ -123,12 +112,9 @@ export const barFightTalkBad: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const barFightTalkOk: IEvent = {
-  id: BAR_JOB_PREFIX + 8 as ID,
-  meanTimeToHappen: 0,
-  condition: _ => false,
+export const barFightTalkOk = createEvent.triggered({
   title: 'Silver tongue',
   getText: _ => `You climb the bar and start talking. Just a few sentences are all it takes for the people to calm down and throw out the
     instigator of the fight`,
@@ -147,12 +133,9 @@ export const barFightTalkOk: IEvent = {
       perform: notify('You talked a bar fight out of happening without any issue'),
     },
   ],
-};
+});
 
-export const barFightFightBad: IEvent = {
-  id: BAR_JOB_PREFIX + 9 as ID,
-  meanTimeToHappen: 0,
-  condition: _ => false,
+export const barFightFightBad = createEvent.triggered({
   title: 'Skull cracked',
   getText: _ => `You go in with your own bottle in hard, waving around. When the coast clears your head is ringing and your arm bends at an odd angle`,
   actions: [
@@ -164,10 +147,9 @@ export const barFightFightBad: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const barFight: IEvent = {
-  id: BAR_JOB_PREFIX + 3 as ID,
+export const barFight = createEvent.regular({
   meanTimeToHappen: 4 * 30,
   condition: _ => _.character.profession === Profession.BarWorker,
   title: 'Bar fight!',
@@ -200,4 +182,97 @@ export const barFight: IEvent = {
       ]),
     },
   ],
-};
+});
+
+export const aNightOfFun = createEvent.triggered({
+  title: 'A night of fun',
+  getText: _ => `You had an enjoyable night, but when you wake up your lover is gone, without ever having even learned their name`,
+  actions: [
+    {
+      text: 'Pleasurable, at least',
+      perform: compose(
+        pregnancyChance,
+        notify('A fun night with a fit adventurer'),
+      ),
+    },
+  ],
+});
+
+export const adventurerLover = createEvent.triggered({
+  title: 'Adventurer lover',
+  getText: _ => `You spend an enjoyable night. In the morning, when the drink has cleared from your heads, the lust is still there.
+    The cocky adventurer and you keep enjoying each others' company well into the next morning, and when you are forced to part the
+    adventurer suggests that this should become a regular occurrence.`,
+  actions: [
+    {
+      text: 'Reject them',
+      perform: compose(
+        pregnancyChance,
+        notify('A fun night with a fit adventurer'),
+      ),
+    },
+    {
+      text: 'A lover would be nice',
+      perform: compose(
+        pregnancyChance,
+        setCharacterFlag('lover', true),
+        notify('You liked last night very much, hopefully it will happen again'),
+      ),
+    },
+  ],
+});
+
+export const potentialAdventurerLover = createEvent.regular({
+  condition: _ => _.characterFlags.lover !== true && (
+    _.character.profession === Profession.BarWorker ||
+    _.characterFlags.focusFun === true ||
+    _.character.charm >= 5
+  ),
+  meanTimeToHappen: 9 * 30, // 9 months
+  title: 'Admired at the bar',
+  getText: (s) => {
+    const otherPronoun = s.character.gender === Gender.Female ? 'He': 'She';
+    const beautyAdjective = s.character.gender === Gender.Male ? 'handsome' : 'beautiful';
+    return `
+      One day at the tavern, you notice a youthful adventurer catching your eye now and then.
+      ${otherPronoun} seems to be the leader of the group, decked out in expensive equipment,
+      spending coin like there is not tomorrow, and drawing attention from most other patrons.
+      ${otherPronoun} is a bit in the cups as ${otherPronoun.toLocaleLowerCase()} approaches you
+      with a confident smile. "I saw you from across the tavern and couldn't help but notice how
+      ${beautyAdjective} you are. Maybe you'd like to join me in my room later?" ${otherPronoun}
+      says without a hint of shame and a cocky smiles besides.
+    `;
+  },
+  actions: [
+    {
+      text: 'Reject the advances',
+      perform: notify(`You chose not to entangle yourself with a visiting adventurer`),
+    },
+    {
+      text: 'Welcome the advances',
+      perform: eventChain([
+        { id: aNightOfFun.id, weight: 1 },
+        { id: adventurerLover.id, weight: 1 },
+        { id: adventurerLover.id, weight: 2, condition: _ => _.character.charm >= 5 },
+      ]),
+    },
+  ],
+});
+
+export const charmImproved = createEvent.regular({
+  meanTimeToHappen: 8 * 30,
+  condition: _ => _.character.profession === Profession.BarWorker
+    && _.character.charm < 6,
+  title: 'Social interactions',
+  getText: _ => `Working in the tavern, you frequently have opportunities to interact with others.
+    Though they are not always pleasant, you have learned to be better at handling people`,
+  actions: [
+    {
+      text: `It rubs off on you`,
+      perform: compose(
+        changeStat('charm', 1),
+        notify('Working at the tavern has improved your social skills'),
+      ),
+    },
+  ],
+});

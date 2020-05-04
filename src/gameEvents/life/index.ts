@@ -1,25 +1,8 @@
 import { IEvent } from 'types/state';
+import { collectEvents } from 'utils/events';
 
-import {
-  pregnancyDiscovered,
-  pregnancyFailed,
-  giveBirthToChild,
-  loverGivesBirth,
-  loverPregnancyFails,
-  loverPregnantDiscovered,
-  wifePregnancyFails,
-  wifePregnantDiscovered,
-  wifeGivesBirth,
-} from './children';
+import * as children from './children';
 
 export const events: IEvent[] = [
-  pregnancyDiscovered,
-  pregnancyFailed,
-  giveBirthToChild,
-  loverGivesBirth,
-  loverPregnancyFails,
-  loverPregnantDiscovered,
-  wifePregnancyFails,
-  wifePregnantDiscovered,
-  wifeGivesBirth,
+  ...collectEvents(children)
 ];

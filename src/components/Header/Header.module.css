@@ -69,6 +69,7 @@
 
 .ResourceAmount {
   font-weight: bold;
+  min-width: 24px;
   margin: 4px 0 4px 16px;
 }
 

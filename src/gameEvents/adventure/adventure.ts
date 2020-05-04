@@ -1,18 +1,15 @@
-import {
-  ID,
-  IEvent,
-} from 'types/state';
+import { IEvent } from 'types/state';
 import { setCharacterFlag } from 'utils/setFlag';
 import { compose } from 'utils/functional';
 import { changeResource } from 'utils/resources';
 import { notify } from 'utils/message';
+import { eventCreator } from 'utils/events';
 
 export const ADVENTURE_PREFIX = 2_000;
 
-export const goOnAdventure: IEvent = {
-  id: ADVENTURE_PREFIX + 1 as ID,
-  meanTimeToHappen: 0,
-  condition: () => false, // This is only triggered manually
+const createEvent = eventCreator(ADVENTURE_PREFIX);
+
+export const goOnAdventure: IEvent = createEvent.triggered({
   title: 'Adventure Time!',
   getText: (state) => `
     You look longingly out of the window. So many adventurers pass through
@@ -43,4 +40,4 @@ export const goOnAdventure: IEvent = {
       ),
     },
   ],
-}
+});
