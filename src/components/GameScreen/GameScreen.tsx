@@ -89,6 +89,7 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
                 Change Focus
               </Button>
               <Button
+                disabled
                 className={styles.Action}
                 onClick={() => manuallyTriggerEvent(goOnAdventure.id)}
               >
