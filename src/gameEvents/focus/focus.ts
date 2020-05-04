@@ -38,6 +38,7 @@ import {
   increaseMyGenderRights,
   increaseSize,
   isOppressed,
+  increaseProsperity,
 } from 'utils/town';
 
 export const FOCUS_PREFIX = 3_000;
@@ -1194,7 +1195,7 @@ export const changeTownProsperity = createEvent.regular({
       text: 'Pay to strengthen the economy',
       perform: compose(
         changeResource('coin', -150),
-        decreaseProsperity,
+        increaseProsperity,
         notify('You paid off the lawmakers to strengthen the economy. This wil make you more wealthy, but also more interesting prey')
       ),
     },
@@ -1203,7 +1204,7 @@ export const changeTownProsperity = createEvent.regular({
       text: 'Campaign to strengthen the economy',
       perform: compose(
         changeResource('renown', -100),
-        decreaseProsperity,
+        increaseProsperity,
         notify('You campaigned the lawmakers to strengthen the economy. This wil make you more wealthy, but also more interesting prey')
       ),
     },
