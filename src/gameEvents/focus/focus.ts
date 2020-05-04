@@ -981,6 +981,9 @@ export const gamblingNight = createEvent.regular({
         notify('You spend a fun night gambling'),
       ),
     },
+    {
+      text: '"Not tonight',
+    }
   ],
 });
 
