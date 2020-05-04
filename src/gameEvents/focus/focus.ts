@@ -18,6 +18,7 @@ import {
   addSpouse,
   changeStat,
   removeLastChild,
+  removeSpouse,
 } from 'utils/person';
 import { inIntRange } from 'utils/random';
 import { changeResource } from 'utils/resources';
@@ -597,13 +598,7 @@ export const blameSpouseForCrime = createEvent.triggered({
     {
       text: 'Look at how oppressed I am!',
       perform: compose(
-        (state) => ({
-          ...state,
-          relationships: {
-            ...state.relationships,
-            spouse: undefined,
-          },
-        }),
+        removeSpouse,
         notify('You have blamed your spouse for your crimes and they have been banished'),
       ),
     },
@@ -1011,13 +1006,7 @@ export const randomSoldSpouse = createEvent.triggered({
       text: 'At least the nagging will stop',
       perform: compose(
         changeResource('coin', 50),
-        (state) => ({
-          ...state,
-          relationships: {
-            ...state.relationships,
-            spouse: undefined,
-          },
-        }),
+        removeSpouse,
         notify(`Apparently, you've sold your spouse as a slave during a drunken stupor`)
       ),
     },

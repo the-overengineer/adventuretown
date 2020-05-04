@@ -1,13 +1,14 @@
 import { eventCreator } from 'utils/events';
-import { ClassEquality, Gender } from 'types/state';
+import { ClassEquality, Gender, Size } from 'types/state';
 import { eventChain } from 'utils/eventChain';
 import { compose } from 'utils/functional';
 import { changeResource } from 'utils/resources';
 import { notify } from 'utils/message';
 import { getAge } from 'utils/time';
-import { changeStat, newCharacter, eldestInherits, removeLastChild, addSpouse } from 'utils/person';
+import { changeStat, newCharacter, eldestInherits, removeLastChild, addSpouse, removeSpouse } from 'utils/person';
 import { setCharacterFlag } from 'utils/setFlag';
 import { inIntRange } from 'utils/random';
+import { hasLimitedRights, isOppressed } from 'utils/town';
 
 const GENERAL_LIFE_EVENT_PREFIX: number = 41_000;
 
@@ -437,4 +438,202 @@ export const deathOfOldAge = createEvent.regular({
       perform: eventChain(death.id),
     },
   ],
-})
+});
+
+export const scandal = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.character.profession != null && _.resources.renown >= 50,
+  title: 'Scandal at work!',
+  getText: _ => `A bit of a mess happened in your place of business, and somehow you were the
+    one blamed for it. This won't look good!`,
+  actions: [
+    {
+      text: `It's not my fault!`,
+      perform: compose(
+        changeResource('renown', -50),
+        notify('You got the blame for a disaster at your place of business'),
+      ),
+    },
+  ],
+});
+
+export const minorRepairs = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.resources.coin >= 10,
+  title: 'Minor repairs',
+  getText: _ => `As you look around your home, you notice that you need to do minor repairs. The door is tilted, the roof is leaking,
+    and the straw on your bed is starting to rot`,
+  actions: [
+    {
+      text: 'Better be worth it',
+      perform: compose(
+        changeResource('coin', -10),
+        notify('You spend some money doing minor repairs around the house'),
+      ),
+    },
+  ],
+});
+
+export const roofCollapsed = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.resources.coin >= 100,
+  title: 'Roof collapsed!',
+  getText: _ => `You knew your house wasn't the sturdiest building in the world, but you were very unpleasantly surprised when the latest
+    storm collapsed it, very nearly pinning your under it! This will take money to repair`,
+  actions: [
+    {
+      text: 'Not much choice',
+      perform: compose(
+        changeResource('coin', -100),
+        notify('Your roof collapsed and you had to spent quite a bit of coin repairing it'),
+      ),
+    },
+  ],
+});
+
+export const foodRots = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.resources.food >= 50,
+  title: 'Food rots',
+  getText: _ => `You've made more than sufficient supplies of food, and it is maddening to learn that some of it has rotten and is inedible`,
+  actions: [
+    {
+      text: 'Curses!',
+      perform: compose(
+        changeResource('food', -20),
+        notify('Rot has made some of your food inedible'),
+      ),
+    },
+  ],
+});
+
+export const breakIn = createEvent.regular({
+  meanTimeToHappen: 18 * 30,
+  condition: _ => (_.resources.coin >= 100 && _.resources.food >= 100) && _.town.size > Size.Small,
+  title: 'Break-in',
+  getText: _ => `While nobody is in your house, somebody who must have heard rumours of your wealth broke in and stole some of your supplies`,
+  actions: [
+    {
+      text: 'Scoundrels!',
+      perform: compose(
+        changeResource('coin', -20),
+        changeResource('food', -20),
+        notify('You were a victing of theft. Some of your coins and food were stolen'),
+      ),
+    },
+  ],
+});
+
+export const cheatedOn = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.relationships.spouse != null,
+  title: 'Cheated on',
+  getText: _ => `You learn through your friends that your spouse has been cheating on you. When you confront them, they tearfully
+    admit to doing so and ask for your forgiveness`,
+  actions: [
+    {
+      text: 'Forgive them',
+      perform: compose(
+        changeResource('renown', -50),
+        notify('Your spouse has cheated on you and you have forgiven them. Still, it did your reputation no good'),
+      ),
+    },
+    {
+      condition: _ => !hasLimitedRights(_, _.character),
+      text: 'Divorce them',
+      perform: compose(
+        changeResource('renown', -20),
+        removeSpouse,
+        notify('You divorced your spouse for their cheating, but your reputation still suffered'),
+      ),
+    },
+  ],
+});
+
+export const loversToSpouses = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.characterFlags.lover! && _.relationships.spouse == null,
+  title: `Lover's proposal`,
+  getText: _ => `Your affair with your lover has lasted for a while, and after all this time they start discussing the topic of marriage.
+    They seem to be as much, if not more, in love with you as when this started`,
+  actions: [
+    {
+      text: '"I thought you would never ask"',
+      perform: compose(
+        addSpouse,
+        setCharacterFlag('lover', false),
+        notify('You have married your lover, making your love official'),
+      ),
+    },
+    {
+      text: '"This is all I need"',
+      perform: notify('Your lover is disappointed but understands'),
+    },
+    {
+      text: 'Break up with them',
+      perform: compose(
+        setCharacterFlag('lover', false),
+        notify('Your lover asked for too much and you broke up with them'),
+      ),
+    },
+  ],
+});
+
+export const spouseDivorcesYou = createEvent.triggered({
+  title: 'Divorced!',
+  getText: _ => `Your relationship not being what it once was, your spouse has divorced you`,
+  actions: [
+    {
+      text: 'I can do better',
+      perform: compose(
+        removeSpouse,
+        changeResource('renown', -20),
+        notify('Your spouse has divorced you, causing an uproar in the neighbourhood'),
+      ),
+    },
+  ],
+});
+
+export const spouseForgivesYou = createEvent.triggered({
+  title: 'Forgiven',
+  getText: _ => `Your spouse accepts your apology and reiterates their love for you. Maybe things will work out?`,
+  actions: [
+    {
+      text: 'Maybe they will...',
+    },
+  ],
+});
+
+export const cheatingDiscovered = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.relationships.spouse != null && _.characterFlags.lover!,
+  title: 'Lover discovered',
+  getText: _ => `Your spouse has discovered that you have a lover, and seems to be quite furious about it.
+    It almost comes to fighting, but it somehow manages to end to breaking furniture and yelling`,
+  actions: [
+    {
+      condition: _ => isOppressed(_, _.relationships.spouse!),
+      text: `So what? This is my house`,
+      perform: notify('Your spouse discovers your cheating, but cannot do anything about it'),
+    },
+    {
+      condition: _ => isOppressed(_, _.character),
+      text: 'Leave your lover and beg forgiveness',
+      perform: compose(
+        setCharacterFlag('lover', false),
+        eventChain([
+          { id: spouseDivorcesYou.id, weight: 1 },
+          { id: spouseForgivesYou.id, weight: 1 },
+        ]),
+      ),
+    },
+    {
+      condition: _ => !isOppressed(_, _.character),
+      text: 'I love them, not you',
+      perform: compose(
+        removeSpouse,
+        notify(`You leave your spouse for your lover`),
+      ),
+    }
+  ],
+});

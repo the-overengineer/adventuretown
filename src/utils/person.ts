@@ -87,3 +87,11 @@ export const addSpouse = (state: IGameState): IGameState => ({
     spouse: generateCharacter(state.daysPassed - 18 * 365, state.character.gender === Gender.Male ? Gender.Female : Gender.Male),
   },
 });
+
+export const removeSpouse = (state: IGameState): IGameState => ({
+  ...state,
+  relationships: {
+    ...state.relationships,
+    spouse: undefined,
+  },
+});
