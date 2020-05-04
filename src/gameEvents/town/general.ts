@@ -30,7 +30,7 @@ export const blackMarketStarted = createEvent.regular({
 
 export const diseaseStarts = createEvent.regular({
   meanTimeToHappen: 36 * 30,
-  condition: _ => _.town.prosperity <= Prosperity.Poor || _.town.size > Size.Average,
+  condition: _ => (_.town.prosperity <= Prosperity.Poor || _.town.size > Size.Average) && !_.worldFlags.sickness,
   title: 'Disease!',
   getText: _ => `Given the state of the town, it is no surprise to you when you hear a disease has
     started spreading around town. More and more people are looking ill, closing themselves in their
