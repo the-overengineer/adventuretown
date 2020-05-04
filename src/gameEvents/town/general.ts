@@ -12,7 +12,7 @@ const createEvent = eventCreator(TOWN_GENERAL_PREFIX);
 
 export const blackMarketStarted = createEvent.regular({
   meanTimeToHappen: 24 * 30,
-  condition: _ => _.town.prosperity > Prosperity.Poor || _.town.size > Size.Modest,
+  condition: _ => (_.town.prosperity > Prosperity.Poor || _.town.size > Size.Modest) && !_.worldFlags.blackMarket,
   title: 'Black market in town',
   getText: _ => `As ${_.town.name} grows in size and wealth, rumours have been spreading about a
     black market that has been started by the criminal elements of the town. Nobody knows
