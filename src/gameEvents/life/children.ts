@@ -210,7 +210,7 @@ export const becomePregnantWithSpouse = createEvent.regular({
     to spend time, it might leave you with child as well!`,
   actions: [
     {
-      text: 'Who know?',
+      text: 'Who knows?',
       perform: compose(
         pregnancyChance,
         notify('Beds are not just for sleeping'),
@@ -228,7 +228,7 @@ export const spouseBecomesPregnant = createEvent.regular({
     to spend time, it might leave her with child as well!`,
   actions: [
     {
-      text: 'Who know?',
+      text: 'Who knows?',
       perform: compose(
         pregnancyChance,
         notify('Beds are not just for sleeping'),
