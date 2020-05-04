@@ -424,6 +424,7 @@ export const fundedCaravanFailure = createEvent.regular({
       text: 'Curses!',
       perform: compose(
         changeResource('renown', -10),
+        setCharacterFlag('fundedCaravan', false),
         notify('The caravan you have funded has returned, but has made a loss'),
       ),
     },
@@ -443,6 +444,7 @@ export const fundedCaravanSuccess = createEvent.regular({
       perform: compose(
         changeResource('renown', 10),
         changeResource('coin', 120),
+        setCharacterFlag('fundedCaravan', false),
         notify('The caravan you have funded has returned, and brought profits'),
       ),
     },
