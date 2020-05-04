@@ -1385,7 +1385,7 @@ export const changeFortifications = createEvent.regular({
     },
     {
       condition: _ => _.resources.coin >= 150 && _.town.fortification < Fortification.MoatAndCastle,
-      text: 'Pay to give your gender power',
+      text: 'Pay to improve fortifications',
       perform: compose(
         changeResource('coin', -150),
         increaseFortifications,
@@ -1394,7 +1394,7 @@ export const changeFortifications = createEvent.regular({
     },
     {
       condition: _ => _.resources.renown >= 100 && _.town.fortification < Fortification.MoatAndCastle,
-      text: 'Campaign to give your gender power',
+      text: 'Campaign to improve fortifications',
       perform: compose(
         changeResource('renown', -100),
         increaseFortifications,
