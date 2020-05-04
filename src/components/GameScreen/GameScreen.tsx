@@ -77,7 +77,10 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
                 ....;;.;.,,,......`
               }
             </div>
-            <TownDescription town={town} />
+            <TownDescription
+              className={styles.TownDescription}
+              town={town}
+            />
             <div className={styles.Actions}>
               <Button
                 className={styles.Action}

@@ -29,6 +29,10 @@
   flex-direction: row;
 }
 
+.TownDescription {
+  max-width: 760px;
+}
+
 .Sidebar {
   width: 320px;
   display: flex;
