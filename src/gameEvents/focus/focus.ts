@@ -1,14 +1,43 @@
-import { CharacterFlag, ClassEquality, Gender, Profession, ProfessionLevel, Prosperity } from 'types/state';
+import { banishment } from 'gameEvents/life/general';
+import {
+  CharacterFlag,
+  ClassEquality,
+  Fortification,
+  Gender,
+  GenderEquality,
+  Profession,
+  ProfessionLevel,
+  Prosperity,
+  Size,
+} from 'types/state';
+import { eventChain } from 'utils/eventChain';
 import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
-import { setCharacterFlag, pregnancyChance } from 'utils/setFlag';
-import { changeStat, removeLastChild, addSpouse } from 'utils/person';
-import { changeResource } from 'utils/resources';
-import { eventChain } from 'utils/eventChain';
-import { banishment } from 'gameEvents/life/general';
-import { isOppressed } from 'utils/rights';
+import {
+  addSpouse,
+  changeStat,
+  removeLastChild,
+} from 'utils/person';
 import { inIntRange } from 'utils/random';
+import { changeResource } from 'utils/resources';
+import {
+  pregnancyChance,
+  setCharacterFlag,
+} from 'utils/setFlag';
+import {
+  decreaseClassEquality,
+  decreaseFortifications,
+  decreaseProsperity,
+  decreaseSize,
+  equaliseGenderRights,
+  hasLimitedRights,
+  increaseClassEquality,
+  increaseFortifications,
+  increaseMyGenderRights,
+  increaseSize,
+  isOppressed,
+} from 'utils/town';
 
 export const FOCUS_PREFIX = 3_000;
 
@@ -117,7 +146,7 @@ export const chooseFocus = createEvent.regular({
       ),
     },
     {
-      condition: _ => _.resources.renown >= 100 || _.resources.coin >= 100,
+      condition: _ => !hasLimitedRights(_, _.character) || _.resources.renown >= 100 || _.resources.coin >= 100,
       text: 'Changing things around town',
       perform: compose(
         setFocusFlag('focusCity'),
@@ -1140,3 +1169,249 @@ export const randomDrinking = createEvent.regular({
     },
   ],
 });
+
+export const changeTownProsperity = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.focusCity!,
+  title: 'Influence town economy',
+  getText: _ => `You see a chance to modify the economy, the beating heart of this city, by making some wise
+    investments. You can use your coin or call on your fame`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 150 && _.town.prosperity > Prosperity.DirtPoor,
+      text: 'Pay to reduce the economy',
+      perform: compose(
+        changeResource('coin', -150),
+        decreaseProsperity,
+        notify('You paid off the lawmakers to weaken the economy. This wil make you less wealthy, but also less interesting prey')
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 100 && _.town.prosperity > Prosperity.DirtPoor,
+      text: 'Campaign to reduce the economy',
+      perform: compose(
+        changeResource('renown', -100),
+        decreaseProsperity,
+        notify('You campaigned the lawmakers to weaken the economy. This wil make you less wealthy, but also less interesting prey')
+      ),
+    },
+    {
+      condition: _ => _.resources.coin >= 150 && _.town.prosperity < Prosperity.Rich,
+      text: 'Pay to strengthen the economy',
+      perform: compose(
+        changeResource('coin', -150),
+        decreaseProsperity,
+        notify('You paid off the lawmakers to strengthen the economy. This wil make you more wealthy, but also more interesting prey')
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 100 && _.town.prosperity < Prosperity.Rich,
+      text: 'Campaign to strengthen the economy',
+      perform: compose(
+        changeResource('renown', -100),
+        decreaseProsperity,
+        notify('You campaigned the lawmakers to strengthen the economy. This wil make you more wealthy, but also more interesting prey')
+      ),
+    },
+    {
+      text: 'Never mind',
+    },
+  ],
+});
+
+export const changeTownSize = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.focusCity! && _.town.size > Size.Minuscule,
+  title: 'Influence town economy',
+  getText: _ => `You see a chance to influence the rate at which the area is settled. Larger cities are more powerful,
+    but also bait for raiders and for disease. You can use money or your influence to affect the change`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 150 && _.town.size > Size.Minuscule,
+      text: 'Pay to reduce the population',
+      perform: compose(
+        changeResource('coin', -150),
+        decreaseSize,
+        notify('You paid off the nobles to reduce the town size')
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 100 && _.town.size > Size.Minuscule,
+      text: 'Campaign to reduce the population',
+      perform: compose(
+        changeResource('renown', -100),
+        decreaseSize,
+        notify('You campaigned the nobles to reduce the town size')
+      ),
+    },
+    {
+      condition: _ => _.resources.coin >= 150 && _.town.size < Size.Huge,
+      text: 'Pay to increase the population',
+      perform: compose(
+        changeResource('coin', -150),
+        increaseSize,
+        notify('You paid off the nobles to increase the population')
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 100 && _.town.size < Size.Huge,
+      text: 'Campaign to increase the population',
+      perform: compose(
+        changeResource('renown', -100),
+        increaseSize,
+        notify('You campaigned the nobles to increase the population')
+      ),
+    },
+    {
+      text: 'Never mind',
+    },
+  ],
+});
+
+export const changeClassEquality = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.focusCity!,
+  title: 'Change class dynamic',
+  getText: _ => `You look at the class dynamics and you are not satisfied. Be it that the poor have too much or too little power,
+    something needs to change. You can use your wealth or your influence to change this`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 150 && _.town.equality > ClassEquality.GeneralSlavery,
+      text: 'Pay to give the rich power',
+      perform: compose(
+        changeResource('coin', -150),
+        decreaseClassEquality,
+        notify('You paid off the nobles to reduce the rights of the poor')
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 100 && _.town.equality > ClassEquality.GeneralSlavery,
+      text: 'Campaign to give the rich power',
+      perform: compose(
+        changeResource('renown', -100),
+        decreaseClassEquality,
+        notify('You campaigned the nobles to reduce the rights of the poor')
+      ),
+    },
+    {
+      condition: _ => _.resources.coin >= 150 && _.town.equality < ClassEquality.Equal,
+      text: 'Pay to give the poor power',
+      perform: compose(
+        changeResource('coin', -150),
+        increaseClassEquality,
+        notify('You paid off the nobles to increase the rights of the poor')
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 100 && _.town.equality < ClassEquality.Equal,
+      text: 'Campaign to give the poor power',
+      perform: compose(
+        changeResource('renown', -100),
+        increaseClassEquality,
+        notify('You campaigned the nobles to increase the rights of the poor')
+      ),
+    },
+    {
+      text: 'Never mind',
+    },
+  ],
+});
+
+export const changeGenderEquality = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.focusCity!,
+  title: 'Change gender dynamic',
+  getText: _ => `You look at the gender dynamics and you are not satisfied. Be it that ${_.character.gender === Gender.Male ? 'women' : 'men'} have
+    too much power, or too little, something needs to change.`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 150 && _.town.genderEquality !== GenderEquality.Equal,
+      text: 'Pay to equalise rights',
+      perform: compose(
+        changeResource('coin', -150),
+        equaliseGenderRights,
+        notify('You paid off the nobles to make the genders more equal')
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 100 && _.town.genderEquality !== GenderEquality.Equal,
+      text: 'Campaign to equalise rights',
+      perform: compose(
+        changeResource('renown', -100),
+        equaliseGenderRights,
+        notify('You campaigned the nobles to make the genders more equal')
+      ),
+    },
+    {
+      condition: _ => _.resources.coin >= 150,
+      text: 'Pay to give your gender power',
+      perform: compose(
+        changeResource('coin', -150),
+        increaseMyGenderRights,
+        notify('You paid off the nobles to give your gender more power')
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 100,
+      text: 'Campaign to give your gender power',
+      perform: compose(
+        changeResource('renown', -100),
+        increaseMyGenderRights,
+        notify('You campaigned the nobles to give your gender more power')
+      ),
+    },
+    {
+      text: 'Never mind',
+    },
+  ],
+});
+
+export const changeFortifications = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.focusCity!,
+  title: 'Change fortifications',
+  getText: _ => `The way the town is protected is not quite what you envisioned. Things need to change here. You could use your
+    wealth or your influence to make it so.`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 150 && _.town.fortification > Fortification.None,
+      text: 'Pay to tear down walls',
+      perform: compose(
+        changeResource('coin', -150),
+        decreaseFortifications,
+        notify('You paid off the nobles to tear down the town fortifications')
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 100 && _.town.fortification > Fortification.None,
+      text: 'Campaign to tear down walls',
+      perform: compose(
+        changeResource('renown', -100),
+        decreaseFortifications,
+        notify('You campaigned the nobles to tear down the town fortifications')
+      ),
+    },
+    {
+      condition: _ => _.resources.coin >= 150 && _.town.fortification < Fortification.MoatAndCastle,
+      text: 'Pay to give your gender power',
+      perform: compose(
+        changeResource('coin', -150),
+        increaseFortifications,
+        notify('You paid off the nobles to build up the town fortifications')
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 100 && _.town.fortification < Fortification.MoatAndCastle,
+      text: 'Campaign to give your gender power',
+      perform: compose(
+        changeResource('renown', -100),
+        increaseFortifications,
+        notify('You campaigned the nobles to build up the town fortifications')
+      ),
+    },
+    {
+      text: 'Never mind',
+    },
+  ],
+});
+

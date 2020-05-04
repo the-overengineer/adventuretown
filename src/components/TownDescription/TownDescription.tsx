@@ -73,8 +73,6 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
     switch (town.equality) {
       case ClassEquality.GeneralSlavery:
           return 'non-existant for all but a few, with fellow humans being kept as slaves and the poor having no say in government matters';
-      case ClassEquality.RacialSlavery:
-        return 'poor, with non-human races being kept as slaves, the poor having few rights, and all true power in the hands of a few';
       case ClassEquality.IncomeInequality:
         return 'about average for the region. None may be kept as slaves, but if you do not have wealth or status, you have few options in life';
       case ClassEquality.Stratified:

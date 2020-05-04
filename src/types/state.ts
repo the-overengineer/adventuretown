@@ -20,7 +20,6 @@ export enum Prosperity {
 
 export enum ClassEquality {
   GeneralSlavery,
-  RacialSlavery,
   IncomeInequality,
   Stratified,
   Equal,

@@ -9,7 +9,7 @@ import {
   Fortification,
   Gender,
 } from 'types/state';
-import { isOppressed, hasLimitedRights } from 'utils/rights';
+import { isOppressed, hasLimitedRights } from 'utils/town';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
 import { changeResource } from 'utils/resources';

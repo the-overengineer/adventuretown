@@ -4,7 +4,7 @@ import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
 import { createChild } from 'utils/person';
 import { changeResource } from 'utils/resources';
-import { isOppressed } from 'utils/rights';
+import { isOppressed } from 'utils/town';
 import {
   setCharacterFlag,
   setWorldFlag,

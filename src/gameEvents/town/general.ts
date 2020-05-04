@@ -1,37 +1,14 @@
 import { eventCreator } from 'utils/events';
-import { Prosperity, Size, GenderEquality, IGameState } from 'types/state';
+import { Prosperity, Size, GenderEquality } from 'types/state';
 import { compose } from 'utils/functional';
 import { setWorldFlag } from 'utils/setFlag';
 import { notify } from 'utils/message';
+import { equaliseGenderRights, increaseFemaleRights, increaseMaleRights } from 'utils/town';
 
 
 const TOWN_GENERAL_PREFIX: number = 71_000;
 
 const createEvent = eventCreator(TOWN_GENERAL_PREFIX);
-
-const equaliseGenderRights = (state: IGameState) => ({
-  ...state,
-  town: {
-    ...state.town,
-    genderEquality: state.town.genderEquality < GenderEquality.Equal ? state.town.genderEquality + 1 : state.town.genderEquality - 1,
-  },
-});
-
-const increaseMaleRights = (state: IGameState) => ({
-  ...state,
-  town: {
-    ...state.town,
-    genderEquality: state.town.genderEquality - 1,
-  },
-});
-
-const increaseFemaleRights = (state: IGameState) => ({
-  ...state,
-  town: {
-    ...state.town,
-    genderEquality: state.town.genderEquality + 1,
-  },
-});
 
 export const blackMarketStarted = createEvent.regular({
   meanTimeToHappen: 24 * 30,

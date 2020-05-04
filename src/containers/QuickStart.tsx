@@ -83,7 +83,7 @@ export class QuickStart extends React.PureComponent<IQuickStart, IQuickStartStat
       name: this.getName(),
       size: pickOne([Size.Tiny, Size.Small, Size.Modest]),
       prosperity: pickOne([Prosperity.Poor, Prosperity.Decent, Prosperity.Average]),
-      equality: pickOne([ClassEquality.GeneralSlavery, ClassEquality.IncomeInequality, ClassEquality.RacialSlavery, ClassEquality.Stratified]),
+      equality: pickOne([ClassEquality.GeneralSlavery, ClassEquality.IncomeInequality, ClassEquality.Stratified]),
       genderEquality: pickOne([GenderEquality.FemaleDominance, GenderEquality.Equal, GenderEquality.MaleDominance]),
       fortification: pickOne([Fortification.None, Fortification.Ditch, Fortification.Palisade]),
     };
