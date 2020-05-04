@@ -51,7 +51,7 @@ export const updateActiveEvent = (state: IGameState): IGameState => {
       ? 1
       : (1 - Math.pow(2, -1 * (state.daysPassed - event.queuedAtDay) / event.meanTimeToHappen));
 
-    if (event.meanTimeToHappen === 0 || (daysSince % CHECK_HOW_OFTEN === 0 && Math.random() <= chanceToHappen)) {
+    if (event.meanTimeToHappen === 0 || (daysSince % Math.min(CHECK_HOW_OFTEN, event.meanTimeToHappen) === 0 && Math.random() <= chanceToHappen)) {
       return {
         ...state,
         eventQueue: state.eventQueue.filter((it) => it.id !== event.id),
