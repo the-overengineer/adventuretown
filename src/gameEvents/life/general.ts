@@ -207,8 +207,8 @@ export const sicknessDifficultRecovery = createEvent.triggered({
 
 export const sickness = createEvent.regular({
   meanTimeToHappen: 3 * 30,
-  condition: _ => _.characterFlags.sickness !== true
-    && (_.character.physical < 2 || _.worldFlags.sickness === true),
+  condition: _ => !_.characterFlags.sickness
+    && (_.character.physical < 2 || _.worldFlags.sickness!),
   title: 'Sick!',
   getText: _ => `In the morning, you barely get out of bed. Everything hurts, you feel tired,
     and you are coughing. You don't remember when you have last felt this ill.`,
