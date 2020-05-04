@@ -1214,7 +1214,7 @@ export const changeTownProsperity = createEvent.regular({
 export const changeTownSize = createEvent.regular({
   meanTimeToHappen: 365,
   condition: _ => _.characterFlags.focusCity! && _.town.size > Size.Minuscule,
-  title: 'Influence town economy',
+  title: 'Influence town size',
   getText: _ => `You see a chance to influence the rate at which the area is settled. Larger cities are more powerful,
     but also bait for raiders and for disease. You can use money or your influence to affect the change`,
   actions: [
