@@ -16,7 +16,6 @@ import { Person } from 'components/Person/Person';
 import { TownDescription } from 'components/TownDescription/TownDescription';
 import { Button } from 'components/Button/Button';
 import { IEventVM, Event as EventPopup } from 'components/Event/Event';
-import { Fade } from 'components/Fade/Fade';
 import { chooseFocus } from 'gameEvents/focus/focus';
 import { goOnAdventure } from 'gameEvents/adventure/adventure';
 import { changeCurrentJob, seekJob } from 'gameEvents/job/general';
@@ -67,9 +66,7 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
           onReset={onReset}
         />
         <main className={styles.Mat}>
-          <Fade in={event != null}>
-            <EventPopup event={event} />
-          </Fade>
+          { event != null ? <EventPopup event={event} /> : null }
           <div className={styles.Screen}>
             <div className={styles.TownAscii}>
               {/* TODO Actual ASCII art of the town */}

@@ -6,6 +6,7 @@ import React from 'react';
 import { Button } from 'components/Button/Button';
 
 import styles from './Event.module.css';
+import { Fade } from 'components/Fade/Fade';
 
 export interface IEventActionVM {
   text: string;
@@ -21,7 +22,7 @@ export interface IEventVM {
 
 interface IEvent {
   className?: string;
-  event?: IEventVM;
+  event: IEventVM;
 }
 
 export class Event extends React.PureComponent<IEvent> {
@@ -34,27 +35,29 @@ export class Event extends React.PureComponent<IEvent> {
 
     return (
       <div className={styles.Backdrop} onClick={(e) => e.preventDefault()}>
-        <div className={classNames(styles.Event, className)}>
-          <div className={styles.Title}>{event.title}</div>
-          <div className={styles.Description}>
-            {event.text}
+        <Fade in>
+          <div className={classNames(styles.Event, className)}>
+            <div className={styles.Title}>{event.title}</div>
+            <div className={styles.Description}>
+              {event.text}
+            </div>
+            <div className={styles.Actions}>
+              {
+                event.actions.map((action, index) => (
+                  <Button
+                    key={index}
+                    wide
+                    disabled={action.disabled}
+                    className={styles.Action}
+                    onClick={action.onClick}
+                  >
+                    {action.text}
+                  </Button>
+                ))
+              }
+            </div>
           </div>
-          <div className={styles.Actions}>
-            {
-              event.actions.map((action, index) => (
-                <Button
-                  key={index}
-                  wide
-                  disabled={action.disabled}
-                  className={styles.Action}
-                  onClick={action.onClick}
-                >
-                  {action.text}
-                </Button>
-              ))
-            }
-          </div>
-        </div>
+        </Fade>
       </div>
     );
   }
