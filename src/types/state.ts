@@ -83,6 +83,11 @@ export type CharacterFlag =
   | 'friendsInHighPlaces'
   | 'tookBribe'
   | 'lover'
+  | 'sickness'
+  | 'djinnFound'
+  | 'fundedCaravan'
+  | 'criminalActivity'
+  | 'gardener'
   ;
 
 export type WorldFlag =
@@ -90,6 +95,8 @@ export type WorldFlag =
   | 'pregnantLoverKnown'
   | 'spousePregnant'
   | 'spousePregnantDiscovered'
+  | 'sickness'
+  | 'blackMarket'
   ;
 
 export interface IUserSettings {

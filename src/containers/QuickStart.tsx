@@ -12,6 +12,7 @@ import {
 import { pickOne } from 'utils/random';
 import styles from './QuickStart.module.css';
 import { Fade } from 'components/Fade/Fade';
+import { events } from 'gameEvents';
 
 interface IQuickStart {
   onSetTown: (town: ITownSettings) => void;
@@ -58,6 +59,11 @@ export class QuickStart extends React.PureComponent<IQuickStart, IQuickStartStat
               <p>
                 Please note that this game contains mature themes relating to death, violence, slavery, rape, and others.
                 Play it at your own risk.
+              </p>
+              <p>
+                The game is based on series of events (currently {events.length} events in the game). The player's choices,
+                as well as luck, determine how they fare in the world. Most of the game is passive, with the player only able
+                to influence which events will fire in the future.
               </p>
             </div>
             <Button

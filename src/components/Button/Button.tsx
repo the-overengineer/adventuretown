@@ -17,7 +17,7 @@ export const Button: React.FC<IButton> = ({ className, children, disabled, title
     disabled={disabled}
     type='button'
     title={title}
-    onClick={onClick}
+    onClick={disabled ? undefined : onClick}
   >
     {children}
   </button>

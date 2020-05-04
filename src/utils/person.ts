@@ -38,3 +38,52 @@ export const changeStat = (stat: Stat, by: number) => (state: IGameState): IGame
     [stat]: Math.max(0, Math.min(10, state.character[stat] + by)),
   },
 });
+
+export const removeLastChild = (state: IGameState): IGameState => ({
+  ...state,
+  relationships: {
+    ...state.relationships,
+    children: state.relationships.children.slice(0, state.relationships.children.length - 1),
+  },
+});
+
+export const newCharacter = (state: IGameState): IGameState => ({
+  ...state,
+  character: undefined as any,
+  characterFlags: {},
+  resources: {
+    coin: 0,
+    food: 0,
+    renown: 0,
+  },
+  relationships: {
+    children: [],
+  },
+});
+
+export const eldestInherits = (keepResources: boolean = true) => (state: IGameState): IGameState => {
+  const eldest = state.relationships.children[0];
+  const resources = {
+    coin: keepResources ? state.resources.coin : 0,
+    food: keepResources ? state.resources.food : 0,
+    renown: Math.floor(state.resources.renown / 2), // keep half the fame of your parent
+  };
+
+  return {
+    ...state,
+    character: eldest,
+    characterFlags: {},
+    relationships: {
+      children: [],
+    },
+    resources,
+  };
+};
+
+export const addSpouse = (state: IGameState): IGameState => ({
+  ...state,
+  relationships: {
+    ...state.relationships,
+    spouse: generateCharacter(state.daysPassed - 18 * 365, state.character.gender === Gender.Male ? Gender.Female : Gender.Male),
+  },
+});

@@ -6,8 +6,21 @@ interface IEventWithWeight {
   weight: number;
   condition?: (state: IGameState) => boolean;
 }
-export const eventChain = (events: IEventWithWeight[]) => (state: IGameState): IGameState => {
-  const possibleEvents = events.filter((it) => it.condition == null || it.condition(state));
+export const eventChain = (events: IEventWithWeight[] | ID) => (state: IGameState): IGameState => {
+  if (typeof events === 'number') {
+    const queuedEvent: IQueuedEvent = {
+      id: events,
+      meanTimeToHappen: 0,
+      queuedAtDay: state.daysPassed,
+    };
+
+    return {
+      ...state,
+      eventQueue: [queuedEvent, ...state.eventQueue],
+    };
+  }
+
+  const possibleEvents = (events as IEventWithWeight[]).filter((it) => it.condition == null || it.condition(state));
 
   if (possibleEvents.length === 0) {
     return state;

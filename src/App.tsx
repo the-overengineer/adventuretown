@@ -119,6 +119,7 @@ export class App extends React.PureComponent<{}, IAppState> {
         <Fade in={town != null && character == null}>
           <CharacterCreator
             townName={town?.name ?? 'Your town'}
+            currentDay={daysPassed}
             onSetCharacter={this.onSetCharacter}
             prependMessage={this.prependMessage}
           />

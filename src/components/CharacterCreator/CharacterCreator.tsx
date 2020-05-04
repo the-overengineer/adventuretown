@@ -16,6 +16,7 @@ import styles from './CharacterCreator.module.css';
 interface ICharacterCreator {
   className?: string;
   townName: string;
+  currentDay: number;
   onSetCharacter: (character: ICharacter) => void;
   prependMessage: (message: string) => void;
 }
@@ -31,7 +32,7 @@ const genderOptions: Gender[] = [Gender.Female, Gender.Male];
 export class CharacterCreator extends React.PureComponent<ICharacterCreator, ICharacterCreatorState> {
   public state: ICharacterCreatorState = {
     character: {
-      dayOfBirth: -18 * 365, // First character was born 18 years before game start
+      dayOfBirth: this.props.currentDay - 18 * 365, // First character was born 18 years before game start
     },
   };
 

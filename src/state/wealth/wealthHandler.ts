@@ -2,9 +2,12 @@ import {
   IGameState,
   Profession,
   ProfessionLevel,
+  StateTransformer,
 } from 'types/state';
 
 import { getProfessionMap } from 'utils/employment';
+import { changeFinance } from 'utils/resources';
+import { compose } from 'utils/functional';
 
 const coinsFromProfession = getProfessionMap({
   [Profession.BarWorker]: {
@@ -109,4 +112,11 @@ export const updateWealth = (state: IGameState): IGameState => ({
     food: Math.max(0, state.resources.food + state.finances.foodIncome - state.finances.foodExpenses),
     renown: Math.max(0, state.resources.renown + state.finances.renownIncome - state.finances.renownExpenses),
   },
-})
+});
+
+export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState => compose(...[
+  state.characterFlags.criminalActivity ? changeFinance('coinIncome', 1) : undefined,
+  state.characterFlags.focusFun ? changeFinance('coinExpenses', 1) : undefined,
+  state.characterFlags.focusFun ? changeFinance('renownIncome', 1) : undefined,
+  state.characterFlags.gardener ? changeFinance('foodIncome', 1) : undefined,
+].filter(_ => _ != null) as StateTransformer[])(state);
