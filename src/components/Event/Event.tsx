@@ -26,6 +26,14 @@ interface IEvent {
 }
 
 export class Event extends React.PureComponent<IEvent> {
+  public componentDidMount() {
+    document.title = `*${document.title}`;
+  }
+
+  public componentWillUnmount() {
+    document.title = document.title.replace('*', '');
+  }
+
   public render() {
     const { className, event } = this.props;
 
