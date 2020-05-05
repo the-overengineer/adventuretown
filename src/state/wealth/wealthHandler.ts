@@ -102,7 +102,7 @@ const getSpouseFoodConsumption = (state: IGameState): number =>
 const getTax = (state: IGameState, income: number): number => {
   switch (state.town.taxation) {
     case Taxation.Flat:
-      return income > 1 ? 1 : 0;
+      return 1;
     case Taxation.Percentage:
       return Math.floor(income / 2);
     default:
