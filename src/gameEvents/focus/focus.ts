@@ -539,9 +539,9 @@ export const startBlackMarket = createEvent.regular({
   ],
 });
 
-export const almostCaughtBlackMarker = createEvent.regular({
+export const almostCaughtBlackMarket = createEvent.regular({
   meanTimeToHappen: 6 * 30,
-  condition: _ => _.characterFlags.criminalActivity!,
+  condition: _ => _.characterFlags.criminalActivity! && _.worldFlags.townGuard!,
   title: 'Almost caught!',
   getText: _ => `The guards came around your house asking questions. It seems that they might be onto your criminal activities,
     but apparently they can't prove anything. Is this risk worth it?`,
@@ -613,7 +613,7 @@ export const blameSpouseForCrime = createEvent.triggered({
 
 export const caughtBlackMarket = createEvent.regular({
   meanTimeToHappen: 12 * 30,
-  condition: _ => _.characterFlags.criminalActivity!,
+  condition: _ => _.characterFlags.criminalActivity! && _.worldFlags.townGuard!,
   title: 'Imprisoned!',
   getText: _ => `Your dealings with the black market have been discovered. You are woken up by guards in the middle of the night,
     dragged into the dungeons, and left there. In the morning, you are informed of the case against you. It is almost ironclad.
