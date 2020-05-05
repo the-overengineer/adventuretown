@@ -103,7 +103,7 @@ export const verminFound = createEvent.regular({
       condition: _ => _.character.physical >= 2,
       text: 'Chase the vermin down yourself',
       perform:  triggerEvent(verminFightFailure).withWeight(3)
-        .orTrigger(verminPoisonSuccess).multiplyByFactor(4, _ => _.character.physical >= 5)
+        .orTrigger(verminFightSuccess).multiplyByFactor(4, _ => _.character.physical >= 5)
         .toTransformer(),
     },
     {

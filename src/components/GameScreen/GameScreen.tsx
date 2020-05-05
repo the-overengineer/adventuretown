@@ -22,6 +22,19 @@ import { chooseFocus } from 'gameEvents/focus/focus';
 import { goOnAdventure } from 'gameEvents/adventure/adventure';
 import { changeCurrentJob, seekJob } from 'gameEvents/job/general';
 
+const asciiTown: string = `
+~         ~~          __
+     _T      .,,.    ~--~ ^^
+^^   // \\                    ~
+     ][O]    ^^      ,-~ ~
+ /''-I_I         _II____
+__/_  /   \\ ______/ ''   /'\\_,__
+| II--'''' \\,--:--..,_/,.-{ },
+; '/__\\,.--';|   |[] .-.| O{ _ }
+:' |  | []  -|   ''--:.;[,.'\\,/
+'  |[]|,.--'' '',   ''-,.    |
+..    ..-''    ;       ''. '`
+
 interface IGameScreen {
   className?: string;
   event?: IEventVM;
@@ -78,13 +91,7 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
           { event != null ? <EventPopup event={event} /> : null }
           <div className={styles.Screen}>
             <div className={styles.TownAscii}>
-              {/* TODO Actual ASCII art of the town */}
-              {
-                `.................
-                ......@@@........
-                ....^^^@@^.......
-                ....;;.;.,,,......`
-              }
+              {asciiTown}
             </div>
             <TownDescription
               className={styles.TownDescription}
