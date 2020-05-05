@@ -73,7 +73,7 @@ export const decreaseSize = (state: IGameState): IGameState => ({
   ...state,
   town: {
     ...state.town,
-    size: Math.max(Size.Tiny, state.town.size - 1),
+    size: Math.max(Size.Minuscule, state.town.size - 1),
   },
 });
 

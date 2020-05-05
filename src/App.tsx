@@ -175,7 +175,7 @@ export class App extends React.PureComponent<{}, IAppState> {
     this.setState({ character, isRunning: true });
 
   private prependMessage = (message: string) =>
-    this.setState({ messages: prependMessage(this.state.messages, message )})
+    this.setState({ messages: prependMessage(this.state.messages, message )});
 
   private handleTick = () => {
     if (this.state.town != null && this.state.character != null && this.state.isRunning) {

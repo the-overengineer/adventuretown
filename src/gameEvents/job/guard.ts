@@ -2,7 +2,7 @@ import { Profession, ProfessionLevel } from 'types/state';
 import { compose } from 'utils/functional';
 import { changeResource } from 'utils/resources';
 import { notify } from 'utils/message';
-import { eventChain } from 'utils/eventChain';
+import { triggerEvent } from 'utils/eventChain';
 import { changeStat } from 'utils/person';
 import { eventCreator } from 'utils/events';
 import { setCharacterFlag } from 'utils/setFlag';
@@ -150,11 +150,11 @@ export const theftInvestigationThiefCaught = createEvent.triggered({
     },
     {
       text: 'Release them and investigate more',
-      perform: eventChain([
-        { id: theftInvestigationDeadEnd.id, weight: 2 },
-        { id: theftInvestigationInsideJob.id, weight: 1, condition: _ => _.character.intelligence >= 4 },
-        { id: theftInvestigationInsideJob.id, weight: 1, condition: _ => _.character.intelligence >= 6 },
-      ]),
+      perform: triggerEvent(theftInvestigationDeadEnd).withWeight(2)
+        .orTrigger(theftInvestigationInsideJob)
+          .onlyWhen(_ => _.character.intelligence >= 4 || _.character.charm >= 4)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 6 || _.character.charm >= 6)
+        .toTransformer(),
     },
   ],
 });
@@ -169,12 +169,12 @@ export const theftInvestigation = createEvent.regular({
   actions: [
     {
       text: 'Investigate',
-      perform: eventChain([
-        { id: theftInvestigationDeadEnd.id, weight: 1 },
-        { id: theftInvestigationInsideJob.id, weight: 1, condition: _ => _.character.intelligence >= 3 || _.character.charm >= 3 },
-        { id: theftInvestigationThiefCaught.id, weight: 2, condition: _ => _.character.intelligence >= 3 || _.character.charm >= 3 },
-        { id: theftInvestigationInsideJob.id, weight: 2, condition: _ => _.character.intelligence >= 6 || _.character.charm >= 6 },
-      ]),
+      perform: triggerEvent(theftInvestigationDeadEnd)
+        .orTrigger(theftInvestigationThiefCaught).onlyWhen(_ => _.character.intelligence >= 3 || _.character.charm >= 3)
+        .orTrigger(theftInvestigationInsideJob)
+          .onlyWhen(_ => _.character.intelligence >= 4 || _.character.charm >= 4)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 6 || _.character.charm >= 6)
+        .toTransformer(),
     },
   ],
 });

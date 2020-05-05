@@ -4,7 +4,7 @@ import { compose } from 'utils/functional';
 import { setWorldFlag } from 'utils/setFlag';
 import { decreaseFortifications } from 'utils/town';
 import { removeRandomChild, removeSpouse, changeStat } from 'utils/person';
-import { eventChain } from 'utils/eventChain';
+import { triggerEvent } from 'utils/eventChain';
 import { death } from 'gameEvents/life/general';
 import { changeResource } from 'utils/resources';
 import { Fortification, Prosperity } from 'types/state';
@@ -142,7 +142,7 @@ export const orcsKillYou = createEvent.triggered({
   actions: [
     {
       text: 'Arghh',
-      perform: eventChain(death.id),
+      perform: triggerEvent(death).toTransformer(),
     },
   ],
 });
@@ -154,15 +154,13 @@ export const orcsWinRaiding = createEvent.triggered({
   actions: [
     {
       text: 'Try to survive',
-      perform: eventChain([
-        { id: orcsTakeChild.id, weight: 2, condition: _ => _.relationships.children.length > 0 },
-        { id: orcsKillSpouse.id, weight: 2, condition: _ => _.relationships.spouse != null },
-        { id: orcsWoundYou.id, weight: 4 },
-        { id: killedSomeOrcs.id, weight: 1, condition: _ => _.character.physical >= 3 },
-        { id: killedSomeOrcs.id, weight: 2, condition: _ => _.character.physical >= 6 },
-        { id: orcsRobYou.id, weight: 4 },
-        { id: orcsKillYou.id, weight: 1, condition: _ => _.character.physical < 6 },
-      ]),
+      perform: triggerEvent(orcsTakeChild).withWeight(2).onlyWhen(_ => _.relationships.children.length > 0)
+        .orTrigger(orcsKillSpouse).withWeight(2).onlyWhen(_ => _.relationships.spouse != null)
+        .orTrigger(orcsWoundYou).withWeight(4)
+        .orTrigger(killedSomeOrcs).withWeight(1).onlyWhen(_ => _.character.physical >= 3).multiplyByFactor(3, _ => _.character.physical >= 6)
+        .orTrigger(orcsRobYou).withWeight(4)
+        .orTrigger(orcsKillYou).withWeight(1).onlyWhen(_ => _.character.physical < 6)
+        .toTransformer(),
     },
   ],
 });
@@ -177,20 +175,16 @@ export const orcsAttack = createEvent.regular({
     {
       condition: _ => _.worldFlags.adventurerKeep! || _.worldFlags.townGuard!,
       text: 'This town has defenders',
-      perform: eventChain([
-        { id: orcsPushedBack.id, weight: 2 },
-        { id: orcsDefeated.id, weight: 1 },
-        { id: orcsPushedBack.id, weight: 2, condition: _ => _.worldFlags.adventurerKeep! },
-        { id: orcsDefeated.id, weight: 2, condition: _ => _.worldFlags.adventurerKeep! },
-        { id: orcsWreckDefences.id, weight: 1, condition: _ => _.town.fortification > Fortification.None },
-        { id: orcsWinRaiding.id, weight: 1 },
-        { id: orcsWinRaiding.id, weight: 1, condition: _ => _.town.fortification < Fortification.Walls },
-      ]),
+      perform: triggerEvent(orcsPushedBack).withWeight(2).multiplyByFactor(2, _ => _.worldFlags.adventurerKeep!)
+        .orTrigger(orcsDefeated).withWeight(1).multiplyByFactor(2, _ => _.worldFlags.adventurerKeep!)
+        .orTrigger(orcsWreckDefences).withWeight(1).onlyWhen(_ => _.town.fortification > Fortification.None)
+        .orTrigger(orcsWinRaiding).withWeight(1).multiplyByFactor(2, _ => _.town.fortification < Fortification.Walls)
+        .toTransformer(),
     },
     {
       condition: _ => !_.worldFlags.adventurerKeep && !_.worldFlags.townGuard,
       text: 'We are doomed!',
-      perform: eventChain(orcsWinRaiding.id),
+      perform: triggerEvent(orcsWinRaiding).toTransformer(),
     },
   ],
 });

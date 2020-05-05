@@ -13,7 +13,7 @@ import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
 import { changeResource } from 'utils/resources';
 import { pregnancyChance } from 'utils/setFlag';
-import { eventChain } from 'utils/eventChain';
+import { triggerEvent } from 'utils/eventChain';
 import { startJob, setLevel, removeJob } from 'utils/person';
 
 export const JOB_PREFIX = 1_000;
@@ -248,20 +248,19 @@ export const firedEntry: IEvent = {
     {
       condition: _ => _.character.charm > 3,
       text: '"I will do ANYTHING to keep this job"',
-      perform: eventChain([
-        { id: anythingToKeepTheJobFailure.id, weight: 2 },
-        { id: anythingToKeepTheJobSuccess.id, weight: 4 },
-        { id: anythingToKeepTheJobSuccess.id, weight: 4, condition: _ => _.character.charm > 5 },
-      ])
+      perform: triggerEvent(anythingToKeepTheJobFailure).withWeight(1)
+        .orTrigger(anythingToKeepTheJobSuccess).withWeight(2).multiplyByFactor(2, _ => _.character.charm > 5)
+        .toTransformer(),
     },
     {
       condition: _ => _.resources.renown >= 50 || _.characterFlags.friendsInHighPlaces!,
       text: '"Fire ME?! Do you know who I am?!"',
-      perform: eventChain([
-        { id: doYouKnowWhoIAmFailure.id, weight: 3 },
-        { id: doYouKnowWhoIAmSuccess.id, weight: 2 },
-        { id: doYouKnowWhoIAmSuccess.id, weight: 5, condition: _ => _.resources.renown >= 200 || _.characterFlags.friendsInHighPlaces! },
-      ]),
+      perform: triggerEvent(doYouKnowWhoIAmFailure).withWeight(3)
+        .orTrigger(doYouKnowWhoIAmSuccess).withWeight(2)
+          .multiplyByFactor(2, _ => _.resources.renown >= 100)
+          .multiplyByFactor(2, _ => _.resources.renown >= 250)
+          .multiplyByFactor(2, _ => _.characterFlags.friendsInHighPlaces!)
+        .toTransformer(),
     },
     {
       text: `I didn't want this job, anyway`,

@@ -1,6 +1,6 @@
 import { eventCreator } from 'utils/events';
 import { ClassEquality, Gender, Size } from 'types/state';
-import { eventChain } from 'utils/eventChain';
+import { triggerEvent } from 'utils/eventChain';
 import { compose } from 'utils/functional';
 import { changeResource } from 'utils/resources';
 import { notify } from 'utils/message';
@@ -75,7 +75,7 @@ export const noMoney = createEvent.regular({
   actions: [
     {
       text: 'Give up on life',
-      perform: eventChain(death.id),
+      perform: triggerEvent(death).toTransformer(),
     },
     {
       condition: _ => _.resources.food >= 30,
@@ -124,7 +124,7 @@ export const noFood = createEvent.regular({
     },
     {
       text: 'Give up on life',
-      perform: eventChain(death.id),
+      perform: triggerEvent(death).toTransformer(),
     },
     {
       condition: _ => _.resources.coin >= 20,
@@ -227,24 +227,18 @@ export const sickness = createEvent.regular({
       perform: compose(
         changeResource('coin', -25),
         notify('You buy herbs, hoping to help your recovery'),
-        eventChain([
-          { id: death.id, weight: 1 },
-          { id: sicknessDifficultRecovery.id, weight: 2 },
-          { id: sicknessFullRecovery.id, weight: 3 },
-          { id: sicknessDifficultRecovery.id, weight: 2, condition: _ => _.character.physical >= 6 },
-          { id: sicknessFullRecovery.id, weight: 3, condition: _ => _.character.physical >= 6 },
-        ]),
+        triggerEvent(death)
+          .orTrigger(sicknessDifficultRecovery).withWeight(3).multiplyByFactor(2, _ => _.character.physical >= 6)
+          .orTrigger(sicknessFullRecovery).withWeight(3).multiplyByFactor(2, _ => _.character.physical >= 6)
+          .toTransformer(),
       ),
     },
     {
       text: 'Walk it off',
-      perform: eventChain([
-        { id: death.id, weight: 1 },
-        { id: sicknessDifficultRecovery.id, weight: 1 },
-        { id: sicknessFullRecovery.id, weight: 1 },
-        { id: sicknessDifficultRecovery.id, weight: 1, condition: _ => _.character.physical >= 6 },
-        { id: sicknessFullRecovery.id, weight: 1, condition: _ => _.character.physical >= 6 },
-      ]),
+      perform: triggerEvent(death)
+        .orTrigger(sicknessDifficultRecovery).multiplyByFactor(2, _ => _.character.physical >= 6)
+        .orTrigger(sicknessFullRecovery).multiplyByFactor(2, _ => _.character.physical >= 6)
+        .toTransformer(),
     },
   ],
 });
@@ -390,39 +384,39 @@ export const djinnFound = createEvent.regular({
     {
       condition: _ => _.character.physical < 10,
       text: 'Wish for strength',
-      perform: eventChain(wishStrength.id),
+      perform: triggerEvent(wishStrength).toTransformer(),
     },
     {
       condition: _ => _.character.intelligence < 10,
       text: 'Wish for cunning',
-      perform: eventChain(wishIntelligence.id),
+      perform: triggerEvent(wishIntelligence).toTransformer(),
     },
     {
       condition: _ => _.character.education < 10,
       text: 'Wish for knowledge',
-      perform: eventChain(wishEducation.id),
+      perform: triggerEvent(wishEducation).toTransformer(),
     },
     {
       condition: _ => _.character.charm < 10,
       text: 'Wish for beauty and charm',
-      perform: eventChain(wishCharm.id),
+      perform: triggerEvent(wishCharm).toTransformer(),
     },
     {
       text: 'Wish for wealth',
-      perform: eventChain(wishCoin.id),
+      perform: triggerEvent(wishCoin).toTransformer(),
     },
     {
       text: 'Wish for fame',
-      perform: eventChain(wishFame.id),
+      perform: triggerEvent(wishFame).toTransformer(),
     },
     {
       condition: _ => _.relationships.spouse == null,
       text: 'Wish for love',
-      perform: eventChain(wishLove.id),
+      perform: triggerEvent(wishLove).toTransformer(),
     },
     {
       text: 'Wish to change your gender',
-      perform: eventChain(wishGenderChange.id),
+      perform: triggerEvent(wishGenderChange).toTransformer(),
     },
   ],
 });
@@ -435,13 +429,13 @@ export const deathOfOldAge = createEvent.regular({
   actions: [
     {
       text: 'It was a good life',
-      perform: eventChain(death.id),
+      perform: triggerEvent(death).toTransformer(),
     },
   ],
 });
 
 export const scandal = createEvent.regular({
-  meanTimeToHappen: 2 * 365,
+  meanTimeToHappen: 3 * 365,
   condition: _ => _.character.profession != null && _.resources.renown >= 50,
   title: 'Scandal at work!',
   getText: _ => `A bit of a mess happened in your place of business, and somehow you were the
@@ -621,10 +615,7 @@ export const cheatingDiscovered = createEvent.regular({
       text: 'Leave your lover and beg forgiveness',
       perform: compose(
         setCharacterFlag('lover', false),
-        eventChain([
-          { id: spouseDivorcesYou.id, weight: 1 },
-          { id: spouseForgivesYou.id, weight: 1 },
-        ]),
+        triggerEvent(spouseDivorcesYou).orTrigger(spouseForgivesYou).toTransformer(),
       ),
     },
     {

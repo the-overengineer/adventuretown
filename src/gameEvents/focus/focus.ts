@@ -10,7 +10,7 @@ import {
   Prosperity,
   Size,
 } from 'types/state';
-import { eventChain } from 'utils/eventChain';
+import { triggerEvent } from 'utils/eventChain';
 import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
@@ -591,7 +591,7 @@ export const lostCourtCase = createEvent.triggered({
     },
     {
       text: 'Accept banishment',
-      perform: eventChain(banishment.id),
+      perform: triggerEvent(banishment).toTransformer(),
     },
   ],
 });
@@ -623,11 +623,9 @@ export const caughtBlackMarket = createEvent.regular({
     {
       condition: _ => _.character.charm >= 3,
       text: 'Defend myself in court',
-      perform: eventChain([
-        { id: lostCourtCase.id, weight: 3 },
-        { id: wonCourtCase.id, weight: 1 },
-        { id: wonCourtCase.id, weight: 2, condition: _ => _.character.charm >= 6 },
-      ])
+      perform: triggerEvent(lostCourtCase).withWeight(3)
+        .orTrigger(wonCourtCase).withWeight(1).multiplyByFactor(3, _ => _.character.charm >= 3)
+        .toTransformer()
     },
     {
       condition: _ => _.resources.coin >= 200,
@@ -640,7 +638,7 @@ export const caughtBlackMarket = createEvent.regular({
     },
     {
       text: 'Accept banishment',
-      perform: eventChain(banishment.id),
+      perform: triggerEvent(banishment).toTransformer(),
     },
   ],
 });
@@ -773,18 +771,16 @@ export const hiringABard = createEvent.regular({
     {
       condition: _ => _.resources.coin >= 20,
       text: 'Pay a little',
-      perform: eventChain([
-        { id: hiringBardSuccess.id, weight: 1 },
-        { id: hiringBardFailure.id, weight: 3 },
-      ]),
+      perform: triggerEvent(hiringBardFailure).withWeight(3)
+        .orTrigger(hiringBardSuccess)
+        .toTransformer(),
     },
     {
       condition: _ => _.resources.coin >= 50,
       text: 'Pay more',
-      perform: eventChain([
-        { id: hiringBardFailure.id, weight: 1},
-        { id: hiringBardSuccess.id, weight: 3 },
-      ]),
+      perform: triggerEvent(hiringBardFailure)
+        .orTrigger(hiringBardSuccess).withWeight(3)
+        .toTransformer(),
     },
     {
       text: `Can't trust a bard`,
@@ -833,11 +829,11 @@ export const attemptedPoetry = createEvent.regular({
     },
     {
       text: `Start writing`,
-      perform: eventChain([
-        { id: terriblePoetry.id, weight: 1 },
-        { id: becomesPoet.id, weight: 1 },
-        { id: becomesPoet.id, weight: 3, condition: _ => _.character.intelligence >= 5 || _.character.education >= 5 },
-      ]),
+      perform: triggerEvent(terriblePoetry)
+        .orTrigger(becomesPoet)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 5)
+          .multiplyByFactor(2, _ => _.character.education >= 5)
+        .toTransformer()
     },
   ],
 });
@@ -906,11 +902,13 @@ export const potentialSpouse = createEvent.regular({
     },
     {
       text: 'Propose',
-      perform: eventChain([
-        { id: proposalRejected.id, weight: 1 },
-        { id: proposalAccepted.id, weight: 2 },
-        { id: proposalAccepted.id, weight: 2, condition: _ => _.character.charm >= 5 || _.resources.coin >= 100 || _.resources.renown >= 100 },
-      ]),
+      perform: triggerEvent(proposalRejected)
+        .orTrigger(proposalAccepted)
+          .withWeight(1)
+          .multiplyByFactor(2, _ => _.character.charm >= 5 )
+          .multiplyByFactor(2, _ => _.resources.coin >= 100)
+          .multiplyByFactor(2, _ => _.resources.renown >= 100)
+        .toTransformer(),
     }
   ]
 });
@@ -1153,17 +1151,16 @@ export const randomDrinking = createEvent.regular({
     },
     {
       text: 'Investigate',
-      perform: eventChain([
-        { id: randomBoughtFood.id, weight: 1 },
-        { id: randomBurnDownGuildHall.id, weight: 1, condition: _ => _.town.prosperity >= Prosperity.Decent },
-        { id: randomCouncilCandidate.id, weight: 1, condition: _ => !isOppressed(_, _.character), },
-        { id: randomCouncilMember.id, weight: 1, condition: _ => !isOppressed(_, _.character) },
-        { id: randomFired.id, weight: 1, condition: _ => _.character.profession != null },
-        { id: randomGotMoney.id, weight: 1 },
-        { id: randomNothing.id, weight: 1 },
-        { id: randomRelationsWithAGoat.id, weight: 1 },
-        { id: randomSoldSpouse.id, weight: 1, condition: _ => !isOppressed(_, _.character) && _.town.equality === ClassEquality.GeneralSlavery && _.relationships.spouse != null },
-      ]),
+      perform: triggerEvent(randomBoughtFood)
+        .orTrigger(randomBurnDownGuildHall).onlyWhen(_ => _.town.prosperity >= Prosperity.Decent)
+        .orTrigger(randomCouncilCandidate).onlyWhen(_ => !isOppressed(_, _.character))
+        .orTrigger(randomCouncilMember).onlyWhen(_ => !isOppressed(_, _.character))
+        .orTrigger(randomFired).onlyWhen(_ => _.character.profession != null)
+        .orTrigger(randomGotMoney)
+        .orTrigger(randomNothing)
+        .orTrigger(randomRelationsWithAGoat)
+        .orTrigger(randomSoldSpouse).onlyWhen(_ => !isOppressed(_, _.character) && _.town.equality === ClassEquality.GeneralSlavery && _.relationships.spouse != null)
+        .toTransformer()
     },
   ],
 });

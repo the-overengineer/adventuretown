@@ -2,7 +2,7 @@ import { Profession, Gender } from 'types/state';
 import { compose } from 'utils/functional';
 import { changeResource } from 'utils/resources';
 import { notify } from 'utils/message';
-import { eventChain } from 'utils/eventChain';
+import { triggerEvent } from 'utils/eventChain';
 import { changeStat } from 'utils/person';
 import { setCharacterFlag, pregnancyChance } from 'utils/setFlag';
 import { eventCreator } from 'utils/events';
@@ -158,28 +158,23 @@ export const barFight = createEvent.regular({
   actions: [
     {
       text: 'Hide and wait for it to end',
-      perform: eventChain([
-        { id: barFightHideBad.id, weight: 2 },
-        { id: barFightHideOk.id, weight: 3 },
-      ])
+      perform:  triggerEvent(barFightHideBad).withWeight(2)
+        .orTrigger(barFightHideOk).withWeight(3)
+        .toTransformer(),
     },
     {
       condition: _ => _.character.physical >= 2,
       text: 'Join the fight',
-      perform: eventChain([
-        { id: barFightFightBad.id, weight: 2 },
-        { id: barFightFightOk.id, weight: 3},
-        { id: barFightFightOk.id, weight: 3, condition: _ => _.character.physical >= 5 } //extra change due to experience
-      ]),
+      perform: triggerEvent(barFightFightBad).withWeight(2)
+        .orTrigger(barFightFightOk).withWeight(3).multiplyByFactor(2, _ => _.character.physical >= 5)
+        .toTransformer(),
     },
     {
       condition: _ => _.character.charm >= 2,
       text: 'Talk them out of it',
-      perform: eventChain([
-        { id: barFightTalkBad.id, weight: 2 },
-        { id: barFightTalkOk.id, weight: 3},
-        { id: barFightTalkOk.id, weight: 3, condition: _ => _.character.charm >= 5 } //extra change due to experience
-      ]),
+      perform: triggerEvent(barFightTalkBad).withWeight(2)
+        .orTrigger(barFightTalkOk).withWeight(3).multiplyByFactor(2, _ => _.character.charm >= 5)
+        .toTransformer(),
     },
   ],
 });
@@ -250,11 +245,9 @@ export const potentialAdventurerLover = createEvent.regular({
     },
     {
       text: 'Welcome the advances',
-      perform: eventChain([
-        { id: aNightOfFun.id, weight: 1 },
-        { id: adventurerLover.id, weight: 1 },
-        { id: adventurerLover.id, weight: 2, condition: _ => _.character.charm >= 5 },
-      ]),
+      perform: triggerEvent(aNightOfFun)
+        .orTrigger(adventurerLover).multiplyByFactor(3, _ => _.character.charm >= 5)
+        .toTransformer(),
     },
   ],
 });

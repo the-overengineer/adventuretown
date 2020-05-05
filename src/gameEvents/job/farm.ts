@@ -2,7 +2,7 @@ import { Profession } from 'types/state';
 import { compose } from 'utils/functional';
 import { changeResource } from 'utils/resources';
 import { notify } from 'utils/message';
-import { eventChain } from 'utils/eventChain';
+import { triggerEvent } from 'utils/eventChain';
 import { changeStat } from 'utils/person';
 import { eventCreator } from 'utils/events';
 
@@ -102,20 +102,16 @@ export const verminFound = createEvent.regular({
     {
       condition: _ => _.character.physical >= 2,
       text: 'Chase the vermin down yourself',
-      perform: eventChain([
-        { id: verminFightFailure.id, weight: 3 },
-        { id: verminFightSuccess.id, weight: 1 },
-        { id: verminFightSuccess.id, weight: 3, condition: _ => _.character.physical >= 5 },
-      ]),
+      perform:  triggerEvent(verminFightFailure).withWeight(3)
+        .orTrigger(verminPoisonSuccess).multiplyByFactor(4, _ => _.character.physical >= 5)
+        .toTransformer(),
     },
     {
       condition: _ => _.character.intelligence >= 2,
       text: 'Place poison',
-      perform: eventChain([
-        { id: verminPoisonFailure.id, weight: 1 },
-        { id: verminPoisonSuccess.id, weight: 1 },
-        { id: verminPoisonSuccess.id, weight: 2, condition: _ => _.character.intelligence >= 5 },
-      ]),
+      perform: triggerEvent(verminPoisonFailure)
+        .orTrigger(verminPoisonSuccess).multiplyByFactor(3, _ => _.character.intelligence >= 5)
+        .toTransformer(),
     },
   ],
 });
