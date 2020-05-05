@@ -3,6 +3,7 @@ import {
   Profession,
   ProfessionLevel,
   StateTransformer,
+  Taxation,
 } from 'types/state';
 
 import { getProfessionMap } from 'utils/employment';
@@ -99,18 +100,36 @@ const getSpouseFoodConsumption = (state: IGameState): number =>
     ? 1
     : 0;
 
-export const calculateResourceAllocation = (state: IGameState): IGameState => ({
-  ...state,
-  finances: {
-    coinIncome: coinsFromProfession(state.character),
-    foodIncome: foodFromProfession(state.character),
-    renownIncome: renownFromProfession(state.character),
-    coinExpenses: 0,
-    // You and all your children need to be fed, and spouses who cannot work
-    foodExpenses: 1 + state.relationships.children.length + getSpouseFoodConsumption(state),
-    renownExpenses: 0,
-  },
-});
+const getTax = (state: IGameState, income: number): number => {
+  switch (state.town.taxation) {
+    case Taxation.Flat:
+      return 1;
+    case Taxation.Percentage:
+      return Math.floor(income / 2);
+    default:
+      return 0;
+  }
+};
+
+export const calculateResourceAllocation = (state: IGameState): IGameState => {
+  const coinIncome = coinsFromProfession(state.character) +
+    (state.relationships.spouse ? coinsFromProfession(state.relationships.spouse) : 0);
+
+  const taxes = getTax(state, coinIncome);
+
+  return {
+    ...state,
+    finances: {
+      coinIncome,
+      foodIncome: foodFromProfession(state.character),
+      renownIncome: renownFromProfession(state.character),
+      coinExpenses: taxes,
+      // You and all your children need to be fed, and spouses who cannot work
+      foodExpenses: 1 + state.relationships.children.length + getSpouseFoodConsumption(state),
+      renownExpenses: 0,
+    },
+  };
+};
 
 export const updateWealth = (state: IGameState): IGameState => ({
   ...state,

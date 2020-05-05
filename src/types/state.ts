@@ -41,6 +41,12 @@ export enum Fortification {
   MoatAndCastle,
 }
 
+export enum Taxation {
+  None,
+  Flat,
+  Percentage,
+}
+
 export enum Gender {
   Male = 'Male',
   Female = 'Female',
@@ -135,6 +141,7 @@ export interface ITownSettings {
   equality: ClassEquality;
   genderEquality: GenderEquality;
   fortification: Fortification;
+  taxation: Taxation;
 }
 
 export interface IResources {

@@ -1,10 +1,11 @@
 import { eventCreator } from 'utils/events';
-import { Prosperity, Size, GenderEquality, Profession } from 'types/state';
+import { Prosperity, Size, GenderEquality, Profession, Taxation, ClassEquality } from 'types/state';
 import { compose } from 'utils/functional';
 import { setWorldFlag } from 'utils/setFlag';
 import { notify } from 'utils/message';
-import { equaliseGenderRights, increaseFemaleRights, increaseMaleRights } from 'utils/town';
+import { equaliseGenderRights, increaseFemaleRights, increaseMaleRights, setTaxation, increaseProsperity, decreaseProsperity } from 'utils/town';
 import { removeJob } from 'utils/person';
+import { changeResource } from 'utils/resources';
 
 
 const TOWN_GENERAL_PREFIX: number = 71_000;
@@ -199,6 +200,121 @@ export const townGuardAbolished = createEvent.regular({
         setWorldFlag('townGuard', false),
         (state) => state.character.profession === Profession.Guard ? removeJob(state) : state,
         notify('Due to the size and the economy of the city, the town guard has been abolished'),
+      ),
+    },
+  ],
+});
+
+// TODO: Allow player a choice if in the city council
+export const flatTaxIntroduced = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.town.taxation === Taxation.None,
+  title: 'Flat taxation introduced',
+  getText: _ => `The council of nobles has decided to introduce a flat tax to be able to finance
+    the various city operations. Every household will now have to pay equal tax, even if that would leave
+    then without a viable income`,
+  actions: [
+    {
+      text: 'But my money!',
+      perform: compose(
+        setTaxation(Taxation.Flat),
+        notify('A flat tax rate was introduced to allow for the town to fund its operations'),
+      ),
+    },
+  ],
+});
+
+// TODO: Allow player a choice if in the town council
+export const progressiveTaxIntroduced = createEvent.regular({
+  meanTimeToHappen: 20 * 365,
+  condition: _ => _.town.taxation !== Taxation.Percentage
+    && _.town.equality === ClassEquality.Equal,
+  title: 'Progressive taxation introduced',
+  getText: _ => `Given the equality of people in law, the rulers of the town have decided to introduce a progressive tax,
+    where the rich pay more, and the poor less - or none, if they live on a tiny income. This will be used to fund
+    various town endeavours.`,
+  actions: [
+    {
+      text: 'I see',
+      perform: compose(
+        setTaxation(Taxation.Percentage),
+        notify('A progressive tax rate has been introduced to allow the town to function without harming the poor'),
+      ),
+    },
+  ],
+});
+
+export const taxAbolished = createEvent.regular({
+  meanTimeToHappen: 20 * 365,
+  condition: _ => _.town.taxation !== Taxation.None
+    && _.town.prosperity <= Prosperity.Poor,
+  title: 'Tax abolished',
+  getText: _ => `Due to the poor economy of the town, the rulers of the town have decided to abolish taxes for the time being,
+    to allow the local economy to strengthen itself`,
+  actions: [
+    {
+      text: 'More money for me!',
+      perform: compose(
+        setTaxation(Taxation.None),
+        notify('Taxes have been abolished to allow the town economy to recover'),
+      ),
+    },
+  ],
+});
+
+export const notEnoughTaxesForGuard = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.worldFlags.townGuard! && _.town.taxation === Taxation.None,
+  title: 'Town guard closing down',
+  getText: _ => `Without any taxes to keep them going, the town guard is about to close down. Only a large donation could
+    keep them operational`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 100,
+      text: 'Donate',
+      perform: compose(
+        changeResource('coin', -100),
+        notify('You donated a large sum of money to keep the town guard operational'),
+      ),
+    },
+    {
+      text: 'Let them fail',
+      perform: compose(
+        setWorldFlag('townGuard', false),
+        notify('Without funding, the town guard has been abolished'),
+      ),
+    },
+  ],
+});
+
+export const economyGrowsWithoutTaxes = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.town.taxation === Taxation.None && _.town.prosperity <= Prosperity.WellOff,
+  title: 'Economy booms',
+  getText: _ => `Without taxes to keep businesses down, the economy in ${_.town.name} is booming`,
+  actions: [
+    {
+      text: 'Excellent!',
+      perform: compose(
+        increaseProsperity,
+        notify('Prosperity increases in the town due to lack of taxation'),
+      ),
+    },
+  ],
+});
+
+export const businessesEscapeTax = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.town.taxation === Taxation.Percentage && _.town.prosperity >= Prosperity.WellOff,
+  title: 'Taxes force businesses out',
+  getText: _ => `Progressive taxes have been hard for large businesses. The better they do, the more taxes they have to pay.
+    This has forced many of the larger businesses to move elsewhere, and has had a poor impact on the economy`,
+  actions: [
+    {
+      text: 'I see...',
+      perform: compose(
+        decreaseProsperity,
+        notify('High taxation has forced businesses out and lowered the prosperity of the town'),
       ),
     },
   ],

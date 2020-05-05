@@ -8,6 +8,7 @@ import {
   ITownSettings,
   Prosperity,
   Size,
+  Taxation,
 } from 'types/state';
 import { pickOne } from 'utils/random';
 import styles from './QuickStart.module.css';
@@ -86,6 +87,7 @@ export class QuickStart extends React.PureComponent<IQuickStart, IQuickStartStat
       equality: pickOne([ClassEquality.GeneralSlavery, ClassEquality.IncomeInequality, ClassEquality.Stratified]),
       genderEquality: pickOne([GenderEquality.FemaleDominance, GenderEquality.Equal, GenderEquality.MaleDominance]),
       fortification: pickOne([Fortification.None, Fortification.Ditch, Fortification.Palisade]),
+      taxation: pickOne([Taxation.Flat, Taxation.None, Taxation.Percentage]),
     };
 
     this.setState({ town });

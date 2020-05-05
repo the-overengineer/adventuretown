@@ -7,6 +7,7 @@ import {
   Prosperity,
   Size,
   Fortification,
+  Taxation,
 } from 'types/state';
 
 export const isOppressed = (state: IGameState, character: ICharacter): boolean => {
@@ -145,3 +146,11 @@ export const increaseMyGenderRights = (state: IGameState): IGameState =>
   state.character.gender === Gender.Male
     ? increaseMaleRights(state)
     : increaseFemaleRights(state);
+
+export const setTaxation = (taxation: Taxation) => (state: IGameState): IGameState => ({
+  ...state,
+  town: {
+    ...state.town,
+    taxation,
+  },
+});

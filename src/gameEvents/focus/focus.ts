@@ -9,6 +9,7 @@ import {
   ProfessionLevel,
   Prosperity,
   Size,
+  Taxation,
 } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
 import { eventCreator } from 'utils/events';
@@ -42,6 +43,7 @@ import {
   increaseSize,
   isOppressed,
   increaseProsperity,
+  setTaxation,
 } from 'utils/town';
 
 export const FOCUS_PREFIX = 3_000;
@@ -1434,3 +1436,115 @@ export const establishTownGuard = createEvent.regular({
   ],
 });
 
+export const settingNoTax = createEvent.triggered({
+  title: 'Abolishing taxes',
+  getText: _ => `You have decided to campaign to abolish taxation in ${_.town.name}. How will you go on about it?`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 250,
+      text: 'Bribe the council',
+      perform: compose(
+        setTaxation(Taxation.None),
+        changeResource('coin', -250),
+        notify('You have bribed the town council to abolish taxes'),
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 150,
+      text: 'Petition the council',
+      perform: compose(
+        setTaxation(Taxation.None),
+        changeResource('renown', -150),
+        notify('You have used your influence to convince the council to abolish taxes'),
+      ),
+    },
+    {
+      text: 'Never mind',
+    },
+  ],
+});
+
+export const settingFlatTax = createEvent.triggered({
+  title: 'Abolishing taxes',
+  getText: _ => `You have decided to campaign to set flat taxation in ${_.town.name}. How will you go on about it?`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 250,
+      text: 'Bribe the council',
+      perform: compose(
+        setTaxation(Taxation.Flat),
+        changeResource('coin', -250),
+        notify('You have bribed the town council to set flat taxes'),
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 150,
+      text: 'Petition the council',
+      perform: compose(
+        setTaxation(Taxation.Flat),
+        changeResource('renown', -150),
+        notify('You have used your influence to convince the council to set flat taxes'),
+      ),
+    },
+    {
+      text: 'Never mind',
+    },
+  ],
+});
+
+export const settingProgressiveTaxes = createEvent.triggered({
+  title: 'Abolishing taxes',
+  getText: _ => `You have decided to campaign to set progressive taxation in ${_.town.name}. How will you go on about it?`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 250,
+      text: 'Bribe the council',
+      perform: compose(
+        setTaxation(Taxation.Percentage),
+        changeResource('coin', -250),
+        notify('You have bribed the town council to set progressive taxes'),
+      ),
+    },
+    {
+      condition: _ => _.resources.renown >= 150,
+      text: 'Petition the council',
+      perform: compose(
+        setTaxation(Taxation.Percentage),
+        changeResource('renown', -150),
+        notify('You have used your influence to convince the council to set progressive taxes'),
+      ),
+    },
+    {
+      text: 'Never mind',
+    },
+  ],
+});
+
+export const influenceTaxes = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.characterFlags.focusCity! && (_.resources.coin >= 250 || _.resources.renown >= 150),
+  title: 'Taxes debate',
+  getText: _ => `The town council is in heated debate on whether to perform a taxation reform.
+    If you wished to exert your influence or hand out some bribes, this could be a perfect time to
+    direct where their discussion is going`,
+  actions: [
+    {
+      condition: _ => _.town.taxation !== Taxation.None,
+      text: 'Abolish taxation',
+      perform: triggerEvent(settingNoTax).toTransformer(),
+    },
+    {
+      condition: _ => _.town.taxation !== Taxation.Flat,
+      text: 'Flat taxes',
+      perform: triggerEvent(settingFlatTax).toTransformer(),
+    },
+    {
+      condition: _ => _.town.taxation !== Taxation.Percentage,
+      text: 'Progressive taxes',
+      perform: triggerEvent(settingProgressiveTaxes).toTransformer(),
+    },
+    {
+      text: 'Never mind',
+    },
+  ],
+});

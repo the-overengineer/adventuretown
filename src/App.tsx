@@ -18,6 +18,7 @@ import {
   IEvent,
   getTickDuration,
   GameSpeed,
+  Taxation,
 } from 'types/state';
 import styles from './App.module.css';
 import { GameScreen } from 'components/GameScreen/GameScreen';
@@ -78,8 +79,13 @@ export class App extends React.PureComponent<{}, IAppState> {
 
   public componentDidMount() {
     if (hasSavedGame()) {
+      const game = loadGame();
       this.setState({
-        ...loadGame(),
+        ...game,
+        town: {
+          ...game.town,
+          taxation: game.town.taxation ?? Taxation.None, // Temporary compat layer TODO: Remove
+        },
       });
     }
     this.ticker = window.setInterval(this.handleTick, getTickDuration(this.state.settings.speed));

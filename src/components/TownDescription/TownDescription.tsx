@@ -7,6 +7,7 @@ import {
   ITownSettings,
   Prosperity,
   Size,
+  Taxation,
 } from 'types/state';
 import styles from './TownDescription.module.css';
 
@@ -22,7 +23,7 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
       <div className={classNames(className, styles.TownDescription)}>
         {town.name} is {this.describeSize()}. It is {this.describeFortifications()}.
         The town is {this.describeProsperity()}. The rights of its citizens are {this.describeClassEquality()}.
-        As for the sexes, {this.describeGenderEquality()}.
+        As for the sexes, {this.describeGenderEquality()}. {this.describeTaxation()}.
       </div>
     );
   }
@@ -96,6 +97,21 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
         return 'men hold more power in society, but that does not mean women are entirely without rights. Some, however, feel oppressed';
       case GenderEquality.MaleOppression:
         return 'men are considered the property of their wives or female relatives, and have no rights of their own';
+    }
+  }
+
+  private describeTaxation = () => {
+    const { town } = this.props;
+
+    switch (town.taxation) {
+      case Taxation.None:
+        return `The rulers of the town do not tax the populace, but gather coin in other ways`;
+      case Taxation.Flat:
+        return `The rulers impose flat taxation on everybody, no matter how much you earn`;
+      case Taxation.Percentage:
+        return `The rulers impose higher taxes on those who own more`;
+      default:
+        return 'The taxation in the town is unusual';
     }
   }
 }
