@@ -78,10 +78,10 @@ export const noMoney = createEvent.regular({
       perform: eventChain(death.id),
     },
     {
-      condition: _ => _.resources.food >= 50,
+      condition: _ => _.resources.food >= 30,
       text: 'Sell food urgently',
       perform: compose(
-        changeResource('food', -50),
+        changeResource('food', -30),
         changeResource('coin', 15),
         notify('You sell food at a discount to get some coin'),
       ),

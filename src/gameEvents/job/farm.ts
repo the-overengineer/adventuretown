@@ -114,7 +114,7 @@ export const verminFound = createEvent.regular({
       perform: eventChain([
         { id: verminPoisonFailure.id, weight: 1 },
         { id: verminPoisonSuccess.id, weight: 1 },
-        { id: verminFightSuccess.id, weight: 2, condition: _ => _.character.intelligence >= 5 },
+        { id: verminPoisonSuccess.id, weight: 2, condition: _ => _.character.intelligence >= 5 },
       ]),
     },
   ],
