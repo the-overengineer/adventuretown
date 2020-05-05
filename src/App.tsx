@@ -82,10 +82,10 @@ export class App extends React.PureComponent<{}, IAppState> {
       const game = loadGame();
       this.setState({
         ...game,
-        town: {
+        town: game.town ? {
           ...game.town,
-          taxation: game.town?.taxation ?? Taxation.None, // Temporary compat layer TODO: Remove
-        },
+          taxation: game.town.taxation ?? Taxation.None, // Temporary compat layer TODO: Remove
+        } : undefined,
       });
     }
     this.ticker = window.setInterval(this.handleTick, getTickDuration(this.state.settings.speed));
