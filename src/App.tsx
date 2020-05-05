@@ -109,6 +109,7 @@ export class App extends React.PureComponent<{}, IAppState> {
   private renderGameScreen = () => {
     const {
       character,
+      characterFlags,
       town,
       finances,
       daysPassed,
@@ -138,6 +139,7 @@ export class App extends React.PureComponent<{}, IAppState> {
             event={this.getEventVM()}
             isRunning={isRunning}
             character={character!}
+            characterFlags={characterFlags}
             finances={finances}
             town={town!}
             resources={resources}

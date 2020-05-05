@@ -8,6 +8,7 @@ import {
   ITownSettings,
   ICharacterFinances,
   GameSpeed,
+  ICharacterFlags,
 } from 'types/state';
 import styles from './GameScreen.module.css';
 import { Header } from 'components/Header/Header';
@@ -28,6 +29,7 @@ interface IGameScreen {
   town: ITownSettings;
   resources: IResources;
   character: ICharacter;
+  characterFlags: ICharacterFlags;
   finances: ICharacterFinances;
   relationships: IRelationships;
   messages: string[];
@@ -119,10 +121,12 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
             </Stats>
             <Stats title='Status'>
               <StatBlock label='Job' value={describeJob(character)} />
+              <StatBlock label='Focus' value={this.getFocus()} />
               <StatBlock label='Spouse' value={relationships.spouse ? <Person person={relationships.spouse} /> : 'Unmarried'} />
               {
                 relationships.children.map((child, index) => (
                   <StatBlock
+                    key={index}
                     label='Child'
                     value={<Person person={child} />}
                   />
@@ -141,6 +145,34 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
       </div>
     );
   }
+
+  private getFocus = (): string => {
+    const { characterFlags } = this.props;
+
+    if (characterFlags.focusCharm!) {
+      return 'Charm';
+    } else if (characterFlags.focusCity!) {
+      return 'Town';
+    } else if (characterFlags.focusEducation!) {
+      return 'Education';
+    } else if (characterFlags.focusFamily!) {
+      return 'Family';
+    } else if (characterFlags.focusFood!) {
+      return 'Food';
+    } else if (characterFlags.focusFun!) {
+      return 'Fun';
+    } else if (characterFlags.focusIntelligence!) {
+      return 'Intelligence';
+    } else if (characterFlags.focusPhysical!) {
+      return 'Physical';
+    } else if (characterFlags.focusRenown!) {
+      return 'Renown';
+    } else if (characterFlags.focusWealth!) {
+      return 'Wealth';
+    } else {
+      return 'None';
+    }
+  }
 }
 
 interface IStats {
@@ -149,7 +181,7 @@ interface IStats {
 
 const Stats: React.FC<IStats> = ({ children, title }) => (
   <div className={styles.Stats}>
-    <div className={styles.Title}>Attributes</div>
+    <div className={styles.Title}>{title}</div>
     {children}
   </div>
 )
