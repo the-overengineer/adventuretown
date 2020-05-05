@@ -611,7 +611,7 @@ export const cheatingDiscovered = createEvent.regular({
       perform: notify('Your spouse discovers your cheating, but cannot do anything about it'),
     },
     {
-      condition: _ => isOppressed(_, _.character),
+      condition: _ => !isOppressed(_, _.character),
       text: 'Leave your lover and beg forgiveness',
       perform: compose(
         setCharacterFlag('lover', false),
