@@ -88,6 +88,7 @@ export type CharacterFlag =
   | 'criminalActivity'
   | 'gardener'
   | 'poet'
+  | 'kidnappedChild'
   ;
 
 export type WorldFlag =
@@ -97,6 +98,9 @@ export type WorldFlag =
   | 'spousePregnantDiscovered'
   | 'sickness'
   | 'blackMarket'
+  | 'adventurerKeep'
+  | 'orcs'
+  | 'townGuard'
   ;
 
 export interface IUserSettings {

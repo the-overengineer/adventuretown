@@ -8,7 +8,7 @@ import {
 } from 'types/state';
 
 // Unless special events, check only every N days
-const CHECK_HOW_OFTEN: number = 10;
+const CHECK_HOW_OFTEN: number = 20;
 
 export const updateEventQueue = (state: IGameState): IGameState => {
   const validEvents = state.eventQueue.filter((eq) => {

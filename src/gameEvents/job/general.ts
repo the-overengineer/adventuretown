@@ -6,7 +6,6 @@ import {
   ProfessionLevel,
   IGameAction,
   Prosperity,
-  Fortification,
   Gender,
 } from 'types/state';
 import { isOppressed, hasLimitedRights } from 'utils/town';
@@ -15,34 +14,9 @@ import { notify } from 'utils/message';
 import { changeResource } from 'utils/resources';
 import { pregnancyChance } from 'utils/setFlag';
 import { eventChain } from 'utils/eventChain';
+import { startJob, setLevel, removeJob } from 'utils/person';
 
 export const JOB_PREFIX = 1_000;
-
-const startJob = (profession: Profession) => (state: IGameState): IGameState => ({
-  ...state,
-  character: {
-    ...state.character,
-    profession,
-    professionLevel: ProfessionLevel.Entry,
-  },
-});
-
-const removeJob =  (state: IGameState): IGameState => ({
-  ...state,
-  character: {
-    ...state.character,
-    profession: undefined,
-    professionLevel: undefined,
-  },
-});
-
-const setLevel = (professionLevel: ProfessionLevel) => (state: IGameState): IGameState => ({
-  ...state,
-  character: {
-    ...state.character,
-    professionLevel,
-  },
-});
 
 const jobActions: IGameAction[] = [
   {
@@ -62,7 +36,7 @@ const jobActions: IGameAction[] = [
   },
   {
     condition: (state) => state.character.physical >= 3
-      && state.town.fortification > Fortification.None,
+      && state.worldFlags.townGuard!,
     text: `I am strong, I will guard the town`,
     perform: compose(
       startJob(Profession.Guard),
@@ -281,12 +255,12 @@ export const firedEntry: IEvent = {
       ])
     },
     {
-      condition: _ => _.resources.renown >= 50,
+      condition: _ => _.resources.renown >= 50 || _.characterFlags.friendsInHighPlaces!,
       text: '"Fire ME?! Do you know who I am?!"',
       perform: eventChain([
         { id: doYouKnowWhoIAmFailure.id, weight: 3 },
         { id: doYouKnowWhoIAmSuccess.id, weight: 2 },
-        { id: doYouKnowWhoIAmSuccess.id, weight: 5, condition: _ => _.resources.renown >= 200 },
+        { id: doYouKnowWhoIAmSuccess.id, weight: 5, condition: _ => _.resources.renown >= 200 || _.characterFlags.friendsInHighPlaces! },
       ]),
     },
     {

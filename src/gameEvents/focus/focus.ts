@@ -19,12 +19,15 @@ import {
   changeStat,
   removeLastChild,
   removeSpouse,
+  startJob,
+  setLevel,
 } from 'utils/person';
 import { inIntRange } from 'utils/random';
 import { changeResource } from 'utils/resources';
 import {
   pregnancyChance,
   setCharacterFlag,
+  setWorldFlag,
 } from 'utils/setFlag';
 import {
   decreaseClassEquality,
@@ -1406,6 +1409,30 @@ export const changeFortifications = createEvent.regular({
     },
     {
       text: 'Never mind',
+    },
+  ],
+});
+
+export const establishTownGuard = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.characterFlags.focusCity! && !_.worldFlags.townGuard,
+  title: 'Establishing town guard',
+  getText: _ => `The city has been defenceless against any attackers that might show up.
+    If you were willing to invest some money, you could start a town guard, with you
+    as its captain`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 200,
+      text: 'It is worth the cost',
+      perform: compose(
+        setWorldFlag('townGuard', true),
+        startJob(Profession.Guard),
+        setLevel(ProfessionLevel.Leadership),
+        notify('You have established a town guard, with you as its leader and captain'),
+      ),
+    },
+    {
+      text: `Seems too expensive`,
     },
   ],
 });

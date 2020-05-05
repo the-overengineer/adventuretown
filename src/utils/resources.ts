@@ -14,6 +14,6 @@ export const changeFinance = (finance: keyof ICharacterFinances, amount: number)
     ...state,
     finances: {
       ...state.finances,
-      [finance]: state.finances[finance] + amount,
+      [finance]: Math.max(0, state.finances[finance] + amount),
     },
   });

@@ -1,4 +1,4 @@
-import { ICharacter, Gender, OneToTen, IGameState } from 'types/state';
+import { ICharacter, Gender, OneToTen, IGameState, Profession, ProfessionLevel } from 'types/state';
 import { pickOne } from './random';
 
 const boyNames = ['Arnold', 'Geoff', 'Eirich', 'Mark', 'Elron', 'Marr'];
@@ -47,6 +47,18 @@ export const removeLastChild = (state: IGameState): IGameState => ({
   },
 });
 
+export const removeRandomChild = (state: IGameState): IGameState => {
+  const child = pickOne(state.relationships.children);
+  return {
+    ...state,
+    relationships: {
+      ...state.relationships,
+      children: state.relationships.children.filter((it) => it !== child),
+    },
+  };
+};
+
+
 export const newCharacter = (state: IGameState): IGameState => ({
   ...state,
   character: undefined as any,
@@ -93,5 +105,31 @@ export const removeSpouse = (state: IGameState): IGameState => ({
   relationships: {
     ...state.relationships,
     spouse: undefined,
+  },
+});
+
+export const startJob = (profession: Profession) => (state: IGameState): IGameState => ({
+  ...state,
+  character: {
+    ...state.character,
+    profession,
+    professionLevel: ProfessionLevel.Entry,
+  },
+});
+
+export const removeJob =  (state: IGameState): IGameState => ({
+  ...state,
+  character: {
+    ...state.character,
+    profession: undefined,
+    professionLevel: undefined,
+  },
+});
+
+export const setLevel = (professionLevel: ProfessionLevel) => (state: IGameState): IGameState => ({
+  ...state,
+  character: {
+    ...state.character,
+    professionLevel,
   },
 });

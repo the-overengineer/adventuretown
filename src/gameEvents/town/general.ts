@@ -1,9 +1,10 @@
 import { eventCreator } from 'utils/events';
-import { Prosperity, Size, GenderEquality } from 'types/state';
+import { Prosperity, Size, GenderEquality, Profession } from 'types/state';
 import { compose } from 'utils/functional';
 import { setWorldFlag } from 'utils/setFlag';
 import { notify } from 'utils/message';
 import { equaliseGenderRights, increaseFemaleRights, increaseMaleRights } from 'utils/town';
+import { removeJob } from 'utils/person';
 
 
 const TOWN_GENERAL_PREFIX: number = 71_000;
@@ -160,6 +161,44 @@ export const diseaseImprovesMaleRights = createEvent.regular({
       perform: compose(
         increaseMaleRights,
         notify('The disease has given men more power at the expense of women'),
+      ),
+    },
+  ],
+});
+
+export const townGuardEstablished = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => !_.worldFlags.townGuard
+    && (_.town.prosperity >= Prosperity.Average || _.town.size >= Size.Modest),
+  title: 'Town guard established',
+  getText: _ => `With the city growing in size and importance, the rulers of it have decided to establish
+    a town guard to protect it.`,
+  actions: [
+    {
+      text: 'I see',
+      perform: compose(
+        setWorldFlag('townGuard', true),
+        notify('A town guard has been established'),
+      ),
+    },
+  ],
+});
+
+export const townGuardAbolished = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.worldFlags.townGuard!
+    && _.town.prosperity < Prosperity.Average
+    && _.town.size < Size.Modest, // TODO: Allow player a choice if in the city council
+  title: 'Town guard abolished',
+  getText: _ => `Given the size and the economy of the city, the rulers of it have decided that they can no
+    longer finance a town guard. It has been abolished and all members of it must find new work`,
+  actions: [
+    {
+      text: 'Worrying',
+      perform: compose(
+        setWorldFlag('townGuard', false),
+        (state) => state.character.profession === Profession.Guard ? removeJob(state) : state,
+        notify('Due to the size and the economy of the city, the town guard has been abolished'),
       ),
     },
   ],
