@@ -1,6 +1,4 @@
 import {
-  ID,
-  IEvent,
   IGameState,
   Profession,
   ProfessionLevel,
@@ -15,8 +13,11 @@ import { changeResource } from 'utils/resources';
 import { pregnancyChance } from 'utils/setFlag';
 import { triggerEvent } from 'utils/eventChain';
 import { startJob, setLevel, removeJob } from 'utils/person';
+import { eventCreator } from 'utils/events';
 
 export const JOB_PREFIX = 1_000;
+
+const createEvent = eventCreator(JOB_PREFIX);
 
 const jobActions: IGameAction[] = [
   {
@@ -70,9 +71,8 @@ const jobActions: IGameAction[] = [
   },
 ];
 
-export const seekJob: IEvent = {
-  id: JOB_PREFIX + 1 as ID,
-  meanTimeToHappen: 3,
+export const seekJob = createEvent.regular({
+  meanTimeToHappen: 1,
   condition: (state: IGameState) => state.character.profession == null,
   title: 'Looking for a job',
   getText: () => `
@@ -83,11 +83,10 @@ export const seekJob: IEvent = {
     you can consider those that suit your talents, and change your line of work
     when you have gained experience, or the laws have relaxed.`,
   actions: jobActions,
-};
+});
 
-export const changeCurrentJob: IEvent = {
-  id: JOB_PREFIX + 2 as ID,
-  meanTimeToHappen: 4 * 30,
+export const changeCurrentJob = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
   condition: (state: IGameState) => state.character.professionLevel === ProfessionLevel.Entry,
   title: 'Find a better job',
   getText: (state) => state.character.professionLevel === ProfessionLevel.Entry
@@ -99,11 +98,10 @@ export const changeCurrentJob: IEvent = {
       to be, and there may be lucrative opportunities elsewhere, or at least a change of pace.
       The downside is that you would start at an entry-level position.`,
   actions: jobActions,
-};
+});
 
-export const promotedFromEntry: IEvent = {
-  id: JOB_PREFIX + 3 as ID,
-  meanTimeToHappen: 2 * 30, // 2 months
+export const promotedFromEntry = createEvent.regular({
+  meanTimeToHappen: 5 * 30,
   condition: (state) => state.character.professionLevel === ProfessionLevel.Entry
     && !isOppressed(state, state.character),
   title: 'Moving up in the world',
@@ -123,11 +121,10 @@ export const promotedFromEntry: IEvent = {
       perform: notify('Who needs extra responsibility?'),
     },
   ],
-};
+});
 
-export const promotedToLeading: IEvent = {
-  id: JOB_PREFIX + 4 as ID,
-  meanTimeToHappen: 365, // A year
+export const promotedToLeading = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
   condition: _ => _.character.professionLevel === ProfessionLevel.Medium
     && !hasLimitedRights(_, _.character)
     && (_.character.intelligence >= 5 || _.character.education >= 5 || _.character.charm >= 5),
@@ -147,12 +144,9 @@ export const promotedToLeading: IEvent = {
       text: 'It is too much',
     },
   ],
-};
+});
 
-export const anythingToKeepTheJobFailure: IEvent = {
-  id: JOB_PREFIX + 6 as ID,
-  meanTimeToHappen: 0,
-  condition: _ => false,
+export const anythingToKeepTheJobFailure = createEvent.triggered({
   title: 'Scorned',
   getText: _ => `Your employer looks at you with disgust. "You would offer your body for this?
     You disgust me, you ${_.character.gender === Gender.Male ? 'man-whore' : 'slut'}! My decision stands!`,
@@ -166,12 +160,9 @@ export const anythingToKeepTheJobFailure: IEvent = {
       ),
     },
   ]
-};
+});
 
-export const anythingToKeepTheJobSuccess: IEvent = {
-  id: JOB_PREFIX + 7 as ID,
-  meanTimeToHappen: 0,
-  condition: _ => false,
+export const anythingToKeepTheJobSuccess = createEvent.triggered({
   title: 'A price to pay',
   getText: _ => `Your employer looks you up and down, and then smiles.
     "Very well, then, that seems fair to me. Meet me in the back room."`,
@@ -179,7 +170,7 @@ export const anythingToKeepTheJobSuccess: IEvent = {
     {
       text: 'You follow',
       perform: compose(
-        pregnancyChance,
+        pregnancyChance('pregnantLover'),
         notify('You had to offer your body, but you kept your job'),
       ),
     },
@@ -191,12 +182,9 @@ export const anythingToKeepTheJobSuccess: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const doYouKnowWhoIAmFailure: IEvent = {
-  id: JOB_PREFIX + 8 as ID,
-  meanTimeToHappen: 0,
-  condition: _ => false,
+export const doYouKnowWhoIAmFailure = createEvent.triggered({
   title: 'Who are you?',
   getText: _ => `"I don't care who you are. Get out!" your former employer is not impressed, and not open to any further attempts at placating.`,
   actions: [
@@ -208,12 +196,9 @@ export const doYouKnowWhoIAmFailure: IEvent = {
       ),
     },
   ],
-};
+});
 
-export const doYouKnowWhoIAmSuccess: IEvent = {
-  id: JOB_PREFIX + 9 as ID,
-  meanTimeToHappen: 4,
-  condition: _ => false,
+export const doYouKnowWhoIAmSuccess = createEvent.triggered({
   title: 'Too important to fire',
   getText: _ => `"R-right, I'm sorry, I didn't mean that!" your employer stammers nervously as they remember your connections "Of course you can keep the job!"`,
   actions: [
@@ -222,11 +207,10 @@ export const doYouKnowWhoIAmSuccess: IEvent = {
       perform:  notify(`You have influence in this town, too much influence to be fired just like that`),
     },
   ],
-};
+});
 
-export const firedEntry: IEvent = {
-  id: JOB_PREFIX + 5 as ID,
-  meanTimeToHappen: 3 * 30, // 3 months
+export const firedEntry= createEvent.regular({
+  meanTimeToHappen: 6 * 30,
   condition: _ => _.character.professionLevel === ProfessionLevel.Entry
     && (isOppressed(_, _.character) || _.character.intelligence < 3 || _.character.education < 3 || _.character.charm < 3),
   title: 'A firing offence',
@@ -270,4 +254,265 @@ export const firedEntry: IEvent = {
       ),
     },
   ],
-};
+});
+
+export const difficultTrainee = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.character.profession! && _.character.professionLevel === ProfessionLevel.Medium,
+  title: 'Difficult trainee',
+  getText: _ => `You've been assigned with training a new employee at your business. They have shown themselves
+    to be incompetent to the extreme, even causing material damage. You'll have to fire them, but it is considered
+    a personal failure of yours`,
+  actions: [
+    {
+      text: 'How can they be so stupid?',
+      perform: compose(
+        changeResource('renown', -10),
+        notify('You had to fire a trainee and it reflects poorly on you'),
+      ),
+    },
+  ],
+});
+
+export const goodTrainee = createEvent.regular({
+  meanTimeToHappen: 1.5 * 365,
+  condition: _ => _.character.profession! && _.character.professionLevel === ProfessionLevel.Medium,
+  title: 'Good trainee',
+  getText: _ => `You've been assigned with training a new employee at your business. They have shown themselves
+    to be amazingly competent, and this will reflect well on you`,
+  actions: [
+    {
+      text: 'How can they be so stupid?',
+      perform: compose(
+        changeResource('renown', 10),
+        notify('You trained a competent worker, and this reflects well on you'),
+      ),
+    },
+  ],
+});
+
+const difficultJobSuccess = createEvent.triggered({
+  title: 'Well-done',
+  getText: _ => `You have done your work in a way that hardly anyone can criticise. Your employer is very
+    satisfied with your performance`,
+  actions: [
+    {
+      text: 'I knew I could do it',
+      perform: compose(
+        changeResource('coin', 5),
+        changeResource('renown', 15),
+        notify('You were praised for your good work'),
+      ),
+    },
+  ],
+});
+
+const difficultJobFailure = createEvent.triggered({
+  title: 'Complete failure',
+  getText: _ => `You have made a complete hash out of your assigned, and shamed yourself. Worst of all,
+    some of the loss is coming out of your pocket`,
+  actions: [
+    {
+      text: 'A honest mistake',
+      perform: compose(
+        changeResource('coin', -5),
+        changeResource('renown', -15),
+        notify('You failed miserably at work and were shamed for it'),
+      ),
+    },
+  ],
+});
+
+export const difficultJob = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.character.profession != null && _.character.professionLevel === ProfessionLevel.Medium,
+  title: 'A difficult job',
+  getText: _ => `You have been assigned a particularly difficult task. You are not even certain that you are up
+    to it. Not only is your reputation on the line, but you might be monetarily rewarded or punished depending
+    on your performance`,
+  actions: [
+    {
+      text: 'Get to it',
+      perform: triggerEvent(difficultJobSuccess).multiplyByFactor(2, _ => _.character.intelligence > 5).multiplyByFactor(2, _ => _.character.education > 5)
+        .orTrigger(difficultJobFailure).multiplyByFactor(2, _ => _.character.intelligence < 2).multiplyByFactor(2, _ => _.character.education < 2)
+        .toTransformer(),
+    },
+    {
+      condition: _ => _.character.charm > 5,
+      text: 'Weasel out of it',
+      perform: notify('You smooth-talked your way out of a difficult task'),
+    },
+  ],
+});
+
+export const businessThrives = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.character.profession != null
+  && _.character.professionLevel === ProfessionLevel.Leadership
+  && _.character.profession !== Profession.Guard
+  && _.character.profession !== Profession.Politician,
+  title: 'Business thrives',
+  getText: _ => `Your business has been doing very well recently, and you reap the benefits`,
+  actions: [
+    {
+      text: 'I am good at this',
+      perform: compose(
+        changeResource('coin', 25),
+        changeResource('renown', 10),
+        notify('You reap the benefits of successfully leading a business'),
+      ),
+    },
+  ],
+});
+
+export const businessDoesPoorly = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.character.profession != null
+    && _.character.professionLevel === ProfessionLevel.Leadership
+    && _.character.profession !== Profession.Guard
+    && _.character.profession !== Profession.Politician,
+  title: 'Business does poorly',
+  getText: _ => `Your business has been doing very poorly recently, and you pay the price`,
+  actions: [
+    {
+      text: `There is no I in team`,
+      perform: compose(
+        changeResource('coin', -25),
+        changeResource('renown', -10),
+        notify('You pay the price of a failing business'),
+      ),
+    },
+  ],
+});
+
+export const businessFails = createEvent.regular({
+  meanTimeToHappen: 50 * 365,
+  condition: _ => _.character.profession != null
+    && _.character.professionLevel === ProfessionLevel.Leadership
+    && _.character.profession !== Profession.Guard
+    && _.character.profession !== Profession.Politician,
+  title: 'Business collapses',
+  getText: _ => `Your business has collapsed entirely and there was nothing you could
+    have done about it. You went from having it all to having nothing at all.`,
+  actions: [
+    {
+      text: 'And it was going so well',
+      perform: compose(
+        removeJob,
+        changeResource('renown', -50),
+        notify('Your business has collapsed, to your shame and loss'),
+      ),
+    },
+  ],
+});
+
+export const expandBusinessFailure = createEvent.triggered({
+  title: 'Expansion idea failed',
+  getText: _ => `Your idea sounded brilliant on paper, but did not function in the real world.
+    You have wasted your money and damaged your reputation`,
+  actions: [
+    {
+      text: 'Curses!',
+      perform: compose(
+        changeResource('renown', -30),
+        notify('You had a business idea and apparently it was terrible'),
+      ),
+    },
+  ],
+});
+
+export const expandBusinessSuccess = createEvent.triggered({
+  title: 'Business expanded',
+  getText: _ => `Your idea worked, and your business has made an expansion, all thanks to your brilliance`,
+  actions: [
+    {
+      text: 'I knew it!',
+      perform: compose(
+        changeResource('coin', 10),
+        changeResource('renown', 30),
+        notify('You had a business idea and it worked out well'),
+      ),
+    },
+  ],
+});
+
+export const expandBusiness = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.character.profession != null
+    && _.character.professionLevel === ProfessionLevel.Leadership
+    && _.character.profession !== Profession.Guard
+    && _.character.profession !== Profession.Politician
+    && _.resources.coin >= 30,
+  title: 'Expanding the business',
+  getText: _ => `You were thinking about how your business was run, and you had an idea on how to expand
+    it and maybe grow your profits. It would take some risk and investment, but it might work out`,
+  actions: [
+    {
+      text: 'Take the risk',
+      perform: compose(
+        changeResource('coin', -30),
+        triggerEvent(expandBusinessFailure).withWeight(2)
+          .orTrigger(expandBusinessSuccess)
+            .multiplyByFactor(1.5, _ => _.character.intelligence > 5)
+            .multiplyByFactor(1.5, _ => _.character.education > 5)
+            .multiplyByFactor(1.5, _ => _.character.charm > 5)
+            .toTransformer(),
+      ),
+    },
+    {
+      text: 'Pass on this idea',
+    },
+  ],
+});
+
+export const massFiring = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.character.profession != null
+    && _.character.professionLevel === ProfessionLevel.Leadership,
+  title: 'Mass firings',
+  getText: _ => `Due to difficulties in how the business has been doing, you were forced to fire many of
+    the people working for you. It has damaged your reputation, but allowed your business to survive without
+    having to waste your own coin`,
+  actions: [
+    {
+      text: 'It was a hard decision',
+      perform: compose(
+        changeResource('renown', -50),
+        notify('You have become hated due to having to fire many of your employees'),
+      ),
+    },
+    {
+      condition: _ => _.resources.coin >= 100,
+      text: 'No, I will take the loss upon me',
+      perform: compose(
+        changeResource('coin', -100),
+        changeResource('renown', 30),
+        notify('You paid heavily from your own pockets to keep your employees safe'),
+      ),
+    },
+  ],
+});
+
+export const fromBusinessToPolitics = createEvent.regular({
+  meanTimeToHappen: 40 * 365,
+  condition: _ => _.character.profession != null
+    && _.character.professionLevel === ProfessionLevel.Leadership
+    && _.resources.renown >= 250,
+  title: 'Prestigious offer',
+  getText: _ => `The way your run your business has drawn attention from the ruling council.
+    They have gone as far as to offer you a seat amongst them, though you would have no
+    more time for leading your business`,
+  actions: [
+    {
+      text: 'Accept',
+      perform: compose(
+        startJob(Profession.Politician),
+        setLevel(ProfessionLevel.Leadership),
+        notify('You have abandoned your business to join the town council'),
+      ),
+    },
+    {
+      text: 'I like it where I am',
+    },
+  ],
+})

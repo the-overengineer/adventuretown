@@ -688,7 +688,7 @@ export const attractiveSlave = createEvent.regular({
       text: 'Command them to follow',
       perform: compose(
         setCharacterFlag('abusedSlaves', true),
-        pregnancyChance,
+        pregnancyChance('pregnantLover'),
         notify(`You've taken your slave to your bedroom and used them in all kinds of ways`),
       ),
     },

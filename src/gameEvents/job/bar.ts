@@ -186,7 +186,7 @@ export const aNightOfFun = createEvent.triggered({
     {
       text: 'Pleasurable, at least',
       perform: compose(
-        pregnancyChance,
+        pregnancyChance('pregnantLover'),
         notify('A fun night with a fit adventurer'),
       ),
     },
@@ -202,14 +202,14 @@ export const adventurerLover = createEvent.triggered({
     {
       text: 'Reject them',
       perform: compose(
-        pregnancyChance,
+        pregnancyChance('pregnantLover'),
         notify('A fun night with a fit adventurer'),
       ),
     },
     {
       text: 'A lover would be nice',
       perform: compose(
-        pregnancyChance,
+        pregnancyChance('pregnantLover'),
         setCharacterFlag('lover', true),
         notify('You liked last night very much, hopefully it will happen again'),
       ),

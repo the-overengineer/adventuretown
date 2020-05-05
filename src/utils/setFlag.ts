@@ -18,7 +18,7 @@ export const setWorldFlag = (flag: WorldFlag, to: boolean) =>
     },
   });
 
-export const pregnancyChance = (state: IGameState): IGameState => {
+export const pregnancyChance = (flag: 'pregnantLover' | 'spousePregnant') => (state: IGameState): IGameState => {
   const chance = state.characterFlags.focusFamily!
     ? 0.2
     : 0.1;
@@ -28,7 +28,7 @@ export const pregnancyChance = (state: IGameState): IGameState => {
   }
 
   if (state.character.gender === Gender.Male) {
-    return setWorldFlag('pregnantLover', true)(state);
+    return setWorldFlag(flag, true)(state);
   } else if (state.characterFlags.unknowinglyPregnant !== true && state.characterFlags.pregnant !== true) {
     return setCharacterFlag('unknowinglyPregnant', true)(state);
   } else {

@@ -950,14 +950,14 @@ export const pushForChildren = createEvent.regular({
       condition: _ => isOppressed(_, _.relationships.spouse!),
       text: 'Talk? They have no choice',
       perform: compose(
-        pregnancyChance,
+        pregnancyChance('spousePregnant'),
         notify(`You force your spouse to attend to you in bed every night in hopes of a pregnancy`),
       ),
     },
     {
       text: 'I should do that',
       perform: compose(
-        pregnancyChance,
+        pregnancyChance('spousePregnant'),
         notify('You and your spouse spend more time in bed, in hopes of a pregnancy'),
       ),
     },

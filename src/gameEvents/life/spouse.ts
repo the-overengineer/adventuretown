@@ -107,7 +107,7 @@ export const sicknessFullRecovery = createEvent.triggered({
 
 export const sickness = createEvent.regular({
   meanTimeToHappen: 3 * 30,
-  condition: _ => _.relationships.spouse != null && (_.relationships.spouse!.physical < 2 || _.worldFlags.sickness!),
+  condition: _ => _.relationships.spouse != null && (_.relationships.spouse!.physical < 1 || _.worldFlags.sickness!),
   title: 'Sick!',
   getText: _ => `In the morning, you find your spouse in bed, unable to get up. They are pale, sweating, coughing, and speaking
     of a great pain in their chest. They have caught a serious sickness`,
