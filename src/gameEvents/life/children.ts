@@ -10,6 +10,7 @@ import {
   setWorldFlag,
   pregnancyChance,
 } from 'utils/setFlag';
+import { getAge } from 'utils/time';
 
 export const CHILDREN_PREFIX = 5_000;
 
@@ -204,7 +205,8 @@ export const wifeGivesBirth = createEvent.regular({
 export const becomePregnantWithSpouse = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.character.gender === Gender.Female
-    && _.relationships.spouse != null,
+    && _.relationships.spouse != null
+    && getAge(_.character.dayOfBirth, _.daysPassed) < 40,
   title: 'Bliss in bed',
   getText: _ => `You and your husband have been quite active in bed recently. Not only is it a good way
     to spend time, it might leave you with child as well!`,
@@ -222,7 +224,8 @@ export const becomePregnantWithSpouse = createEvent.regular({
 export const spouseBecomesPregnant = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.character.gender === Gender.Male
-    && _.relationships.spouse != null,
+    && _.relationships.spouse != null
+    && getAge(_.relationships.spouse.dayOfBirth, _.daysPassed) < 40,
   title: 'Bliss in bed',
   getText: _ => `You and your wife have been quite active in bed recently. Not only is it a good way
     to spend time, it might leave her with child as well!`,
