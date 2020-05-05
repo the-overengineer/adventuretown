@@ -2,7 +2,7 @@ import { eventCreator } from 'utils/events';
 import { ClassEquality, Gender, Size } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
 import { compose } from 'utils/functional';
-import { changeResource } from 'utils/resources';
+import { changeResource, changeResourcePercentage } from 'utils/resources';
 import { notify } from 'utils/message';
 import { getAge } from 'utils/time';
 import { changeStat, newCharacter, eldestInherits, removeLastChild, addSpouse, removeSpouse } from 'utils/person';
@@ -452,7 +452,7 @@ export const scandal = createEvent.regular({
 });
 
 export const minorRepairs = createEvent.regular({
-  meanTimeToHappen: 365,
+  meanTimeToHappen: 2 * 365,
   condition: _ => _.resources.coin >= 10,
   title: 'Minor repairs',
   getText: _ => `As you look around your home, you notice that you need to do minor repairs. The door is tilted, the roof is leaking,
@@ -469,7 +469,7 @@ export const minorRepairs = createEvent.regular({
 });
 
 export const roofCollapsed = createEvent.regular({
-  meanTimeToHappen: 10 * 365,
+  meanTimeToHappen: 15 * 365,
   condition: _ => _.resources.coin >= 100,
   title: 'Roof collapsed!',
   getText: _ => `You knew your house wasn't the sturdiest building in the world, but you were very unpleasantly surprised when the latest
@@ -486,7 +486,7 @@ export const roofCollapsed = createEvent.regular({
 });
 
 export const foodRots = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: 12 * 30,
   condition: _ => _.resources.food >= 50,
   title: 'Food rots',
   getText: _ => `You've made more than sufficient supplies of food, and it is maddening to learn that some of it has rotten and is inedible`,
@@ -494,7 +494,7 @@ export const foodRots = createEvent.regular({
     {
       text: 'Curses!',
       perform: compose(
-        changeResource('food', -20),
+        changeResourcePercentage('food', -0.2), // lose 20% of food
         notify('Rot has made some of your food inedible'),
       ),
     },
@@ -502,7 +502,7 @@ export const foodRots = createEvent.regular({
 });
 
 export const breakIn = createEvent.regular({
-  meanTimeToHappen: 18 * 30,
+  meanTimeToHappen: 24 * 30,
   condition: _ => (_.resources.coin >= 100 && _.resources.food >= 100) && _.town.size > Size.Small,
   title: 'Break-in',
   getText: _ => `While nobody is in your house, somebody who must have heard rumours of your wealth broke in and stole some of your supplies`,
@@ -510,7 +510,7 @@ export const breakIn = createEvent.regular({
     {
       text: 'Scoundrels!',
       perform: compose(
-        changeResource('coin', -20),
+        changeResourcePercentage('coin', -0.15), // lose 15% of wealth
         changeResource('food', -20),
         notify('You were a victing of theft. Some of your coins and food were stolen'),
       ),

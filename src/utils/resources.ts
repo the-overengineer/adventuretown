@@ -9,6 +9,15 @@ export const changeResource = (resource: keyof IResources, amount: number) =>
     },
   });
 
+export const changeResourcePercentage = (resource: keyof IResources, percentage: number) =>
+  (state: IGameState): IGameState => ({
+    ...state,
+    resources: {
+      ...state.resources,
+      [resource]: Math.max(0, state.resources[resource] + Math.floor(percentage * state.resources[resource])),
+    },
+  });
+
 export const changeFinance = (finance: keyof ICharacterFinances, amount: number) =>
   (state: IGameState): IGameState => ({
     ...state,
