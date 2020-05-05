@@ -95,6 +95,9 @@ export type CharacterFlag =
   | 'gardener'
   | 'poet'
   | 'kidnappedChild'
+  | 'slaves'
+  | 'treatedSlavesWell'
+  | 'abusedSlaves'
   ;
 
 export type WorldFlag =

@@ -113,7 +113,11 @@ const getTax = (state: IGameState, income: number): number => {
 export const calculateResourceAllocation = (state: IGameState): IGameState => {
   const coinIncome = coinsFromProfession(state.character) +
     (state.relationships.spouse ? coinsFromProfession(state.relationships.spouse) : 0) +
-    (state.relationships.children.map(child => coinsFromProfession(child)).reduce((sum, x) => x + sum, 0));
+    (state.relationships.children.map(child => coinsFromProfession(child)).reduce((sum, x) => x + sum, 0)) +
+    (state.characterFlags.slaves! ? 1 : 0);
+
+  const renownIncome = renownFromProfession(state.character) +
+    (state.characterFlags.slaves! ? 1 : 0);
 
   const taxes = getTax(state, coinIncome);
 
@@ -122,10 +126,11 @@ export const calculateResourceAllocation = (state: IGameState): IGameState => {
     finances: {
       coinIncome,
       foodIncome: foodFromProfession(state.character),
-      renownIncome: renownFromProfession(state.character),
+      renownIncome,
       coinExpenses: taxes,
       // You and all your children need to be fed, and spouses who cannot work
-      foodExpenses: 1 + state.relationships.children.length + getSpouseFoodConsumption(state),
+      // Slaves need to be fed as well
+      foodExpenses: 1 + state.relationships.children.length + getSpouseFoodConsumption(state) + (state.characterFlags.slaves! ? 1 : 0),
       renownExpenses: 0,
     },
   };

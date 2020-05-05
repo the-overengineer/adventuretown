@@ -6,7 +6,7 @@ import { changeResource, changeResourcePercentage } from 'utils/resources';
 import { notify } from 'utils/message';
 import { getAge } from 'utils/time';
 import { changeStat, newCharacter, eldestInherits, removeLastChild, addSpouse, removeSpouse } from 'utils/person';
-import { setCharacterFlag } from 'utils/setFlag';
+import { setCharacterFlag, pregnancyChance } from 'utils/setFlag';
 import { inIntRange } from 'utils/random';
 import { hasLimitedRights, isOppressed } from 'utils/town';
 
@@ -628,3 +628,270 @@ export const cheatingDiscovered = createEvent.regular({
     }
   ],
 });
+
+export const buySlaves = createEvent.regular({
+  meanTimeToHappen: 1.5 * 365,
+  condition: _ => _.town.equality === ClassEquality.GeneralSlavery
+    && !_.characterFlags.slaves
+    && _.resources.coin >= 50,
+  title: 'Purchasing slaves',
+  getText: _ => `You see fresh, young slaves being sold at the slave market. Not too expensive, either.
+    You are sure you can afford a few. They would consume some of your food, but would also
+    earn money and prestige for you`,
+  actions: [
+    {
+      text: 'But some slaves',
+      perform: compose(
+        setCharacterFlag('slaves', true),
+        setCharacterFlag('abusedSlaves', false),
+        setCharacterFlag('treatedSlavesWell', false),
+        changeResource('coin', -50),
+        notify('You purchased some slaves'),
+      ),
+    },
+    {
+      text: `I'd rather not`,
+    },
+  ],
+});
+
+export const sellSlaves = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.town.equality === ClassEquality.GeneralSlavery
+    && _.characterFlags.slaves!,
+  title: 'Selling slaves',
+  getText: _ => `A visitor to your home is looking at your slaves with envy. You have fed them well,
+    and they are strong and attractive. Licking their lips, the visitor offers some coin for your slaves.
+    It is another half on top of what you paid for them originally`,
+  actions: [
+    {
+      text: 'Sell the slaves',
+      perform: compose(
+        setCharacterFlag('slaves', false),
+        setCharacterFlag('abusedSlaves', false),
+        setCharacterFlag('treatedSlavesWell', false),
+        changeResource('coin', 75),
+        notify('You sold your slaves for a tidy profit'),
+      ),
+    },
+  ],
+});
+
+export const attractiveSlave = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.slaves!,
+  title: 'Attractive slave',
+  getText: _ => `One of your slaves has filled out nicely since you purchased ${_.character.gender === Gender.Male ? 'her' : 'him'}. They would
+    surely give you an enjoyable tumble, and they have no choice but to obey you`,
+  actions: [
+    {
+      text: 'Command them to follow',
+      perform: compose(
+        setCharacterFlag('abusedSlaves', true),
+        pregnancyChance,
+        notify(`You've taken your slave to your bedroom and used them in all kinds of ways`),
+      ),
+    },
+  ],
+});
+
+export const beatingSlaves = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.slaves! && _.characterFlags.focusPhysical! && _.character.physical < 8,
+  title: 'Punching bags',
+  getText: _ => `You realise that your slaves could be a good way to exercise. You could stage fights with them and punch
+    them all you want, and they would not be allowed to hurt you`,
+  actions: [
+    {
+      text: 'Come here, slave!',
+      perform: compose(
+        changeStat('physical', 1),
+        setCharacterFlag('abusedSlaves', true),
+        notify('You beat your slaves as a form of exercise'),
+      ),
+    },
+    {
+      text: 'That seems too much',
+    },
+  ],
+});
+
+export const slaveRuinsLunch = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.slaves!,
+  title: 'Lunch ruined',
+  getText: _ => `One of your slaves has neglected their duties, and in the process ruined your lunch`,
+  actions: [
+    {
+      text: 'Beat them',
+      perform: compose(
+        setCharacterFlag('abusedSlaves', true),
+        changeResource('food', -1),
+        notify('You have beaten your slave for ruining food'),
+      ),
+    },
+    {
+      text: 'Forgive them',
+      perform: compose(
+        setCharacterFlag('treatedSlavesWell', true),
+        changeResource('food', -1),
+        notify('You have forgiven your slave for ruining lunch'),
+      ),
+    },
+  ],
+});
+
+export const slaveHoliday = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.slaves!,
+  title: 'Slave holiday',
+  getText: _ => `Your slaves come to you, fearful. The bravest of them steps out and asks if you would allow
+    then a day off and some food to celebrate some holiday of their`,
+  actions: [
+    {
+      text: 'Allow it and grant food',
+      perform: compose(
+        changeResource('food', -10),
+        setCharacterFlag('treatedSlavesWell', true),
+        notify('You have allowed your slaves to celebrate, they will be thankful'),
+      ),
+    },
+    {
+      text: 'Forbid it',
+      perform: notify('You have not allowed your slaves to celebrate. They retreat, disappointed'),
+    },
+    {
+      text: 'Beat them for asking',
+      perform: compose(
+        setCharacterFlag('abusedSlaves', true),
+        notify('You savagely beat your slaves for asking you stupid questions'),
+      ),
+    },
+  ],
+});
+
+export const slavesSick = createEvent.regular({
+  meanTimeToHappen: 3 * 30,
+  condition: _ => _.characterFlags.slaves! && _.worldFlags.sickness!,
+  title: 'Slaves sick',
+  getText: _ => `The sickness ravaging the town hasn't even spared your slaves.
+    Most of them are groaning in pain and sweating, unable to work`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 25,
+      text: 'Buy herbs for them',
+      perform: compose(
+        changeResource('coin', -25),
+        setCharacterFlag('treatedSlavesWell', true),
+        notify('You pay to heal your slaves and most survive. They will be thankful'),
+      ),
+    },
+    {
+      text: 'Let them die',
+      perform: compose(
+        setCharacterFlag('slaves', false),
+        notify('The sickness carries away your slaves with it'),
+      ),
+    },
+  ],
+});
+
+export const slavesRewardKindness = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.characterFlags.slaves! && _.characterFlags.treatedSlavesWell!,
+  title: 'Slaves reward kindness',
+  getText: _ => `The slaves pool their meagre resources to make a gift to you for treating
+    them so well`,
+  actions: [
+    {
+      text: 'You are human beings, after all',
+      perform: compose(
+        changeResource('coin', 10),
+        notify('Your slaves make a gift to you for your kindness'),
+      ),
+    },
+  ],
+});
+
+export const slavesRestrained = createEvent.triggered({
+  title: 'Rebellion stopped',
+  getText: _ => `You easily stop the slave rebellion. You are better equipped and better fed.
+    The slaves are thrown back into their pens, after a quick beating to teach them their place`,
+  actions: [
+    {
+      text: 'Ungrateful swine',
+      perform: notify('You nipped the slave rebellion in the bud'),
+    },
+  ],
+});
+
+export const slavesKilled = createEvent.triggered({
+  title: 'Slaves killed',
+  getText: _ => `In the ensuing conflict, you were forced to kill your slaves, for they would rather
+    die than return to their miserable lives`,
+  actions: [
+    {
+      text: `Now I have to buy new ones`,
+      perform: compose(
+        setCharacterFlag('slaves', false),
+        setCharacterFlag('abusedSlaves', false),
+        setCharacterFlag('treatedSlavesWell', false),
+        notify('Your slaves were slain in an attempt to rebel against you'),
+      ),
+    },
+  ],
+});
+
+export const slavesEscape = createEvent.triggered({
+  title: 'Slaves escape',
+  getText: _ => `In the chaos that ensues, most of the slaves manage to escape, never to be seen
+    again`,
+  actions: [
+    {
+      text: `Now I have to buy new ones`,
+      perform: compose(
+        setCharacterFlag('slaves', false),
+        setCharacterFlag('abusedSlaves', false),
+        setCharacterFlag('treatedSlavesWell', false),
+        notify('Your slaves have escaped'),
+      ),
+    },
+  ],
+});
+
+export const slavesRebel = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.characterFlags.slaves! && _.characterFlags.abusedSlaves!,
+  title: 'Slaves rebel',
+  getText: _ => `Sick of getting treated poorly, your slaves rebel against you, picking up the
+    tools of the trade and trying to kill you or escape`,
+  actions: [
+    {
+      text: 'Stop them!',
+      perform: triggerEvent(slavesRestrained).withWeight(3)
+        .orTrigger(slavesKilled)
+        .orTrigger(slavesEscape)
+        .orTrigger(death).onlyWhen(_ => _.character.physical < 4)
+        .toTransformer()
+    },
+  ],
+});
+
+export const slavesMustBeFreed = createEvent.regular({
+  meanTimeToHappen: 5,
+  condition: _ => _.characterFlags.slaves! && _.town.equality !== ClassEquality.GeneralSlavery,
+  title: 'Slaves freed',
+  getText: _ => `The laws have changed, no longer allowing you to keep slaves. You are forced to
+    release them, under the watchful eye of the magistrate`,
+  actions: [
+    {
+      text: `It was good while it lasted`,
+      perform: compose(
+        setCharacterFlag('slaves', false),
+        setCharacterFlag('abusedSlaves', false),
+        setCharacterFlag('treatedSlavesWell', false),
+        notify('Your slaves had to be released'),
+      ),
+    },
+  ],
+})
