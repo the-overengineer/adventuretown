@@ -9,7 +9,6 @@ import {
 import { getProfessionMap } from 'utils/employment';
 import { changeFinance } from 'utils/resources';
 import { compose } from 'utils/functional';
-import { isOppressed } from 'utils/town';
 
 const coinsFromProfession = getProfessionMap({
   [Profession.BarWorker]: {
@@ -96,7 +95,7 @@ const renownFromProfession = getProfessionMap({
 }, 0);
 
 const getSpouseFoodConsumption = (state: IGameState): number =>
-  state.relationships.spouse != null && isOppressed(state, state.relationships.spouse!)
+  state.relationships.spouse != null
     ? 1
     : 0;
 
@@ -113,7 +112,8 @@ const getTax = (state: IGameState, income: number): number => {
 
 export const calculateResourceAllocation = (state: IGameState): IGameState => {
   const coinIncome = coinsFromProfession(state.character) +
-    (state.relationships.spouse ? coinsFromProfession(state.relationships.spouse) : 0);
+    (state.relationships.spouse ? coinsFromProfession(state.relationships.spouse) : 0) +
+    (state.relationships.children.map(child => coinsFromProfession(child)).reduce((sum, x) => x + sum, 0));
 
   const taxes = getTax(state, coinIncome);
 

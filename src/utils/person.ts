@@ -1,5 +1,14 @@
-import { ICharacter, Gender, OneToTen, IGameState, Profession, ProfessionLevel } from 'types/state';
+import {
+  Gender,
+  ICharacter,
+  IGameState,
+  OneToTen,
+  Profession,
+  ProfessionLevel,
+} from 'types/state';
 import { pickOne } from './random';
+import { getAge } from './time';
+import { isOppressed } from './town';
 
 const boyNames = ['Arnold', 'Geoff', 'Eirich', 'Mark', 'Elron', 'Marr'];
 const girlNames = ['Rose', 'Aerin', 'Elisabeth', 'Zaira', 'Leona', 'Jasmine'];
@@ -64,8 +73,8 @@ export const newCharacter = (state: IGameState): IGameState => ({
   character: undefined as any,
   characterFlags: {},
   resources: {
-    coin: 0,
-    food: 0,
+    coin: 10,
+    food: 10,
     renown: 0,
   },
   relationships: {
@@ -133,3 +142,83 @@ export const setLevel = (professionLevel: ProfessionLevel) => (state: IGameState
     professionLevel,
   },
 });
+
+export const employSpouse = (state: IGameState): IGameState => ({
+  ...state,
+  relationships: {
+    ...state.relationships,
+    spouse: {
+      ...state.relationships.spouse!,
+      profession: pickOne([Profession.BarWorker, Profession.Farmer, Profession.Trader]),
+      professionLevel: ProfessionLevel.Entry,
+    },
+  },
+});
+
+export const fireSpouse = (state: IGameState): IGameState => ({
+  ...state,
+  relationships: {
+    ...state.relationships,
+    spouse: {
+      ...state.relationships.spouse!,
+      profession: undefined,
+      professionLevel: undefined,
+    },
+  },
+});
+
+export const setSpouseProfessionLevel = (professionLevel: ProfessionLevel) => (state: IGameState): IGameState => ({
+  ...state,
+  relationships: {
+    ...state.relationships,
+    spouse: {
+      ...state.relationships.spouse!,
+      professionLevel,
+    },
+  },
+});
+
+export const isEmployable = (state: IGameState, character: ICharacter): boolean =>
+  !isOppressed(state, character)
+    && getAge(character.dayOfBirth, state.daysPassed) >= 14
+    && character.profession == null;
+
+export const findEmployableChild = (state: IGameState): ICharacter | undefined =>
+  state.relationships.children.find((child) => isEmployable(state, child));
+
+export const findFireableChild = (state: IGameState): ICharacter | undefined =>
+  state.relationships.children.find((child) => child.profession != null);
+
+export const employChild = (state: IGameState, child: ICharacter): IGameState => ({
+  ...state,
+  relationships: {
+    ...state.relationships,
+    children: state.relationships.children.map((c) => c === child ? ({
+      ...c,
+      profession: pickOne([Profession.BarWorker, Profession.Farmer, Profession.Trader]),
+      professionLevel: ProfessionLevel.Entry,
+    }) : c)
+  },
+});
+
+export const fireChild = (state: IGameState, child: ICharacter): IGameState => ({
+  ...state,
+  relationships: {
+    ...state.relationships,
+    children: state.relationships.children.map((c) => c === child ? ({
+      ...c,
+      profession: undefined,
+      professionLevel: undefined,
+    }) : c)
+  },
+});
+
+export const hireEmployableChild = (state: IGameState): IGameState => {
+  const child = findEmployableChild(state);
+  return child != null ? employChild(state, child) : state;
+}
+
+export const fireFireableChild = (state: IGameState): IGameState => {
+  const child = findFireableChild(state);
+  return child != null ? fireChild(state, child) : state;
+}

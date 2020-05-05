@@ -2,7 +2,7 @@ import { GenderEquality, Gender } from 'types/state';
 import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
-import { createChild } from 'utils/person';
+import { createChild, findEmployableChild, hireEmployableChild, findFireableChild, fireFireableChild, removeRandomChild } from 'utils/person';
 import { changeResource } from 'utils/resources';
 import { isOppressed } from 'utils/town';
 import {
@@ -232,6 +232,74 @@ export const spouseBecomesPregnant = createEvent.regular({
       perform: compose(
         pregnancyChance,
         notify('Beds are not just for sleeping'),
+      ),
+    },
+  ],
+});
+
+export const childFindsWorks = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => findEmployableChild(_) != null,
+  title: 'Child finds work',
+  getText: _ => `A child of yours is at an age where they can find work, and they readily proceed to
+    do so, ready to give back into the household that fed them`,
+  actions: [
+    {
+      text: 'Good on you',
+      perform: compose(
+        hireEmployableChild,
+        notify('One of your children finds a job and starts earning'),
+      ),
+    },
+  ],
+});
+
+export const childFired = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => findFireableChild(_) != null,
+  title: 'Child loses work',
+  getText: _ => `A child of yours comes home grim today. It would appear that they have lost their job,
+    and therefore their way of helping the household`,
+  actions: [
+    {
+      text: 'A shame!',
+      perform: compose(
+        fireFireableChild,
+        notify('A child of yours has lost work'),
+      ),
+    },
+  ],
+});
+
+export const childDiesInAccident = createEvent.regular({
+  meanTimeToHappen: 40 * 365,
+  condition: _ => _.relationships.children.length > 0,
+  title: 'A child dies',
+  getText: _ => `You receive terrible news. A child of yours has lost their life in a terrible accident.
+    Healers were summed to them in haste, but they were too late. Your child is with the gods now`,
+  actions: [
+    {
+      text: 'Why, gods?!',
+      perform: compose(
+        removeRandomChild,
+        notify('A child of yours has perished in an accident'),
+      ),
+    },
+  ],
+});
+
+export const childDiesFromSickness = createEvent.regular({
+  meanTimeToHappen: 1.5 * 365,
+  condition: _ => _.relationships.children.length > 0 && _.worldFlags.sickness!,
+  title: 'A child dies',
+  getText: _ => `In this time of sickness, you go to wake up a child of yours. They do not respond to your voice, and when
+    you shake them, they do not move. You notice they are cold to your touch. The sickness has taken them`,
+  actions: [
+    {
+      text: 'Why, gods?!',
+      perform: compose(
+        removeRandomChild,
+        notify('A child of yours has perished from the sickness'),
       ),
     },
   ],
