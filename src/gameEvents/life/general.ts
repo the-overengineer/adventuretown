@@ -371,7 +371,7 @@ export const wishLove = createEvent.triggered({
 });
 
 export const djinnFound = createEvent.regular({
-  meanTimeToHappen: 10 * 365,
+  meanTimeToHappen: 50 * 365,
   condition: _ => _.characterFlags.djinnFound !== true,
   title: 'A lamp found',
   getText: _ => `
