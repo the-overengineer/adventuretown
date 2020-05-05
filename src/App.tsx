@@ -16,6 +16,8 @@ import {
   IWorldFlags,
   ICharacterFinances,
   IEvent,
+  getTickDuration,
+  GameSpeed,
 } from 'types/state';
 import styles from './App.module.css';
 import { GameScreen } from 'components/GameScreen/GameScreen';
@@ -23,8 +25,6 @@ import { prependMessage } from 'utils/message';
 import { events, eventMap } from './gameEvents';
 import { IEventVM } from 'components/Event/Event';
 import { hasSavedGame, loadGame, saveGame } from 'utils/storage';
-
-export const TICK_DURATION: number = 3 * 1000; // 3s
 
 interface IAppState {
   town?: ITownSettings;
@@ -82,7 +82,14 @@ export class App extends React.PureComponent<{}, IAppState> {
         ...loadGame(),
       });
     }
-    this.ticker = window.setInterval(this.handleTick, TICK_DURATION);
+    this.ticker = window.setInterval(this.handleTick, getTickDuration(this.state.settings.speed));
+  }
+
+  public componentDidUpdate(_: any, prevState: IAppState) {
+    if (prevState.settings.speed !== this.state.settings.speed) {
+      window.clearInterval(this.ticker);
+      this.ticker = window.setInterval(this.handleTick, getTickDuration(this.state.settings.speed));
+    }
   }
 
   public componentWillUnmount() {
@@ -109,6 +116,7 @@ export class App extends React.PureComponent<{}, IAppState> {
       resources,
       relationships,
       messages,
+      settings,
     } = this.state;
 
     return (
@@ -135,6 +143,8 @@ export class App extends React.PureComponent<{}, IAppState> {
             resources={resources}
             relationships={relationships}
             messages={messages}
+            gameSpeed={settings.speed}
+            onSetSpeed={this.onSetSpeed}
             manuallyTriggerEvent={this.manuallyTriggerEvent}
             onPauseOrUnpause={this.onPauseOrUnpause}
             onReset={this.onReset}
@@ -167,6 +177,11 @@ export class App extends React.PureComponent<{}, IAppState> {
 
   private onPauseOrUnpause = () =>
     this.setState({ isRunning: !this.state.isRunning })
+
+  private onSetSpeed = (speed: GameSpeed) =>
+    this.setState({
+      settings: { ...this.state.settings, speed },
+    });
 
   private onSetTown = (town: ITownSettings) =>
     this.setState({ town });

@@ -22,7 +22,7 @@
 }
 
 .Content {
-  width: 800px;
+  width: 840px;
   max-width: 100%;
   background-color: #35363C;
   color: white;
@@ -43,6 +43,11 @@
   cursor: pointer;
   transition: opacity 200ms linear;
   margin-right: 16px;
+}
+
+.Control.Disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .Control:hover {
@@ -69,7 +74,7 @@
 
 .ResourceAmount {
   font-weight: bold;
-  min-width: 24px;
+  min-width: 32px;
   margin: 4px 0 4px 16px;
 }
 

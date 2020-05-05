@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import { IResources, ICharacter, Gender, ICharacterFinances } from 'types/state';
+import { IResources, ICharacter, Gender, ICharacterFinances, GameSpeed } from 'types/state';
 
 import styles from './Header.module.css';
 import { getAge } from 'utils/time';
@@ -30,12 +30,14 @@ interface IHeader {
   resources: IResources;
   isRunning: boolean;
   onPauseOrUnpause: () => void;
+  gameSpeed?: GameSpeed;
+  onSetSpeed: (speed: GameSpeed) => void;
   onReset: () => void;
 }
 
 export class Header extends React.PureComponent<IHeader> {
   public render() {
-    const { daysPassed, character, resources, isRunning, onPauseOrUnpause, onReset } = this.props;
+    const { daysPassed, character, resources, isRunning, onPauseOrUnpause, onReset, gameSpeed } = this.props;
 
     return (
       <div className={styles.Header}>
@@ -50,8 +52,16 @@ export class Header extends React.PureComponent<IHeader> {
         <div className={styles.Content}>
           <div className={styles.Controls}>
             <i
+              className={classNames(styles.Control, 'fas fa-backward', { [styles.Disabled]: gameSpeed === GameSpeed.Slow })}
+              onClick={this.onSlowDown}
+            />
+            <i
               className={classNames(styles.Control, isRunning ? 'fas fa-pause' : 'fas fa-play')}
               onClick={onPauseOrUnpause}
+            />
+            <i
+              className={classNames(styles.Control, 'fas fa-forward', { [styles.Disabled]: gameSpeed === GameSpeed.Fast })}
+              onClick={this.onSpeedUp}
             />
             <div className={styles.Day}>
               Day {daysPassed}
@@ -72,6 +82,20 @@ export class Header extends React.PureComponent<IHeader> {
         </div>
       </div>
     )
+  }
+
+  private onSlowDown = () => {
+    const { gameSpeed , onSetSpeed } = this.props;
+    if (gameSpeed == null || gameSpeed > GameSpeed.Slow) {
+      onSetSpeed((gameSpeed ?? GameSpeed.Medium) - 1);
+    }
+  }
+
+  private onSpeedUp = () => {
+    const { gameSpeed , onSetSpeed } = this.props;
+    if (gameSpeed == null || gameSpeed < GameSpeed.Fast) {
+      onSetSpeed((gameSpeed ?? GameSpeed.Medium) + 1);
+    }
   }
 
   private getCoinIncome = () =>

@@ -7,6 +7,7 @@ import {
   IResources,
   ITownSettings,
   ICharacterFinances,
+  GameSpeed,
 } from 'types/state';
 import styles from './GameScreen.module.css';
 import { Header } from 'components/Header/Header';
@@ -31,6 +32,8 @@ interface IGameScreen {
   relationships: IRelationships;
   messages: string[];
   isRunning: boolean;
+  gameSpeed?: GameSpeed;
+  onSetSpeed: (speed: GameSpeed) => void;
   manuallyTriggerEvent: (id: ID) => void;
   onPauseOrUnpause: () => void;
   onReset: () => void;
@@ -49,6 +52,8 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
       finances,
       relationships,
       isRunning,
+      gameSpeed,
+      onSetSpeed,
       onPauseOrUnpause,
       onReset,
       manuallyTriggerEvent,
@@ -62,8 +67,10 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
           resources={resources}
           finances={finances}
           isRunning={isRunning}
+          gameSpeed={gameSpeed}
           onPauseOrUnpause={onPauseOrUnpause}
           onReset={onReset}
+          onSetSpeed={onSetSpeed}
         />
         <main className={styles.Mat}>
           { event != null ? <EventPopup event={event} /> : null }

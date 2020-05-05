@@ -103,9 +103,29 @@ export type WorldFlag =
   | 'townGuard'
   ;
 
+export enum GameSpeed {
+  Slow,
+  Medium,
+  Fast,
+}
+
+export const getTickDuration = (gameSpeed: GameSpeed = GameSpeed.Medium) => {
+  switch (gameSpeed) {
+    case GameSpeed.Fast:
+      return 1000;
+    case GameSpeed.Medium:
+      return 3 * 1000;
+    case GameSpeed.Slow:
+      return 5 * 1000;
+    default:
+      return 3 * 1000;
+  }
+}
+
 export interface IUserSettings {
   pauseOnEvents: boolean;
   autoSave: boolean;
+  speed?: GameSpeed;
 }
 
 export interface ITownSettings {
