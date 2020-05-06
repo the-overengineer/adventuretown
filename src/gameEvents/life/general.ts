@@ -894,4 +894,20 @@ export const slavesMustBeFreed = createEvent.regular({
       ),
     },
   ],
-})
+});
+
+export const costsOfLiving = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.resources.coin >= 20,
+  title: 'Costs of living',
+  getText: _ => `Life costs a bit extra every now and then`,
+  actions: [
+    {
+      text: 'So it does',
+      perform: compose(
+        changeResource('coin', -20),
+        notify('You have incurred some regular costs of living'),
+      ),
+    },
+  ],
+});
