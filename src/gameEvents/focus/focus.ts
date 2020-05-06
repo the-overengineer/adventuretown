@@ -697,7 +697,7 @@ export const gardenEaten = createEvent.regular({
 });
 
 export const gardenDestroyedByWeather = createEvent.regular({
-  meanTimeToHappen: 4 * 365,
+  meanTimeToHappen: 8 * 365,
   condition: _ => _.characterFlags.gardener!,
   title: 'Harsh winter',
   getText: _ => `An early and harsh winter has destroyed your garden. There is nothing to be done against

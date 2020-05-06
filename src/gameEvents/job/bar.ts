@@ -222,7 +222,7 @@ export const potentialAdventurerLover = createEvent.regular({
     _.character.profession === Profession.BarWorker ||
     _.characterFlags.focusFun === true ||
     _.character.charm >= 5
-  ),
+  ) && (_.worldFlags.adventurerKeep! || _.worldFlags.adventurers!),
   meanTimeToHappen: 9 * 30, // 9 months
   title: 'Admired at the bar',
   getText: (s) => {

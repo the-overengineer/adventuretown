@@ -192,7 +192,7 @@ export const famineFoodStolen = createEvent.regular({
 export const sellAgriculturalRevolution = createEvent.regular({
   meanTimeToHappen: 365,
   condition: _ => _.character.profession === Profession.Farmer
-    && _.character.professionLevel == ProfessionLevel.Leadership
+    && _.character.professionLevel === ProfessionLevel.Leadership
     && _.worldFlags.agriculturalRevolution!,
   title: 'Sell agricultural secrets',
   getText: _ => `Representatives of a neighbouring town approach you with a proposal.

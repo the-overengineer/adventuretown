@@ -38,6 +38,18 @@ export const createChild = (state: IGameState): IGameState => ({
   },
 });
 
+export const createNonBabyChild = (state: IGameState): IGameState => {
+  const ageInYears = inIntRange(3, 14);
+  const birthDay = state.daysPassed - ageInYears * 365;
+  return {
+    ...state,
+    relationships: {
+      ...state.relationships,
+      children: [...state.relationships.children, generateCharacter(birthDay)],
+    },
+  };
+};
+
 type Stat = 'physical' | 'intelligence' | 'education' | 'charm';
 
 export const changeStat = (stat: Stat, by: number) => (state: IGameState): IGameState => ({
@@ -225,3 +237,6 @@ export const fireFireableChild = (state: IGameState): IGameState => {
 
 export const hasFixedIncome = (character: ICharacter) =>
   character.profession == null || new Set([Profession.Guard, Profession.Politician]).has(character.profession);
+
+export const hasSmallChild = (state: IGameState): boolean =>
+  state.relationships.children.some((child) => getAge(child.dayOfBirth, state.daysPassed) < 3);

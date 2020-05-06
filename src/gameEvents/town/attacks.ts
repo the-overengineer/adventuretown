@@ -1,9 +1,9 @@
 import { eventCreator } from 'utils/events';
 import { notify } from 'utils/message';
 import { compose } from 'utils/functional';
-import { setWorldFlag } from 'utils/setFlag';
+import { setWorldFlag, setCharacterFlag } from 'utils/setFlag';
 import { decreaseFortifications } from 'utils/town';
-import { removeRandomChild, removeSpouse, changeStat } from 'utils/person';
+import { removeRandomChild, removeSpouse, changeStat, hasSmallChild, removeLastChild } from 'utils/person';
 import { triggerEvent } from 'utils/eventChain';
 import { death } from 'gameEvents/life/general';
 import { changeResource, changeResourcePercentage } from 'utils/resources';
@@ -67,6 +67,7 @@ export const orcsTakeChild = createEvent.triggered({
       text: `Not wosstheirname!`,
       perform: compose(
         removeRandomChild,
+        setCharacterFlag('kidnappedChild', true),
         notify('The orcs have taken one of your children as captive'),
       ),
     },
@@ -601,6 +602,95 @@ export const orcBanditWar = createEvent.regular({
         .orTrigger(warStalemate).withWeight(4)
         .orTrigger(orcsDefeatBandits).withWeight(3)
         .toTransformer(),
+    },
+  ],
+});
+
+export const goblinsStealSmallChild = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.worldFlags.goblins! && _.town.fortification < Fortification.Palisade && hasSmallChild(_),
+  title: 'Goblins steal toddler',
+  getText: _ => `After a recent goblin raid, you cannot find your toddler anywhere. It looks like the goblins
+    took them`,
+  actions: [
+    {
+      text: 'My baby!',
+      perform: compose(
+        removeLastChild,
+        setCharacterFlag('kidnappedChild', true),
+        notify('Goblins have taken your young child'),
+      ),
+    },
+  ],
+});
+
+export const adventurersInTown = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => !_.worldFlags.adventurers && !_.worldFlags.adventurerKeep,
+  title: 'Adventurers in town',
+  getText: _ => `A part of adventurers have taken residence in town for the time being, keeping themselves busy
+    either adventuring or drinking`,
+  actions: [
+    {
+      text: 'I wonder what happens...',
+      perform: compose(
+        setWorldFlag('adventurers', true),
+        notify('A party of adventurers are in town'),
+      ),
+    },
+  ],
+});
+
+export const adventurersLeave = createEvent.regular({
+  meanTimeToHappen: 9 * 30,
+  condition: _ => _.worldFlags.adventurers!,
+  title: 'Adventurers leave',
+  getText: _ => `The party of adventurers that have made ${_.town.name} their temporary base decide to leave
+    the town for the time being.`,
+  actions: [
+    {
+      text: 'Goodbye!',
+      perform: compose(
+        setWorldFlag('adventurers', false),
+        setWorldFlag('adventurersQuestCompleted', false),
+        notify('Adventurers leave, letting the town return to its usual pace'),
+      ),
+    },
+  ],
+});
+
+export const adventurersGetKeep = createEvent.regular({
+  meanTimeToHappen: 36 * 30,
+  condition: _ => _.worldFlags.adventurers!,
+  title: 'Adventurers settle',
+  getText: _ => `A party of adventurers that have been staying in ${_.town.name} recently have been awarded
+    an abandoned tower near the town by the rulers. They decide to settle here and keep an eye on the town`,
+  actions: [
+    {
+      text: 'That is... good?',
+      perform: compose(
+        setWorldFlag('adventurers', false),
+        setWorldFlag('adventurerKeep', true),
+        setWorldFlag('adventurersQuestCompleted', false),
+        notify('A party of adventurers settles permanently in the town'),
+      ),
+    },
+  ],
+});
+
+export const adventurersKeepGone = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.worldFlags.adventurerKeep!,
+  title: 'Adventuring party gone',
+  getText: _ => `The adventuring party that has made their home in ${_.town.name} has fallen apart, leaving
+    the tower they resided in abandoned once more`,
+  actions: [
+    {
+      text: 'Farewell',
+      perform: compose(
+        setWorldFlag('adventurerKeep', false),
+        notify('The town is no longer home to a party of adventurers'),
+      ),
     },
   ],
 });

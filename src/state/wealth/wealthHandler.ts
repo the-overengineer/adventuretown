@@ -1,5 +1,4 @@
 import {
-  ICharacter,
   IGameState,
   Profession,
   ProfessionLevel,
