@@ -431,3 +431,122 @@ export const decreaseSizeDueToEconomy = createEvent.regular({
     },
   ],
 });
+
+export const verminAppear = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => !_.worldFlags.vermin,
+  title: 'Vermin!',
+  getText: _ => `The town is getting overwhelmed with rats, mice, and voles. It is only a matter
+    of time before they start getting into the grain stores`,
+  actions: [
+    {
+      text: 'Drat!',
+      perform: compose(
+        setWorldFlag('vermin', true),
+        notify('The town is being overrun by vermin'),
+      ),
+    }
+  ],
+});
+
+export const verminDisappear = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.worldFlags.vermin!,
+  title: 'Vermin disappear',
+  getText: _ => `It is getting less and less common to find vermin around ${_.town.name}. Maybe they
+    have finally gone away?`,
+  actions: [
+    {
+      text: `Let's hope so!`,
+      perform: compose(
+        setWorldFlag('vermin', false),
+        notify('The town seems to be free of vermin, for the time being'),
+      ),
+    },
+  ],
+});
+
+export const verminDisappearFamine = createEvent.regular({
+  meanTimeToHappen: 4 * 30,
+  condition: _ => _.worldFlags.vermin! && _.worldFlags.famine!,
+  title: 'Vermin disappear',
+  getText: _ => `With nothing to eat due to the harsh famine, the rats and mice seem to have migrated away from ${_.town.name}`,
+  actions: [
+    {
+      text: `Let's hope so!`,
+      perform: compose(
+        setWorldFlag('vermin', false),
+        notify('There is still little food, but at least the vermin are gone'),
+      ),
+    },
+  ],
+});
+
+export const verminCausePlague = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.worldFlags.vermin! && !_.worldFlags.sickness,
+  title: 'Sickness spreads',
+  getText: _ => `Suddenly, as if sent from the gods, sickness appears. Some people seem to believe
+    that it was spread by the vermin which run all over the town, others seem to think it is a punishment
+    for your sins`,
+  actions: [
+    {
+      text: `I hope it passes soon`,
+      perform: compose(
+        setWorldFlag('sickness', true),
+        notify('There is a sickness spreading. Some blame the vermin running around town'),
+      ),
+    }
+  ],
+});
+
+export const famineDueToWeather = createEvent.regular({
+  meanTimeToHappen: 30 * 365,
+  condition: _ => !_.worldFlags.famine,
+  title: 'Famine!',
+  getText: _ => `Last winter was long and harsh, and spring came late. The supplies are dwindling,
+    and food is more and more expensive. It will be a tough year`,
+  actions: [
+    {
+      text: 'Time to tighten my belt',
+      perform: compose(
+        setWorldFlag('famine', true),
+        notify('A harsh winter has started a famine'),
+      ),
+    },
+  ],
+});
+
+// TODO: City council event to import food and end famine or something
+export const famineEnds = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.worldFlags.famine!,
+  title: 'Famine ends!',
+  getText: _ => `Finally, farms start producing sufficient food again. It would seem that the difficult period of famine as ended
+    at last`,
+  actions: [
+    {
+      text: 'Finally!',
+      perform: compose(
+        setWorldFlag('famine', false),
+        notify('After a period of starvation, the famine has come to an end'),
+      ),
+    },
+  ],
+});
+
+export const famineShrinksPopulation = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.worldFlags.famine! && _.town.size > Size.Minuscule,
+  title: 'Famine shrinks population',
+  getText: _ => `With so many people dying due to the famine, ${_.town.name} is not as populous as it used to be`,
+  actions: [
+    {
+      text: 'A tragedy',
+      perform: compose(
+        decreaseSize,
+        notify('So many people have died out due to the famine that the population has shrunk'),
+      ),
+    },
+  ],
+});

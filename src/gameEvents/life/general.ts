@@ -971,3 +971,20 @@ export const buriedGoldStolen = createEvent.regular({
     },
   ],
 });
+
+export const verminEatGrain = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.worldFlags.vermin!,
+  title: 'Mice get into grain',
+  getText: _ => `You find that some of the sacks of grain in your basement have been bitten through
+    and partially eaten. It looks like mice got to them`,
+  actions: [
+    {
+      text: 'They are everywhere!',
+      perform: compose(
+        changeResource('food', -50),
+        notify('Mice got into your grain supplies'),
+      ),
+    },
+  ],
+});

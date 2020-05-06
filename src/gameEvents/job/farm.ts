@@ -1,4 +1,4 @@
-import { Profession } from 'types/state';
+import { Profession, ProfessionLevel } from 'types/state';
 import { compose } from 'utils/functional';
 import { changeResource } from 'utils/resources';
 import { notify } from 'utils/message';
@@ -85,7 +85,7 @@ export const verminPoisonFailure = createEvent.triggered({
 
 export const verminFound = createEvent.regular({
   meanTimeToHappen: 9 * 30,
-  condition: _ => _.character.profession === Profession.Farmer,
+  condition: _ => _.character.profession === Profession.Farmer && _.worldFlags.vermin!,
   title: 'Vermin strike!',
   getText: _ => `
     As you're working around the farm, you notice that some of the stores have been partially eaten.
@@ -168,3 +168,22 @@ export const toughWork = createEvent.regular({
     },
   ],
 });
+
+export const famineFoodStolen = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.character.profession === Profession.Farmer
+    && _.character.professionLevel === ProfessionLevel.Leadership,
+  title: 'Farm robbed due to famine',
+  getText: _ => `With the famine going on, people have started getting more and more desperate. Last night, they
+    seem to have broken into your farm while everybody was asleep and stolen large quantities of your stores.
+    This will be a huge financial loss to you`,
+  actions: [
+    {
+      text: 'Blasted thieves!',
+      perform: compose(
+        changeResource('coin', -100),
+        notify('Large amounts of supplies were stolen from your farm, incurring a large loss for you'),
+      ),
+    },
+  ],
+})

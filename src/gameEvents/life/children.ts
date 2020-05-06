@@ -324,3 +324,21 @@ export const childCosts = createEvent.regular({
     },
   ],
 });
+
+export const childStarves = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.relationships.children.length > 0 && _.resources.food === 0 && _.finances.foodExpenses > _.finances.foodIncome,
+  title: 'Child starves',
+  getText: _ => `Without anything to eat, your children have been becoming less and less lively, and their usual running around and
+    noise have become merely listless moaning and complaints. It is not a surprise, but still a tragedy, when you discover that one of
+    them can no longer rise in the morning due to hunger. By nightfall, they are gone`,
+  actions: [
+    {
+      text: 'Goodbye, little one',
+      perform: compose(
+        removeRandomChild,
+        notify('Being without food for so long, your child has starved to death'),
+      ),
+    },
+  ],
+});

@@ -140,3 +140,20 @@ export const sickness = createEvent.regular({
   ],
 });
 
+export const spouseStarves = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.relationships.spouse != null && _.resources.food === 0 && _.finances.foodExpenses > _.finances.foodIncome,
+  title: 'Spouse starves',
+  getText: _ => `Your spouse, ${_.relationships.spouse!.name}, has been complaining of hunger for a while now,
+    and you noticed that they were as thin as a stick. Still, it did not prepare you for this morning, when you found
+    them glassy-eyed and unmoving in your bed, having starved to death`,
+  actions: [
+    {
+      text: 'Goodbye, my love',
+      perform: compose(
+        removeSpouse,
+        notify('Being without food for so long, your spouse has starved to death'),
+      ),
+    },
+  ],
+});
