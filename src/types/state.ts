@@ -112,6 +112,7 @@ export type WorldFlag =
   | 'goblins'
   | 'bandits'
   | 'townGuard'
+  | 'buriedGold'
   ;
 
 export enum GameSpeed {

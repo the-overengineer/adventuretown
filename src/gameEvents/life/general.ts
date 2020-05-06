@@ -6,7 +6,7 @@ import { changeResource, changeResourcePercentage } from 'utils/resources';
 import { notify } from 'utils/message';
 import { getAge } from 'utils/time';
 import { changeStat, newCharacter, eldestInherits, removeLastChild, addSpouse, removeSpouse } from 'utils/person';
-import { setCharacterFlag, pregnancyChance } from 'utils/setFlag';
+import { setCharacterFlag, pregnancyChance, setWorldFlag } from 'utils/setFlag';
 import { inIntRange } from 'utils/random';
 import { hasLimitedRights, isOppressed } from 'utils/town';
 
@@ -371,7 +371,7 @@ export const wishLove = createEvent.triggered({
 });
 
 export const djinnFound = createEvent.regular({
-  meanTimeToHappen: 50 * 365,
+  meanTimeToHappen: 100 * 365,
   condition: _ => _.characterFlags.djinnFound !== true,
   title: 'A lamp found',
   getText: _ => `
@@ -907,6 +907,66 @@ export const costsOfLiving = createEvent.regular({
       perform: compose(
         changeResource('coin', -20),
         notify('You have incurred some regular costs of living'),
+      ),
+    },
+  ],
+});
+
+export const buryGold = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.resources.coin >= 500 && !_.worldFlags.buriedGold,
+  title: 'Burying gold',
+  getText: _ => `You have gold aplenty, but you are not certain you always will have. What if you get robbed,
+    or if you get banished and your children are left with nothing? It might be a good idea to bury a few coins
+    for rainy days`,
+  actions: [
+    {
+      text: 'Bury the gold',
+      perform: compose(
+        changeResource('coin', -100),
+        setWorldFlag('buriedGold', true),
+        notify('You bury some gold for rainy days'),
+      ),
+    },
+    {
+      text: 'I would rather keep it',
+    },
+  ],
+});
+
+export const digOutGold = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.resources.coin < 100 && _.worldFlags.buriedGold!,
+  title: 'Buried gold',
+  getText: _ => `You are not exactly the richest person in town right now. And then it hits you - the buried gold!
+    It was stashed exactly for situations like this one`,
+  actions: [
+    {
+      text: 'Dig it out',
+      perform: compose(
+        changeResource('coin', 100),
+        setWorldFlag('buriedGold', false),
+        notify('You dig up the stash of gold'),
+      ),
+    },
+    {
+      text: 'Leave it',
+    },
+  ],
+});
+
+export const buriedGoldStolen = createEvent.regular({
+  meanTimeToHappen: 150 * 365,
+  condition: _ => _.worldFlags.buriedGold!,
+  title: 'Buried gold stolen',
+  getText: _ => `Somebody somehow managed to find the gold that was buried, and stole it. You will have
+    nothing left for rainy days`,
+  actions: [
+    {
+      text: 'Curses!',
+      perform: compose(
+        setWorldFlag('buriedGold', false),
+        notify('Somebody dug up your gold'),
       ),
     },
   ],
