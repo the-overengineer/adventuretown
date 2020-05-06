@@ -6,9 +6,20 @@ import {
   IGameState,
   IQueuedEvent,
 } from 'types/state';
+import { inIntRange } from 'utils/random';
 
-// Unless special events, check only every N days
-const CHECK_HOW_OFTEN: number = 20;
+export const fuzzyUpMtth = (mtth: number): number => {
+  if (mtth === 0) {
+    return 0;
+  }
+
+  const fuzzUp = Math.min(1, Math.round(mtth / 10));
+
+  return Math.max(1, mtth + inIntRange(-fuzzUp, fuzzUp));
+};
+
+// Factor which determines the frequency at which an event is checked depending on its MTTH
+const CHECK_HOW_OFTEN_FACTOR: number = 0.1;
 
 export const updateEventQueue = (state: IGameState): IGameState => {
   const validEvents = state.eventQueue.filter((eq) => {
@@ -30,7 +41,7 @@ export const updateEventQueue = (state: IGameState): IGameState => {
   .filter((event) => !existingIDs.has(event.id) && event.condition(state))
   .map((event): IQueuedEvent => ({
     id: event.id,
-    meanTimeToHappen: event.meanTimeToHappen,
+    meanTimeToHappen: fuzzyUpMtth(event.meanTimeToHappen),
     queuedAtDay: state.daysPassed,
   }));
 
@@ -51,7 +62,9 @@ export const updateActiveEvent = (state: IGameState): IGameState => {
       ? 1
       : (1 - Math.pow(2, -1 * (state.daysPassed - event.queuedAtDay) / event.meanTimeToHappen));
 
-    if (event.meanTimeToHappen === 0 || (daysSince % Math.min(CHECK_HOW_OFTEN, event.meanTimeToHappen) === 0 && Math.random() <= chanceToHappen)) {
+    const checkHowOften = Math.max(1, Math.round(CHECK_HOW_OFTEN_FACTOR * event.meanTimeToHappen));
+
+    if (event.meanTimeToHappen === 0 || (daysSince % checkHowOften === 0 && Math.random() <= chanceToHappen)) {
       return {
         ...state,
         eventQueue: state.eventQueue.filter((it) => it.id !== event.id),
