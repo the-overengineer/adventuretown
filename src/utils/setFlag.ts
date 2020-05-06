@@ -20,8 +20,8 @@ export const setWorldFlag = (flag: WorldFlag, to: boolean) =>
 
 export const pregnancyChance = (flag: 'pregnantLover' | 'spousePregnant') => (state: IGameState): IGameState => {
   const chance = state.characterFlags.focusFamily!
-    ? 0.2
-    : 0.1;
+    ? 0.35
+    : 0.2;
 
   if (Math.random() > chance) {
     return state; //No baby here
