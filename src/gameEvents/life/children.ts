@@ -206,6 +206,7 @@ export const becomePregnantWithSpouse = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.character.gender === Gender.Female
     && _.relationships.spouse != null
+    && !_.characterFlags.pregnant
     && getAge(_.character.dayOfBirth, _.daysPassed) < 40,
   title: 'Bliss in bed',
   getText: _ => `You and your husband have been quite active in bed recently. Not only is it a good way
@@ -225,6 +226,7 @@ export const spouseBecomesPregnant = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.character.gender === Gender.Male
     && _.relationships.spouse != null
+    && !_.worldFlags.spousePregnantDiscovered
     && getAge(_.relationships.spouse.dayOfBirth, _.daysPassed) < 40,
   title: 'Bliss in bed',
   getText: _ => `You and your wife have been quite active in bed recently. Not only is it a good way
