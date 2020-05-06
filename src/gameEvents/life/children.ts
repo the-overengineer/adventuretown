@@ -203,7 +203,7 @@ export const wifeGivesBirth = createEvent.regular({
 });
 
 export const becomePregnantWithSpouse = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: 365,
   condition: _ => _.character.gender === Gender.Female
     && _.relationships.spouse != null
     && !_.characterFlags.pregnant
@@ -223,7 +223,7 @@ export const becomePregnantWithSpouse = createEvent.regular({
 });
 
 export const spouseBecomesPregnant = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: 365,
   condition: _ => _.character.gender === Gender.Male
     && _.relationships.spouse != null
     && !_.worldFlags.spousePregnantDiscovered
