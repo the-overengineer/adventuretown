@@ -2,7 +2,7 @@ import { GenderEquality, Gender } from 'types/state';
 import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
-import { createChild, findEmployableChild, hireEmployableChild, findFireableChild, fireFireableChild, removeRandomChild } from 'utils/person';
+import { createChild, findEmployableChild, hireEmployableChild, findFireableChild, fireFireableChild, removeRandomChild, isEmployable } from 'utils/person';
 import { changeResource } from 'utils/resources';
 import { isOppressed } from 'utils/town';
 import {
@@ -303,6 +303,23 @@ export const childDiesFromSickness = createEvent.regular({
       perform: compose(
         removeRandomChild,
         notify('A child of yours has perished from the sickness'),
+      ),
+    },
+  ],
+});
+
+export const childCosts = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.relationships.children.filter(c => isEmployable(_, c)).length > 0,
+  title: 'Child costs',
+  getText: _ => `Children can be a joy, but apparently they incur some extra costs every now and then.
+    You have no choice but to pay them`,
+  actions: [
+    {
+      text: 'When will they move out?',
+      perform: compose(
+        (_) => changeResource('coin', -10 * _.relationships.children.filter(c => isEmployable(_, c)).length)(_),
+        notify(`You have to spend some money on your children. You almost regret having them`),
       ),
     },
   ],
