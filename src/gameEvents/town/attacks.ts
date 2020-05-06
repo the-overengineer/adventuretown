@@ -190,11 +190,10 @@ export const orcsAttack = createEvent.regular({
 });
 
 export const orcsSettle = createEvent.regular({
-  meanTimeToHappen: 2 * 365,
+  meanTimeToHappen: 5 * 365,
   condition: _ => !_.worldFlags.orcs
     && _.town.prosperity > Prosperity.Poor
-    && _.town.fortification < Fortification.Walls
-    && !_.worldFlags.adventurerKeep,
+    && _.town.fortification < Fortification.Walls,
   title: 'Orcs settle',
   getText: _ => `A tribe of orcs settle nearby, sensing the weakness of your settlement and a chance to
     raid. They will surely cause trouble in the future`,
@@ -243,3 +242,184 @@ export const orcsGiveUpRandomly = createEvent.regular({
     },
   ],
 });
+
+export const goblinsSettle = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => !_.worldFlags.goblins
+    && _.town.prosperity > Prosperity.DirtPoor
+    && _.town.fortification < Fortification.Walls
+    && !_.worldFlags.adventurerKeep!,
+  title: 'Goblins settle',
+  getText: _ => `A tribe of goblins settle in the vicinity, sensing weakness`,
+  actions: [
+    {
+      text: 'Troubling',
+      perform: compose(
+        setWorldFlag('goblins', true),
+        notify('Some goblins settle in the area'),
+      ),
+    },
+  ],
+});
+
+export const goblinsGiveUp = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.worldFlags.goblins!
+    && (_.town.prosperity === Prosperity.DirtPoor || _.town.fortification >= Fortification.Palisade || _.worldFlags.adventurerKeep!),
+  title: 'Goblins move on',
+  getText: _ => `The local tribe of goblins no longer sees raiding your village as something worth the effort, and move on`,
+  actions: [
+    {
+      text: 'Finally!',
+      perform: compose(
+        setWorldFlag('goblins', false),
+        notify('The local tribe of goblins move on from the area'),
+      ),
+    },
+  ],
+});
+
+export const goblinsMigrate = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.worldFlags.goblins!,
+  title: 'Goblins move on',
+  getText: _ => `The local tribe of goblins migrate away from the area, seeking new and exciting places to plunder`,
+  actions: [
+    {
+      text: 'Finally!',
+      perform: compose(
+        setWorldFlag('goblins', false),
+        notify('The local tribe of goblins move on from the area'),
+      ),
+    },
+  ],
+});
+
+export const goblinsRaidFood = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.worldFlags.goblins! && _.town.fortification < Fortification.Palisade,
+  title: 'Goblins steal food',
+  getText: _ => `The goblin tribe raid the town during the night and steal food from the granary. You are affected`,
+  actions: [
+    {
+      text: 'Pests!',
+      perform: compose(
+        changeResource('food', -15),
+        notify('Goblins raid the local granary, taking some of your food'),
+      ),
+    },
+  ],
+});
+
+export const goblinsDestroyProperty = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.worldFlags.goblins! && _.town.fortification < Fortification.Palisade,
+  title: 'Goblins destroy property',
+  getText: _ => `The goblin tribe raid the town during the night and steal or destroy some of your property`,
+  actions: [
+    {
+      text: 'Pests!',
+      perform: compose(
+        changeResource('coin', -15),
+        notify('Goblins raid the town, stealing or destroying some of your property'),
+      ),
+    },
+  ],
+});
+
+export const goblinCritiquesAppearance = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.worldFlags.goblins! && _.town.fortification < Fortification.Palisade,
+  title: 'Harsh words',
+  getText: _ => `You are minding your own business when you encounter a goblin raiding party.
+    They do not attack you, but one of them says some really hurtful things about your appearance`,
+  actions: [
+    {
+      text: 'I feel ugly',
+      perform: compose(
+        changeStat('charm', -1),
+        notify('A goblin raiding party says nasty things and hurts your confidence'),
+      ),
+    },
+  ],
+});
+
+export const goblinsAttackYou = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.worldFlags.goblins! && _.town.fortification < Fortification.Palisade,
+  title: 'Cornered by goblins',
+  getText: _ => `You are minding your own business when you encounter a goblin raiding party.
+    They spring to attack you, wielding small clubs and branches`,
+  actions: [
+    {
+      condition: _ => _.character.physical >= 4,
+      text: 'Chase them away',
+      perform: notify('Goblins attack you, but you manage to chase them away'),
+    },
+    {
+      text: 'Take a beating',
+      perform: compose(
+        changeStat('physical', -1),
+        notify('A band of goblins corners you and gives you a nasty beating'),
+      ),
+    },
+  ],
+});
+
+export const warStalemate = createEvent.triggered({
+  title: 'Stalemate',
+  getText: _ => `The spat between the neighbouring groups comes to a stalemate, with neither side managing
+    to score a major victory. Both of the groups remain in the area`,
+  actions: [
+    {
+      text: 'A shame',
+    },
+  ],
+});
+
+export const goblinsDefeatOrcs = createEvent.triggered({
+  title: 'Goblins win',
+  getText: _ => `Though certainly the underdog in this conflict, the goblin tribes manage to score a victory
+    and chase the orcs from the area`,
+  actions: [
+    {
+      text: 'Good news!',
+      perform: compose(
+        setWorldFlag('orcs', false),
+        notify('Goblins manage to chase the orcs from the area'),
+      ),
+    }
+  ],
+});
+
+export const orcsDefeatGoblins = createEvent.triggered({
+  title: 'Orcs win',
+  getText: _ => `The orc tribe easily overpowers the goblins, killing many and chasing the survivors from the area.
+    The goblins will pester you no more`,
+  actions: [
+    {
+      text: 'Good news!',
+      perform: compose(
+        setWorldFlag('goblins', false),
+        notify('The orcs have chased the local goblin tribe away, winning their war'),
+      ),
+    },
+  ],
+});
+
+export const orcGoblinWar = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.worldFlags.goblins! && _.worldFlags.orcs!,
+  title: 'Orc-goblin conflicts',
+  getText: _ => `The neighbouring orc and goblin tribes are both trying to raid your town, and do not seem to like each others'
+    presence. After some tension, they start a war between themselves`,
+  actions: [
+    {
+      text: 'Let us see what happens',
+      perform: triggerEvent(goblinsDefeatOrcs)
+        .orTrigger(warStalemate).withWeight(3)
+        .orTrigger(orcsDefeatGoblins).withWeight(6)
+        .toTransformer(),
+    },
+  ],
+})
