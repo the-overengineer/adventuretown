@@ -222,3 +222,6 @@ export const fireFireableChild = (state: IGameState): IGameState => {
   const child = findFireableChild(state);
   return child != null ? fireChild(state, child) : state;
 }
+
+export const hasFixedIncome = (character: ICharacter) =>
+  character.profession == null || new Set([Profession.Guard, Profession.Politician]).has(character.profession);

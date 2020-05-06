@@ -1,14 +1,15 @@
 import {
+  ICharacter,
   IGameState,
   Profession,
   ProfessionLevel,
   StateTransformer,
   Taxation,
 } from 'types/state';
-
 import { getProfessionMap } from 'utils/employment';
-import { changeFinance } from 'utils/resources';
 import { compose } from 'utils/functional';
+import { hasFixedIncome } from 'utils/person';
+import { changeFinance } from 'utils/resources';
 
 const coinsFromProfession = getProfessionMap({
   [Profession.BarWorker]: {
@@ -156,4 +157,5 @@ export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState =>
   state.characterFlags.slaves ? changeFinance('foodExpenses', 1) : undefined,
   state.characterFlags.slaves ? changeFinance('renownIncome', 1) : undefined,
   state.worldFlags.famine ? changeFinance('foodIncome', -2) : undefined,
+  state.worldFlags.tradeDisrupted! && !hasFixedIncome(state.character) ? changeFinance('coinIncome', - 1) : undefined,
 ].filter(_ => _ != null) as StateTransformer[])(state);

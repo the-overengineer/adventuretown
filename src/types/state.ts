@@ -115,6 +115,7 @@ export type WorldFlag =
   | 'buriedGold'
   | 'vermin'
   | 'famine'
+  | 'tradeDisrupted'
   ;
 
 export enum GameSpeed {

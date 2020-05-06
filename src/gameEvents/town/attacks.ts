@@ -443,3 +443,164 @@ export const townGuardEstablishedDueToThreat = createEvent.regular({
   ],
 });
 
+export const banditsMakeCamp = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => !_.worldFlags.bandits &&
+    (_.town.prosperity >= Prosperity.Average || _.town.size >= Size.Average || _.town.fortification <= Fortification.Walls),
+  title: 'Bandit presence established',
+  getText: _ => `A group of bandits has established their presence close to the town, preying on the people travelling
+    in and out of town. They are unlikely to attack the town, but may cause problems`,
+  actions: [
+    {
+      text: `I don't like this`,
+      perform: compose(
+        setWorldFlag('bandits', true),
+        notify('Bandits have set up camp near the town'),
+      ),
+    },
+  ],
+});
+
+export const banditsFallApart = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.worldFlags.bandits!,
+  title: 'Bandit group falls apart',
+  getText: _ => `The bandit group close to the city seems to have fallen due to infighting. They should not longer pose
+    a serious threat to ${_.town.name}`,
+  actions: [
+    {
+      text: 'Excellent!',
+      perform: compose(
+        setWorldFlag('bandits', false),
+        notify('The bandit group near the town will no longer be a problem'),
+      ),
+    },
+  ],
+});
+
+export const banditsDisruptTrade = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.worldFlags.bandits! && !_.worldFlags.tradeDisrupted,
+  title: 'Bandits disrupt trade',
+  getText: _ => `The presence and actions of the local bandits has seriously disrupted the trade
+    and movement of people in the region. This will have dire financial effects on most people`,
+  actions: [
+    {
+      text: 'This is bad',
+      perform: compose(
+        setWorldFlag('tradeDisrupted', true),
+        notify('The presence of the bandits in the region has seriously disrupted the local economy'),
+      ),
+    },
+  ],
+});
+
+export const tradeRecovers = createEvent.regular({
+  meanTimeToHappen: 3 * 30,
+  condition: _ => !_.worldFlags.bandits && _.worldFlags.tradeDisrupted!,
+  title: 'Trade recovers',
+  getText: _ => `With the bandits gone, trade and movement of people are slowly recovering`,
+  actions: [
+    {
+      text: 'Finally,',
+      perform: compose(
+        setWorldFlag('tradeDisrupted', false),
+        notify('With the bandits gone, trade if finally back to normal'),
+      ),
+    },
+  ],
+});
+
+export const goblinsDefeatBandits = createEvent.triggered({
+  title: 'Goblins win',
+  getText: _ => `Though certainly the underdog in this conflict, the goblin tribes manage to score a victory
+    and chase the bandits from the area`,
+  actions: [
+    {
+      text: 'Good news!',
+      perform: compose(
+        setWorldFlag('orcs', false),
+        notify('Goblins manage to chase the bandits from the area'),
+      ),
+    }
+  ],
+});
+
+export const banditsDefeatGoblins = createEvent.triggered({
+  title: 'Bandits win',
+  getText: _ => `The bandits easily overpowers the goblins, killing many and chasing the survivors from the area.
+    The goblins will pester you no more`,
+  actions: [
+    {
+      text: 'Good news!',
+      perform: compose(
+        setWorldFlag('goblins', false),
+        notify('The bandits have chased the local goblin tribe away, winning their war'),
+      ),
+    },
+  ],
+});
+
+export const banditGoblinWar = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.worldFlags.goblins! && _.worldFlags.bandits!,
+  title: 'Bandit-goblin conflicts',
+  getText: _ => `The neighbouring bandit group and goblin tribe are both trying to control the area, and do not seem to like each others'
+    presence. After some tension, they start a war between themselves`,
+  actions: [
+    {
+      text: 'Let us see what happens',
+      perform: triggerEvent(goblinsDefeatBandits)
+        .orTrigger(warStalemate).withWeight(3)
+        .orTrigger(banditsDefeatGoblins).withWeight(6)
+        .toTransformer(),
+    },
+  ],
+});
+
+export const banditsDefeatOrcs = createEvent.triggered({
+  title: 'Bandits win',
+  getText: _ => `After heavy fighting, the bandits seem to have won a victory over the orcs and have chased them away from
+    the region`,
+  actions: [
+    {
+      text: 'Good news!',
+      perform: compose(
+        setWorldFlag('orcs', false),
+        notify('Bandits manage to chase the orcs from the area'),
+      ),
+    }
+  ],
+});
+
+export const orcsDefeatBandits = createEvent.triggered({
+  title: 'Orcs win',
+  getText: _ => `The orc tribe overpowers the bandits after a prolonged fight, killing many and chasing the survivors from the area.
+    The bandits will pester you no more`,
+  actions: [
+    {
+      text: 'Good news!',
+      perform: compose(
+        setWorldFlag('bandits', false),
+        notify('The orcs have chased the bandit gang away, winning their war'),
+      ),
+    },
+  ],
+});
+
+export const orcBanditWar = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.worldFlags.bandits! && _.worldFlags.orcs!,
+  title: 'Orc-bandit conflicts',
+  getText: _ => `The neighbouring orc tribe and bandit gang are both trying to control the area, and do not seem to like each others'
+    presence. After some tension, they start a war between themselves`,
+  actions: [
+    {
+      text: 'Let us see what happens',
+      perform: triggerEvent(banditsDefeatOrcs).withWeight(3)
+        .orTrigger(warStalemate).withWeight(4)
+        .orTrigger(orcsDefeatBandits).withWeight(3)
+        .toTransformer(),
+    },
+  ],
+});

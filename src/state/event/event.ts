@@ -62,7 +62,9 @@ export const updateActiveEvent = (state: IGameState): IGameState => {
       ? 1
       : (1 - Math.pow(2, -1 * (state.daysPassed - event.queuedAtDay) / event.meanTimeToHappen));
 
-    const checkHowOften = Math.max(1, Math.round(CHECK_HOW_OFTEN_FACTOR * event.meanTimeToHappen));
+    const checkHowOften = event.meanTimeToHappen <= 30
+      ? Math.max(1, Math.floor(event.meanTimeToHappen / 2))
+      : Math.max(1, Math.round(CHECK_HOW_OFTEN_FACTOR * event.meanTimeToHappen));
 
     if (event.meanTimeToHappen === 0 || (daysSince % checkHowOften === 0 && Math.random() <= chanceToHappen)) {
       return {
