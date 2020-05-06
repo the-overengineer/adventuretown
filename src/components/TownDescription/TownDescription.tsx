@@ -122,7 +122,7 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
 
   private getFlagDescriptions = (): string | null => {
     const { townFlags } = this.props;
-    console.log(townFlags);
+
     if (!townFlags) {
       return '';
     }
