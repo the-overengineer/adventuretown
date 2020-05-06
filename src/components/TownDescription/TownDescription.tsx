@@ -8,22 +8,27 @@ import {
   Prosperity,
   Size,
   Taxation,
+  IWorldFlags,
 } from 'types/state';
 import styles from './TownDescription.module.css';
 
 interface ITownDescription {
   className?: string;
   town: ITownSettings;
+  townFlags?: IWorldFlags;
+  detailed?: boolean;
 }
 
 export class TownDescription extends React.PureComponent<ITownDescription> {
   public render() {
-    const { className, town } = this.props;
+    const { className, detailed, town } = this.props;
     return (
       <div className={classNames(className, styles.TownDescription)}>
         {town.name} is {this.describeSize()}. It is {this.describeFortifications()}.
         The town is {this.describeProsperity()}. The rights of its citizens are {this.describeClassEquality()}.
         As for the sexes, {this.describeGenderEquality()}. {this.describeTaxation()}.
+
+        { detailed ? <p>{this.getFlagDescriptions()}</p> : null}
       </div>
     );
   }
@@ -113,5 +118,32 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
       default:
         return 'The taxation in the town is unusual';
     }
+  }
+
+  private getFlagDescriptions = (): string | null => {
+    const { townFlags } = this.props;
+    console.log(townFlags);
+    if (!townFlags) {
+      return '';
+    }
+
+    const parts = [
+      townFlags.adventurerKeep! ? `A group of adventurers has settled here` : undefined,
+      townFlags.adventurers! ? `A group of adventurers are visiting temporarily` : undefined,
+      townFlags.agriculturalRevolution! ? `The town is known for its advanced agriculture` : undefined,
+      townFlags.bandits! ? 'Bandits plague the town' : undefined,
+      townFlags.blackMarket! ? 'There are rumours of a black market in town' : undefined,
+      townFlags.famine! ? `The town is suffering a famine` : undefined,
+      townFlags.goblins! ? 'A band of goblins keeps robbind the town' : undefined,
+      townFlags.orcs! ? `Orc tribes have settles nearby` : undefined,
+      townFlags.sickness ? `A plague is going through the town` : undefined,
+      townFlags.townGuard ? `A town guard protects it` : undefined,
+      townFlags.tradeDisrupted ? `Trade and movement in and out of town have been disrupted` : undefined,
+      townFlags.vermin ? `The town is suffering an infestation of vermin` : undefined,
+    ].filter(_ => _ != null);
+
+    return parts.length > 0
+      ? `${parts.join('. ')}.`
+      : null;
   }
 }

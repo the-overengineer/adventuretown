@@ -9,6 +9,7 @@ import {
   ICharacterFinances,
   GameSpeed,
   ICharacterFlags,
+  IWorldFlags,
 } from 'types/state';
 import styles from './GameScreen.module.css';
 import { Header } from 'components/Header/Header';
@@ -43,6 +44,7 @@ interface IGameScreen {
   resources: IResources;
   character: ICharacter;
   characterFlags: ICharacterFlags;
+  worldFlags: IWorldFlags;
   finances: ICharacterFinances;
   relationships: IRelationships;
   messages: string[];
@@ -64,6 +66,7 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
       messages,
       resources,
       character,
+      worldFlags,
       finances,
       relationships,
       isRunning,
@@ -96,6 +99,8 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
             <TownDescription
               className={styles.TownDescription}
               town={town}
+              townFlags={worldFlags}
+              detailed
             />
             <div className={styles.Actions}>
               <Button

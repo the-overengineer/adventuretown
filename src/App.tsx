@@ -120,6 +120,7 @@ export class App extends React.PureComponent<{}, IAppState> {
       character,
       characterFlags,
       town,
+      worldFlags,
       finances,
       daysPassed,
       isRunning,
@@ -151,6 +152,7 @@ export class App extends React.PureComponent<{}, IAppState> {
             characterFlags={characterFlags}
             finances={finances}
             town={town!}
+            worldFlags={worldFlags}
             resources={resources}
             relationships={relationships}
             messages={messages}
