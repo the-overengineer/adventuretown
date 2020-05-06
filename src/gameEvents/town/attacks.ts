@@ -7,7 +7,7 @@ import { removeRandomChild, removeSpouse, changeStat } from 'utils/person';
 import { triggerEvent } from 'utils/eventChain';
 import { death } from 'gameEvents/life/general';
 import { changeResource, changeResourcePercentage } from 'utils/resources';
-import { Fortification, Prosperity } from 'types/state';
+import { Fortification, Prosperity, Size } from 'types/state';
 
 
 
@@ -422,4 +422,24 @@ export const orcGoblinWar = createEvent.regular({
         .toTransformer(),
     },
   ],
-})
+});
+
+export const townGuardEstablishedDueToThreat = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => !_.worldFlags.townGuard
+    && (_.town.prosperity >= Prosperity.Poor || _.town.size >= Size.Small)
+    && (_.worldFlags.goblins! || _.worldFlags.bandits! || _.worldFlags.orcs!),
+  title: 'Town guard established',
+  getText: _ => `With the looming threat of attackers just beyond the town, the powers that be have
+    decided to urgently establish a town guard to protect it`,
+  actions: [
+    {
+      text: 'I see',
+      perform: compose(
+        setWorldFlag('townGuard', true),
+        notify('A town guard has been established'),
+      ),
+    },
+  ],
+});
+
