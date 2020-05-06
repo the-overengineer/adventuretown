@@ -1,12 +1,30 @@
+import {
+  ClassEquality,
+  Fortification,
+  GenderEquality,
+  Profession,
+  Prosperity,
+  Size,
+  Taxation,
+} from 'types/state';
 import { eventCreator } from 'utils/events';
-import { Prosperity, Size, GenderEquality, Profession, Taxation, ClassEquality, Fortification } from 'types/state';
 import { compose } from 'utils/functional';
-import { setWorldFlag } from 'utils/setFlag';
 import { notify } from 'utils/message';
-import { equaliseGenderRights, increaseFemaleRights, increaseMaleRights, setTaxation, increaseProsperity, decreaseProsperity, increaseFortifications, increaseSize, decreaseSize } from 'utils/town';
 import { removeJob } from 'utils/person';
 import { changeResource } from 'utils/resources';
-
+import { setWorldFlag } from 'utils/setFlag';
+import {
+  decreaseFortifications,
+  decreaseProsperity,
+  decreaseSize,
+  equaliseGenderRights,
+  increaseFemaleRights,
+  increaseFortifications,
+  increaseMaleRights,
+  increaseProsperity,
+  increaseSize,
+  setTaxation,
+} from 'utils/town';
 
 const TOWN_GENERAL_PREFIX: number = 71_000;
 
@@ -546,6 +564,44 @@ export const famineShrinksPopulation = createEvent.regular({
       perform: compose(
         decreaseSize,
         notify('So many people have died out due to the famine that the population has shrunk'),
+      ),
+    },
+  ],
+});
+
+export const fortificationDecayHighFort = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.town.fortification >= Fortification.Walls
+    && (_.town.prosperity <= Prosperity.Average || _.town.size <= Size.Average),
+  title: 'Fortifications decay',
+  getText: _ => `The town of ${_.town.name} simply cannot afford to maintain the extensive fortifications
+    it had built in the past with the present state of the economy. Soon, they decay, leaving the town more
+    vulnerable`,
+  actions: [
+    {
+      text: 'Bad News',
+      perform: compose(
+        decreaseFortifications,
+        notify('Due to lack of maintenance, fortifications have decayed'),
+      ),
+    },
+  ],
+});
+
+export const fortificationDecayRegular = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.town.fortification > Fortification.Ditch
+    && (_.town.prosperity <= Prosperity.Poor || _.town.size <= Size.Tiny),
+  title: 'Fortifications decay',
+  getText: _ => `The town of ${_.town.name} simply cannot afford to maintain the extensive fortifications
+    it had built in the past with the present state of the economy. Soon, they decay, leaving the town more
+    vulnerable`,
+  actions: [
+    {
+      text: 'Bad News',
+      perform: compose(
+        decreaseFortifications,
+        notify('Due to lack of maintenance, fortifications have decayed'),
       ),
     },
   ],
