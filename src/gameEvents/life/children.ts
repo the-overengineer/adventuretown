@@ -18,7 +18,7 @@ const createEvent = eventCreator(CHILDREN_PREFIX);
 
 export const pregnancyDiscovered = createEvent.regular({
   meanTimeToHappen: 21,
-  condition: _ => _.characterFlags.unknowinglyPregnant! && _.resources.coin >= 5,
+  condition: _ => _.characterFlags.unknowinglyPregnant! && !_.characterFlags.pregnant,
   title: 'One in the oven',
   getText: _ => `
     You wake up queasy several mornings in a row. You feel different.
@@ -26,7 +26,7 @@ export const pregnancyDiscovered = createEvent.regular({
     You are with child.`,
   actions: [
     {
-      condition: _ => !isOppressed(_, _.character),
+      condition: _ => !isOppressed(_, _.character) && _.resources.coin >= 5,
       text: `I don't want this child!`,
       perform: compose(
         setCharacterFlag('unknowinglyPregnant', false),
@@ -82,7 +82,7 @@ export const giveBirthToChild = createEvent.regular({
 
 export const loverPregnantDiscovered = createEvent.regular({
   meanTimeToHappen: 21,
-  condition: _ => _.worldFlags.pregnantLover!,
+  condition: _ => _.worldFlags.pregnantLover! && !_.worldFlags.pregnantLoverKnown,
   title: 'One in the oven',
   getText: _ => 'You meet the person you recently had an amorous affair with. She smiles at you nervously and informs you that she is with child',
   actions: [
@@ -143,7 +143,7 @@ export const loverGivesBirth = createEvent.regular({
 
 export const wifePregnantDiscovered = createEvent.regular({
   meanTimeToHappen: 21,
-  condition: _ => _.worldFlags.spousePregnant!,
+  condition: _ => _.worldFlags.spousePregnant! && !_.worldFlags.spousePregnantDiscovered,
   title: 'One in the oven',
   getText: _ => `Your wife awaits your return home in the evening with a nervous smile and glinting eyes. "${_.character.name}, my love! We will have a child!"`,
   actions: [

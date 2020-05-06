@@ -257,7 +257,7 @@ export const firedEntry= createEvent.regular({
 });
 
 export const difficultTrainee = createEvent.regular({
-  meanTimeToHappen: 365,
+  meanTimeToHappen: 18 * 30,
   condition: _ => _.character.profession! && _.character.professionLevel === ProfessionLevel.Medium,
   title: 'Difficult trainee',
   getText: _ => `You've been assigned with training a new employee at your business. They have shown themselves
@@ -275,7 +275,7 @@ export const difficultTrainee = createEvent.regular({
 });
 
 export const goodTrainee = createEvent.regular({
-  meanTimeToHappen: 1.5 * 365,
+  meanTimeToHappen: 24 * 30,
   condition: _ => _.character.profession! && _.character.professionLevel === ProfessionLevel.Medium,
   title: 'Good trainee',
   getText: _ => `You've been assigned with training a new employee at your business. They have shown themselves
@@ -324,7 +324,7 @@ export const difficultJobFailure = createEvent.triggered({
 });
 
 export const difficultJob = createEvent.regular({
-  meanTimeToHappen: 365,
+  meanTimeToHappen: 24 * 30,
   condition: _ => _.character.profession != null && _.character.professionLevel === ProfessionLevel.Medium,
   title: 'A difficult job',
   getText: _ => `You have been assigned a particularly difficult task. You are not even certain that you are up
