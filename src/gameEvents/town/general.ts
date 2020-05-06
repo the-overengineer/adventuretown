@@ -671,3 +671,20 @@ export const agricultureOutdated = createEvent.regular({
     },
   ],
 });
+
+export const agriculturalRevolutionBeatsFamine = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.worldFlags.agriculturalRevolution! && !_.worldFlags.famine,
+  title: 'Sufficient food',
+  getText: _ => `The overwhelming efficiency of your agriculture has allowed to the town to beat
+    the famine`,
+  actions: [
+    {
+      text: 'Excellent!',
+      perform: compose(
+        setWorldFlag('famine', false),
+        notify('The agricultural production of the region has outpaced the famine'),
+      ),
+    },
+  ],
+});
