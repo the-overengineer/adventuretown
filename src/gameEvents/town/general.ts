@@ -3,7 +3,7 @@ import { Prosperity, Size, GenderEquality, Profession, Taxation, ClassEquality, 
 import { compose } from 'utils/functional';
 import { setWorldFlag } from 'utils/setFlag';
 import { notify } from 'utils/message';
-import { equaliseGenderRights, increaseFemaleRights, increaseMaleRights, setTaxation, increaseProsperity, decreaseProsperity, increaseFortifications } from 'utils/town';
+import { equaliseGenderRights, increaseFemaleRights, increaseMaleRights, setTaxation, increaseProsperity, decreaseProsperity, increaseFortifications, increaseSize, decreaseSize } from 'utils/town';
 import { removeJob } from 'utils/person';
 import { changeResource } from 'utils/resources';
 
@@ -75,13 +75,7 @@ export const diseaseWrecksEconomy = createEvent.regular({
     {
       text: 'It must end soon',
       perform: compose(
-        (state) => ({
-          ...state,
-          town: {
-            ...state.town,
-            prosperity: state.town.prosperity - 1,
-          },
-        }),
+        decreaseProsperity,
         notify('The sickness has ravaged the town economy'),
       ),
     },
@@ -98,13 +92,7 @@ export const diseaseShrinksPopulation = createEvent.regular({
     {
       text: 'It must end soon',
       perform: compose(
-        (state) => ({
-          ...state,
-          town: {
-            ...state.town,
-            size: state.town.size - 1,
-          },
-        }),
+        decreaseSize,
         notify('The sickness has ravaged the population, leaving the town smaller than before'),
       ),
     },
@@ -334,6 +322,111 @@ export const defendAgainstAttackers = createEvent.regular({
       perform: compose(
         increaseFortifications,
         notify('Fortifications have been improved to keep the enemy at bay'),
+      ),
+    },
+  ],
+});
+
+export const progressiveTaxPopulationGrowth = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.town.taxation === Taxation.Percentage
+    && _.town.size < Size.Large,
+  title: 'Migration into town',
+  getText: _ => `Low taxes on the poor have greatly increased the population of the town,
+    since more people wish to live here, where their masters do not tax them so much that they
+    cannot make an honest living`,
+  actions: [
+    {
+      text: 'Interesting',
+      perform: compose(
+        increaseSize,
+        notify('Many poorer people have moved into the town due to its taxation rate'),
+      ),
+    },
+  ],
+});
+
+export const progressiveTaxDefencesImproved = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.town.taxation === Taxation.Percentage
+    && _.town.fortification < Fortification.Walls,
+  title: 'Taxes invested into defences',
+  getText: _ => `Due to progressive taxation increasing the tax income, the rulers of the
+    town have decided to invest some of it into raising the town's defences.`,
+  actions: [
+    {
+      text: 'Interesting',
+      perform: compose(
+        increaseFortifications,
+        notify('Increased taxes have been invested into improving the town defences'),
+      ),
+    },
+  ],
+});
+
+export const increaseEconomyDueToSize = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.town.size >= Size.Large && _.town.prosperity < Prosperity.WellOff,
+  title: 'Economy improves',
+  getText: _ => `The large population of the town has made it possible to start many new businesses,
+    which in turn has improved the economy`,
+  actions: [
+    {
+      text: 'Great!',
+      perform: compose(
+        increaseProsperity,
+        notify('The larger population of the town has led to an increase in economy'),
+      ),
+    },
+  ],
+});
+
+export const decreaseEconomyDueToSize = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.town.size <= Size.Modest && _.town.prosperity >= Prosperity.WellOff,
+  title: 'Economy shrinks',
+  getText: _ => `Due to the small population of the town, businesses had to start closing, and the economy
+    as a whole suffered`,
+  actions: [
+    {
+      text: 'Troubling',
+      perform: compose(
+        decreaseProsperity,
+        notify('The small population of the town could no longer sustain such a strong economy'),
+      ),
+    },
+  ],
+});
+
+export const increaseSizeDueToEconomy = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.town.size < Size.Large && _.town.prosperity >= Prosperity.WellOff,
+  title: 'Migration into town',
+  getText: _ => `Many people from neighbouring towns have started moving into ${_.town.name} due to its
+    booming commerce and economy`,
+  actions: [
+    {
+      text: 'Interesting',
+      perform: compose(
+        increaseSize,
+        notify('People move into the city, drawn in by its bustling economy'),
+      ),
+    },
+  ],
+});
+
+export const decreaseSizeDueToEconomy = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.town.size >= Size.Large && _.town.prosperity < Prosperity.Average,
+  title: 'Migration out of town',
+  getText: _ => `It would appear that the economy of the town cannot support so many people,
+    and many start moving away in search of better opportunities`,
+  actions: [
+    {
+      text: 'Interesting',
+      perform: compose(
+        increaseSize,
+        notify('People move out in search of better opportunities'),
       ),
     },
   ],
