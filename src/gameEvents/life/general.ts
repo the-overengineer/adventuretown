@@ -486,7 +486,7 @@ export const roofCollapsed = createEvent.regular({
 });
 
 export const foodRots = createEvent.regular({
-  meanTimeToHappen: 12 * 30,
+  meanTimeToHappen: 18 * 30,
   condition: _ => _.resources.food >= 50,
   title: 'Food rots',
   getText: _ => `You've made more than sufficient supplies of food, and it is maddening to learn that some of it has rotten and is inedible`,
