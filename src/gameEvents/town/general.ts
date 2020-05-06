@@ -1,9 +1,9 @@
 import { eventCreator } from 'utils/events';
-import { Prosperity, Size, GenderEquality, Profession, Taxation, ClassEquality } from 'types/state';
+import { Prosperity, Size, GenderEquality, Profession, Taxation, ClassEquality, Fortification, getTickDuration } from 'types/state';
 import { compose } from 'utils/functional';
 import { setWorldFlag } from 'utils/setFlag';
 import { notify } from 'utils/message';
-import { equaliseGenderRights, increaseFemaleRights, increaseMaleRights, setTaxation, increaseProsperity, decreaseProsperity } from 'utils/town';
+import { equaliseGenderRights, increaseFemaleRights, increaseMaleRights, setTaxation, increaseProsperity, decreaseProsperity, increaseFortifications } from 'utils/town';
 import { removeJob } from 'utils/person';
 import { changeResource } from 'utils/resources';
 
@@ -315,6 +315,25 @@ export const businessesEscapeTax = createEvent.regular({
       perform: compose(
         decreaseProsperity,
         notify('High taxation has forced businesses out and lowered the prosperity of the town'),
+      ),
+    },
+  ],
+});
+
+export const defendAgainstAttackers = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.town.fortification < Fortification.Palisade
+    && _.town.prosperity >= Prosperity.Decent
+    && (_.worldFlags.orcs! || _.worldFlags.goblins! || _.worldFlags.bandits!),
+  title: 'Defenses improved',
+  getText: _ => `With a looming threat not for from the town, the ruling council has invested
+    some money into raising its defences, hoping to keep the attackers out`,
+  actions: [
+    {
+      text: 'Very good!',
+      perform: compose(
+        increaseFortifications,
+        notify('Fortifications have been improved to keep the enemy at bay'),
       ),
     },
   ],

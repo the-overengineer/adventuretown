@@ -109,6 +109,8 @@ export type WorldFlag =
   | 'blackMarket'
   | 'adventurerKeep'
   | 'orcs'
+  | 'goblins'
+  | 'bandits'
   | 'townGuard'
   ;
 

@@ -165,7 +165,7 @@ export const chooseFocus = createEvent.regular({
 
 export const minorPhysicalImprovement = createEvent.regular({
   meanTimeToHappen: 3 * 30,
-  condition: _ => _.character.physical < 5 && _.characterFlags.focusPhysical!,
+  condition: _ => _.character.physical < 4 && _.characterFlags.focusPhysical!,
   title: 'Exercise pays off',
   getText: _ => `You have been exercising regularly and you notice that it is bearing fruit.
     You feel stronger and have more endurance.`,
@@ -181,9 +181,9 @@ export const minorPhysicalImprovement = createEvent.regular({
 });
 
 export const majorPhysicalImprovement = createEvent.regular({
-  meanTimeToHappen: 10 * 30,
+  meanTimeToHappen: 2 * 365,
   condition: _ => _.characterFlags.focusPhysical!
-    && _.character.physical >= 5
+    && _.character.physical >= 4
     && _.character.physical <= 8,
   title: 'Clean living',
   getText: _ => `You treat your body as a temple, and the results are starting to show.
@@ -224,7 +224,7 @@ export const closeToPhysicalPeak = createEvent.regular({
 
 export const minorIntelligenceImprovement = createEvent.regular({
   meanTimeToHappen: 3 * 30,
-  condition: _ => _.character.intelligence < 5 && _.characterFlags.focusIntelligence!,
+  condition: _ => _.character.intelligence < 4 && _.characterFlags.focusIntelligence!,
   title: 'Introspection pays off',
   getText: _ => `You have been thinking more often and more deeply about things, and you think the
     mental exercise is helping`,
@@ -240,9 +240,9 @@ export const minorIntelligenceImprovement = createEvent.regular({
 });
 
 export const majorIntelligenceImprovement = createEvent.regular({
-  meanTimeToHappen: 10 * 30,
+  meanTimeToHappen: 2 * 365,
   condition: _ => _.characterFlags.focusIntelligence!
-    && _.character.intelligence >= 5
+    && _.character.intelligence >= 4
     && _.character.intelligence <= 8,
   title: 'Deep thinker',
   getText: _ => `You are known for your depth of thought and wisdom throughout town.
@@ -283,7 +283,7 @@ export const closeToIntelligencePeak = createEvent.regular({
 
 export const minorEducationImprovement = createEvent.regular({
   meanTimeToHappen: 3 * 30,
-  condition: _ => _.character.education < 5 && _.characterFlags.focusEducation!,
+  condition: _ => _.character.education < 4 && _.characterFlags.focusEducation!,
   title: 'Knowledge expands',
   getText: _ => `You have been improving your knowledge. You are finding it easier and easier to read letters,
     and you are picking up many small bits of knowledge by talking to others`,
@@ -299,9 +299,9 @@ export const minorEducationImprovement = createEvent.regular({
 });
 
 export const majorEducationImprovement = createEvent.regular({
-  meanTimeToHappen: 10 * 30,
+  meanTimeToHappen: 2 * 365,
   condition: _ => _.characterFlags.focusEducation!
-    && _.character.education >= 5
+    && _.character.education >= 4
     && _.character.education <= 8,
   title: 'Sage',
   getText: _ => `Your knowledge of both worldly and bookish matters is known throughout the region.
@@ -342,7 +342,7 @@ export const closeToEducationPeak = createEvent.regular({
 
 export const minorCharmImprovement = createEvent.regular({
   meanTimeToHappen: 3 * 30,
-  condition: _ => _.character.charm < 5 && _.characterFlags.focusCharm!,
+  condition: _ => _.character.charm < 4 && _.characterFlags.focusCharm!,
   title: 'Smalltalk',
   getText: _ => `You have been actively working on your appearance and chatting with others.
     As time passes, it's getting easier and easier to be liked.`,
@@ -358,9 +358,9 @@ export const minorCharmImprovement = createEvent.regular({
 });
 
 export const majorCharmImprovement = createEvent.regular({
-  meanTimeToHappen: 10 * 30,
+  meanTimeToHappen: 2 * 365,
   condition: _ => _.characterFlags.focusCharm!
-    && _.character.charm >= 5
+    && _.character.charm >= 4
     && _.character.charm <= 8,
   title: 'Popular',
   getText: _ => `You are renowned for your good looks and charming personality. These are few who cannot
@@ -401,7 +401,7 @@ export const closeToCharmPeak = createEvent.regular({
 });
 
 export const pennySaved = createEvent.regular({
-  meanTimeToHappen: 4 * 30,
+  meanTimeToHappen: 6 * 30,
   condition: _ => _.characterFlags.focusWealth!,
   title: 'Copper saved, copped earned',
   getText: _ => `You have been carefully saving every copper. It took some time,
@@ -542,7 +542,7 @@ export const startBlackMarket = createEvent.regular({
 });
 
 export const almostCaughtBlackMarket = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: 9 * 30,
   condition: _ => _.characterFlags.criminalActivity! && _.worldFlags.townGuard!,
   title: 'Almost caught!',
   getText: _ => `The guards came around your house asking questions. It seems that they might be onto your criminal activities,
@@ -676,8 +676,16 @@ export const gardenEaten = createEvent.regular({
     && _.character.education < 6,
   title: 'Pests destroy garden',
   getText: _ => `For some time now, pests have been attacking your garden and eating your plants.
-    You have tried everything but you must now admit defeat`,
+    You have tried everything but you are now close to admitting defeat`,
   actions: [
+    {
+      condition: _ => _.resources.coin >= 50,
+      text: 'Hire expensive expert',
+      perform: compose(
+        changeResource('coin', -50),
+        notify('You hire an expensive expert to take care of pests in your garden'),
+      ),
+    },
     {
       text: 'Damnation!',
       perform: compose(
@@ -689,7 +697,7 @@ export const gardenEaten = createEvent.regular({
 });
 
 export const gardenDestroyedByWeather = createEvent.regular({
-  meanTimeToHappen: 32 * 30,
+  meanTimeToHappen: 4 * 365,
   condition: _ => _.characterFlags.gardener!,
   title: 'Harsh winter',
   getText: _ => `An early and harsh winter has destroyed your garden. There is nothing to be done against
@@ -700,6 +708,36 @@ export const gardenDestroyedByWeather = createEvent.regular({
       perform: compose(
         setCharacterFlag('gardener', false),
         notify('Your garden is no more'),
+      ),
+    },
+  ],
+});
+
+export const gardenMaintenance = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.gardener!,
+  title: 'Garden maintenance',
+  getText: _ => `Like everything else, your garden requires maintenance. Unless you want
+    to see it fail, you will need to invest some money in it`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 10,
+      text: 'Maintain the garden',
+      perform: compose(
+        changeResource('coin', -10),
+        notify('You invest some coin into maintaining your garden'),
+      ),
+    },
+    {
+      condition: _ => _.characterFlags.slaves!,
+      text: 'That is what I have slaves for',
+      perform: notify('Your slaves maintain your garden'),
+    },
+    {
+      text: 'Let it fail',
+      perform: compose(
+        setCharacterFlag('gardener', false),
+        notify('Your garden fails due to lack of maintenance'),
       ),
     },
   ],

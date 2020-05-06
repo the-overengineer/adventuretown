@@ -84,7 +84,7 @@ export const verminPoisonFailure = createEvent.triggered({
 });
 
 export const verminFound = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: 9 * 30,
   condition: _ => _.character.profession === Profession.Farmer,
   title: 'Vermin strike!',
   getText: _ => `
@@ -117,7 +117,7 @@ export const verminFound = createEvent.regular({
 });
 
 export const bountifulHarvest = createEvent.regular({
-  meanTimeToHappen: 9 * 30,
+  meanTimeToHappen: 365,
   condition: _ => _.character.profession === Profession.Farmer,
   title: 'Bountiful harvest',
   getText: _ => `This season's harvest has been especially bountiful. Everybody who had their hand in this
@@ -134,9 +134,9 @@ export const bountifulHarvest = createEvent.regular({
 });
 
 export const herbologyLearned = createEvent.regular({
-  meanTimeToHappen: 8 * 30,
+  meanTimeToHappen: 9 * 30,
   condition: _ => _.character.profession === Profession.Farmer
-    && _.character.education < 5,
+    && _.character.education < 4,
   title: 'Learned about plants',
   getText: _ => `Working on a farm has had an unexpected benefit. In your daily work, you have learned more about plants,
     animals, and the natural world than you have known before`,
@@ -152,9 +152,9 @@ export const herbologyLearned = createEvent.regular({
 });
 
 export const toughWork = createEvent.regular({
-  meanTimeToHappen: 8 * 30,
+  meanTimeToHappen: 365,
   condition: _ => _.character.profession === Profession.Farmer
-    && _.character.physical < 6,
+    && _.character.physical < 5,
   title: 'Tough work',
   getText: _ => `Working on a farm is seldom easy, and as time passes you notice that all the tough work seems to
     have made you stronger and fitter`,

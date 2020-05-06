@@ -11,24 +11,32 @@ interface IEventWithWeight {
   condition?: (state: IGameState) => boolean;
 }
 
+const enqueue = (state: IGameState, eventID: ID): IGameState => {
+  const queuedEvent: IQueuedEvent = {
+    id: eventID,
+    meanTimeToHappen: 0,
+    queuedAtDay: state.daysPassed,
+  };
+
+  return {
+    ...state,
+    eventQueue: [queuedEvent, ...state.eventQueue],
+  };
+}
+
 const eventChain = (events: IEventWithWeight[] | ID) => (state: IGameState): IGameState => {
   if (typeof events === 'number') {
-    const queuedEvent: IQueuedEvent = {
-      id: events,
-      meanTimeToHappen: 0,
-      queuedAtDay: state.daysPassed,
-    };
-
-    return {
-      ...state,
-      eventQueue: [queuedEvent, ...state.eventQueue],
-    };
+    return enqueue(state, events);
   }
 
   const possibleEvents = (events as IEventWithWeight[]).filter((it) => it.condition == null || it.condition(state));
 
   if (possibleEvents.length === 0) {
     return state;
+  }
+
+  if (possibleEvents.length === 1) {
+    return enqueue(state, (events as IEventWithWeight[])[0].id);
   }
 
   const maxWeight = possibleEvents.map(_ => _.weight).reduce((a, b) => a + b, 0);
@@ -38,30 +46,14 @@ const eventChain = (events: IEventWithWeight[] | ID) => (state: IGameState): IGa
 
   for (const possibleEvent of possibleEvents) {
     if (previous + possibleEvent.weight >= chance) {
-      const queuedEvent: IQueuedEvent = {
-        id: possibleEvent.id,
-        meanTimeToHappen: 0,
-        queuedAtDay: state.daysPassed,
-      };
-      return {
-        ...state,
-        eventQueue: [queuedEvent, ...state.eventQueue],
-      };
+      return enqueue(state, possibleEvent.id);
     } else {
       previous += possibleEvent.weight;
     }
   }
 
   const event = possibleEvents[possibleEvents.length - 1];
-  const queuedEvent: IQueuedEvent = {
-    id: event.id,
-    meanTimeToHappen: 0,
-    queuedAtDay: state.daysPassed,
-  };
-  return {
-    ...state,
-    eventQueue: [queuedEvent, ...state.eventQueue],
-  };
+  return enqueue(state, event.id);
 };
 
 interface IFactor {

@@ -12,9 +12,9 @@ const GUARD_JOB_PREFIX: number = 33_000;
 const createEvent = eventCreator(GUARD_JOB_PREFIX);
 
 export const toughnessImproved = createEvent.regular({
-  meanTimeToHappen: 8 * 30,
+  meanTimeToHappen: 9 * 30,
   condition: _ => _.character.profession === Profession.Guard
-    && _.character.physical < 6,
+    && _.character.physical < 5,
   title: 'Fitness improved',
   getText: _ => `Chasing criminals, patrolling the walls and minor scuffles
     with the encroaching creatures have improved your fitness. You notice your
@@ -31,7 +31,7 @@ export const toughnessImproved = createEvent.regular({
 });
 
 export const intelligenceImproved = createEvent.regular({
-  meanTimeToHappen: 8 * 30,
+  meanTimeToHappen: 365,
   condition: _ => _.character.profession === Profession.Guard
     && (_.character.intelligence < 4 || _.character.charm < 4),
   title: 'Investigation skill improved',
@@ -160,7 +160,7 @@ export const theftInvestigationThiefCaught = createEvent.triggered({
 });
 
 export const theftInvestigation = createEvent.regular({
-  meanTimeToHappen: 16 * 30,
+  meanTimeToHappen: 18 * 30,
   condition: _ => _.character.profession === Profession.Guard,
   title: 'Theft!',
   getText: _ => `A local warehouse has been robbed. Not only was a great amount of wealth lost,
