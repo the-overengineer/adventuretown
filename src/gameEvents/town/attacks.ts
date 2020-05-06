@@ -6,7 +6,7 @@ import { decreaseFortifications } from 'utils/town';
 import { removeRandomChild, removeSpouse, changeStat } from 'utils/person';
 import { triggerEvent } from 'utils/eventChain';
 import { death } from 'gameEvents/life/general';
-import { changeResource } from 'utils/resources';
+import { changeResource, changeResourcePercentage } from 'utils/resources';
 import { Fortification, Prosperity } from 'types/state';
 
 
@@ -127,8 +127,8 @@ export const orcsRobYou = createEvent.triggered({
     {
       text: 'Thieves!',
       perform: compose(
-        changeResource('coin', -20),
-        changeResource('food', -20),
+        changeResourcePercentage('coin', -0.4),
+        changeResourcePercentage('food', -0.4),
         notify('You have been robbed by orcs'),
       ),
     },
@@ -304,7 +304,7 @@ export const goblinsRaidFood = createEvent.regular({
     {
       text: 'Pests!',
       perform: compose(
-        changeResource('food', -15),
+        changeResourcePercentage('food', -0.1),
         notify('Goblins raid the local granary, taking some of your food'),
       ),
     },
@@ -320,7 +320,7 @@ export const goblinsDestroyProperty = createEvent.regular({
     {
       text: 'Pests!',
       perform: compose(
-        changeResource('coin', -15),
+        changeResourcePercentage('coin', -0.1),
         notify('Goblins raid the town, stealing or destroying some of your property'),
       ),
     },
