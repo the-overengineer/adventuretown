@@ -6,14 +6,14 @@ import {
   Profession,
   ProfessionLevel,
 } from 'types/state';
-import { pickOne } from './random';
+import { pickOne, inIntRange } from './random';
 import { getAge } from './time';
 import { isOppressed } from './town';
 
 const boyNames = ['Arnold', 'Geoff', 'Eirich', 'Mark', 'Elron', 'Marr'];
 const girlNames = ['Rose', 'Aerin', 'Elisabeth', 'Zaira', 'Leona', 'Jasmine'];
 
-const generateStat = () => Math.floor(Math.random() * 5) as OneToTen;
+const generateStat = () => inIntRange(1, 6) as OneToTen;
 
 export const generateCharacter = (dayOfBirth: number, fixedGender?: Gender): ICharacter => {
   const gender = fixedGender ?? pickOne([Gender.Male, Gender.Female]);
