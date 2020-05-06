@@ -231,7 +231,7 @@ export const potentialAdventurerLover = createEvent.regular({
     return `
       One day at the tavern, you notice a youthful adventurer catching your eye now and then.
       ${otherPronoun} seems to be the leader of the group, decked out in expensive equipment,
-      spending coin like there is not tomorrow, and drawing attention from most other patrons.
+      spending coin like there is no tomorrow, and drawing attention from most other patrons.
       ${otherPronoun} is a bit in the cups as ${otherPronoun.toLocaleLowerCase()} approaches you
       with a confident smile. "I saw you from across the tavern and couldn't help but notice how
       ${beautyAdjective} you are. Maybe you'd like to join me in my room later?" ${otherPronoun}
