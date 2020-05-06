@@ -5,6 +5,7 @@ import { notify } from 'utils/message';
 import { triggerEvent } from 'utils/eventChain';
 import { changeStat } from 'utils/person';
 import { eventCreator } from 'utils/events';
+import { setWorldFlag } from 'utils/setFlag';
 
 const FARM_JOB_PREFIX: number = 32_000;
 
@@ -186,4 +187,29 @@ export const famineFoodStolen = createEvent.regular({
       ),
     },
   ],
-})
+});
+
+export const sellAgriculturalRevolution = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.character.profession === Profession.Farmer
+    && _.character.professionLevel == ProfessionLevel.Leadership
+    && _.worldFlags.agriculturalRevolution!,
+  title: 'Sell agricultural secrets',
+  getText: _ => `Representatives of a neighbouring town approach you with a proposal.
+    If you sell to them to secrets of your town's agricultural success, they will pay you
+    500 coins. While this will fatten your purse, it will also equalise the agricultural
+    advantage you have over the region`,
+  actions: [
+    {
+      text: 'Accept',
+      perform: compose(
+        changeResource('coin', 500),
+        setWorldFlag('agriculturalRevolution', false),
+        notify('You have sold agricultural secrets to a neighbouring town'),
+      ),
+    },
+    {
+      text: 'Refuse',
+    },
+  ],
+});

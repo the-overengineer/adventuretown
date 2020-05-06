@@ -116,6 +116,7 @@ export type WorldFlag =
   | 'vermin'
   | 'famine'
   | 'tradeDisrupted'
+  | 'agriculturalRevolution'
   ;
 
 export enum GameSpeed {

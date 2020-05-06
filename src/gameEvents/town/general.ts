@@ -606,3 +606,68 @@ export const fortificationDecayRegular = createEvent.regular({
     },
   ],
 });
+
+export const agriculturalRevolutionHappens = createEvent.regular({
+  meanTimeToHappen: 150 * 365,
+  condition: _ => !_.worldFlags.agriculturalRevolution,
+  title: 'Agricultural revolution',
+  getText: _ => `Local farmers have discovered a better way of ploughing the fields,
+    which will allow the populace to produce much more food. This will be good for everybody`,
+  actions: [
+    {
+      text: 'Incredible!',
+      perform: compose(
+        setWorldFlag('agriculturalRevolution', true),
+        notify('An agricultural revolution has boosted the food production in the town'),
+      ),
+    },
+  ],
+});
+
+export const startAgriculturalRevolution = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => !_.worldFlags.agriculturalRevolution
+    && (_.character.intelligence >= 8 || _.character.education >= 8 || _.resources.coin >= 1_000),
+  title: 'Agricultural reform',
+  getText: _ => `You believe you can make a revolution in food production by reforming the agricultural
+    practices. You go before the ruling council to present your idea that will make the food production
+    stronger than ever`,
+  actions: [
+    {
+      condition: _ => _.character.intelligence >= 8 || _.character.education >= 8,
+      text: 'Explain your brilliant idea',
+      perform: compose(
+        setWorldFlag('agriculturalRevolution', true),
+        notify('The ruling council happily approves your idea for agricultural reform'),
+      ),
+    },
+    {
+      condition: _ => _.resources.coin >= 1_000,
+      text: 'Pay 1,000 coin to a druid',
+      perform: compose(
+        setWorldFlag('agriculturalRevolution', true),
+        notify('The ruling council allows you to hire a druid to improve the agriculture, to the benefit of all'),
+      ),
+    },
+    {
+      text: 'Never mind',
+    },
+  ],
+});
+
+export const agricultureOutdated = createEvent.regular({
+  meanTimeToHappen: 50 * 365,
+  condition: _ => _.worldFlags.agriculturalRevolution!,
+  title: 'Agriculture normalises',
+  getText: _ => `The improvements performed to the agriculture in times past are no longer relevant,
+    as the region has caught up.`,
+  actions: [
+    {
+      text: 'It was good while it lasted',
+      perform: compose(
+        setWorldFlag('agriculturalRevolution', false),
+        notify('Your agricultural ways are no longer special for the area'),
+      ),
+    },
+  ],
+});

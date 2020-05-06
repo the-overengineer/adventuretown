@@ -158,4 +158,5 @@ export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState =>
   state.characterFlags.slaves ? changeFinance('renownIncome', 1) : undefined,
   state.worldFlags.famine ? changeFinance('foodIncome', -2) : undefined,
   state.worldFlags.tradeDisrupted! && !hasFixedIncome(state.character) ? changeFinance('coinIncome', - 1) : undefined,
+  state.worldFlags.agriculturalRevolution ? changeFinance('foodIncome', 2) : undefined,
 ].filter(_ => _ != null) as StateTransformer[])(state);
