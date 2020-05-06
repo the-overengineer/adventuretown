@@ -979,6 +979,7 @@ export const pushForChildren = createEvent.regular({
   meanTimeToHappen: 3 * 30,
   condition: _ => _.characterFlags.focusFamily!
     && _.relationships.spouse != null
+    && !(_.characterFlags.pregnant || !_.worldFlags.spousePregnant)
     && _.relationships.children.length < 4,
   title: 'Desire for children',
   getText: _ => `You have been thinking about some time now how ${_.relationships.children.length > 0 ? 'a' : 'another'} child could not
