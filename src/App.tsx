@@ -89,6 +89,9 @@ export class App extends React.PureComponent<{}, IAppState> {
       });
     }
     this.ticker = window.setInterval(this.handleTick, getTickDuration(this.state.settings.speed));
+
+    // (window as any)._events = events;
+    // (window as any)._trigger = this.triggerEvent;
   }
 
   public componentDidUpdate(_: any, prevState: IAppState) {
@@ -199,6 +202,9 @@ export class App extends React.PureComponent<{}, IAppState> {
 
   private prependMessage = (message: string) =>
     this.setState({ messages: prependMessage(this.state.messages, message )});
+
+  protected triggerEvent = (eventID: ID) =>
+    this.setState({ activeEvent: eventID });
 
   private handleTick = () => {
     if (this.state.town != null && this.state.character != null && this.state.isRunning) {

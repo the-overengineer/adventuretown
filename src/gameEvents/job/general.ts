@@ -282,7 +282,7 @@ export const goodTrainee = createEvent.regular({
     to be amazingly competent, and this will reflect well on you`,
   actions: [
     {
-      text: 'How can they be so stupid?',
+      text: 'Good job!',
       perform: compose(
         changeResource('renown', 10),
         notify('You trained a competent worker, and this reflects well on you'),
@@ -291,7 +291,7 @@ export const goodTrainee = createEvent.regular({
   ],
 });
 
-const difficultJobSuccess = createEvent.triggered({
+export const difficultJobSuccess = createEvent.triggered({
   title: 'Well-done',
   getText: _ => `You have done your work in a way that hardly anyone can criticise. Your employer is very
     satisfied with your performance`,
@@ -307,7 +307,7 @@ const difficultJobSuccess = createEvent.triggered({
   ],
 });
 
-const difficultJobFailure = createEvent.triggered({
+export const difficultJobFailure = createEvent.triggered({
   title: 'Complete failure',
   getText: _ => `You have made a complete hash out of your assigned, and shamed yourself. Worst of all,
     some of the loss is coming out of your pocket`,
