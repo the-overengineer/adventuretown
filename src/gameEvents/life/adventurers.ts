@@ -173,27 +173,27 @@ export const adventurersSeekQuest = createEvent.regular({
         .toTransformer(),
     },
     {
-      condition: _ => _.worldFlags.vermin!,
+      condition: _ => _.worldFlags.goblins!,
       text: '"Scatter the goblins"',
       perform: triggerEvent(adventurersFail).withWeight(3)
         .orTrigger(adventurersDie)
-        .orTrigger(adventurersHandleVermin).withWeight(3)
+        .orTrigger(adventurersHandleGoblins).withWeight(3)
         .toTransformer(),
     },
     {
-      condition: _ => _.worldFlags.vermin!,
+      condition: _ => _.worldFlags.orcs!,
       text: '"Slay the orcs"',
       perform: triggerEvent(adventurersFail).withWeight(2)
         .orTrigger(adventurersDie)
-        .orTrigger(adventurersHandleVermin).withWeight(2)
+        .orTrigger(adventurersHandleOrcs).withWeight(2)
         .toTransformer(),
     },
     {
-      condition: _ => _.worldFlags.vermin!,
+      condition: _ => _.worldFlags.bandits!,
       text: '"Defeat the bandit chief"',
       perform: triggerEvent(adventurersFail).withWeight(2)
         .orTrigger(adventurersDie)
-        .orTrigger(adventurersHandleVermin).withWeight(2)
+        .orTrigger(adventurersHandleBandits).withWeight(2)
         .toTransformer(),
     },
     {
