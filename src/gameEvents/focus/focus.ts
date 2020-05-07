@@ -1587,3 +1587,71 @@ export const influenceTaxes = createEvent.regular({
     },
   ],
 });
+
+export const physicalLost = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => !_.characterFlags.focusPhysical && _.character.physical > 6,
+  title: 'Out of shape',
+  getText: _ => `With exercise not being a regular part of your routine, you have started noticing
+    that you are not in the shape you once were in`,
+  actions: [
+    {
+      text: 'Huff, puff',
+      perform: compose(
+        changeStat('physical', -1),
+        notify('You are not in the same physical shape you once were in'),
+      ),
+    },
+  ],
+});
+
+export const intelligenceLost = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => !_.characterFlags.focusIntelligence && _.character.intelligence > 6,
+  title: 'Mind less sharp',
+  getText: _ => `You have not being keeping your mind sharp recently, and it shows in the
+    way it's getting harder to think deeply`,
+  actions: [
+    {
+      text: '1 + 1 = ???',
+      perform: compose(
+        changeStat('intelligence', -1),
+        notify('You are no longer as cunning and clear-minded as you used to be'),
+      ),
+    },
+  ],
+});
+
+export const educationLost = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => !_.characterFlags.focusEducation && _.character.education > 6,
+  title: 'World moves on',
+  getText: _ => `The world has moved on in its knowledge and methodology, and you have not been
+    keeping up`,
+  actions: [
+    {
+      text: 'There are new things?',
+      perform: compose(
+        changeStat('education', -1),
+        notify('Your knowledge has become less relevant'),
+      ),
+    },
+  ],
+});
+
+export const charmLost = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => !_.characterFlags.focusCharm && _.character.charm > 6,
+  title: 'Out of fashion',
+  getText: _ => `You are no longer following fashion and etiquette as carefully as you used to,
+    and it would appear that your clothing and behaviour have become queer and antiquated`,
+  actions: [
+    {
+      text: 'Not a follower of fashion',
+      perform: compose(
+        changeStat('charm', -1),
+        notify('People no longer find you as charming and attractice as before'),
+      ),
+    },
+  ],
+});
