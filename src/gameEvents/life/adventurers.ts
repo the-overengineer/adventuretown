@@ -1,3 +1,7 @@
+import {
+  civilWarLost,
+  civilWarWon,
+} from 'gameEvents/town/general';
 import { triggerEvent } from 'utils/eventChain';
 import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
@@ -8,7 +12,7 @@ import {
 } from 'utils/person';
 import { changeResource } from 'utils/resources';
 import { setWorldFlag } from 'utils/setFlag';
-import { death, civilWarWon, civilWarLost } from './general';
+import { death } from './general';
 
 const ADVENTURERS_EVENT_PREFIX: number = 43_000;
 
