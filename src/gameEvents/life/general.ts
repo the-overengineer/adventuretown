@@ -697,6 +697,9 @@ export const sellSlaves = createEvent.regular({
         notify('You sold your slaves for a tidy profit'),
       ),
     },
+    {
+      text: 'Keep them',
+    },
   ],
 });
 
