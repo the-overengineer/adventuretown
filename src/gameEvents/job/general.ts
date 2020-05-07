@@ -92,7 +92,7 @@ export const seekJob = createEvent.regular({
 });
 
 export const changeCurrentJob = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: 9 * 30,
   condition: (state: IGameState) => state.character.professionLevel === ProfessionLevel.Entry,
   title: 'Find a better job',
   getText: (state) => state.character.professionLevel === ProfessionLevel.Entry
@@ -599,6 +599,23 @@ export const demotedForGenderQuota = createEvent.regular({
       perform: compose(
         setLevel(ProfessionLevel.Medium),
         notify('You have been demoted from a leadership position to fill a gender quota'),
+      ),
+    },
+  ],
+});
+
+export const cheated = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.character.profession != null && (_.character.intelligence < 2 || _.character.education < 2),
+  title: 'Cheated',
+  getText: _ => `Shamefully, it took you over a day to realise it, but you have been cheated by a customer, and the difference
+    comes out of your own pocket`,
+  actions: [
+    {
+      text: 'Am I that stupid?',
+      perform: compose(
+        changeResource('coin', -10),
+        notify('You were naive at work, and you had to pay the price'),
       ),
     },
   ],
