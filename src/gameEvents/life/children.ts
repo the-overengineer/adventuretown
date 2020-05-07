@@ -47,7 +47,7 @@ export const pregnancyDiscovered = createEvent.regular({
 });
 
 export const pregnancyFailed = createEvent.regular({
-  meanTimeToHappen: 10 * 30, // 10 months, uncommon therefore
+  meanTimeToHappen: 12 * 30,
   condition: _ => Boolean(_.characterFlags.unknowinglyPregnant || _.characterFlags.pregnant),
   title: 'Pregnancy lost',
   getText: _ => `Through a tragedy of biology, you discover that you will not give birth to a child you were expecting.`,
@@ -106,7 +106,7 @@ export const loverPregnantDiscovered = createEvent.regular({
 });
 
 export const loverPregnancyFails = createEvent.regular({
-  meanTimeToHappen: 10 * 30,
+  meanTimeToHappen: 12 * 30,
   condition: _ => _.worldFlags.pregnantLover! || _.worldFlags.pregnantLoverKnown!,
   title: 'Pregnancy lost',
   getText: _ => `"Come, quick!" one of your neighbours seems panicked. You find the expected mother of your child in tears on a bloody bed. She has lost the child`,
@@ -167,7 +167,7 @@ export const wifePregnantDiscovered = createEvent.regular({
 });
 
 export const wifePregnancyFails = createEvent.regular({
-  meanTimeToHappen: 10 * 30,
+  meanTimeToHappen: 12 * 30,
   condition: _ => _.worldFlags.spousePregnant! || _.worldFlags.spousePregnantDiscovered!,
   title: 'Pregnancy lost',
   getText: _ => `"Come, quick!" one of your neighbours seems panicked. You find your wife in tears on a bloody bed. She has lost the child`,
