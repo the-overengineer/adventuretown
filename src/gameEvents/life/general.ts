@@ -18,7 +18,7 @@ export const death = createEvent.triggered({
   title: 'Death comes knocking',
   getText: _ => `
     At the age of ${getAge(_.character.dayOfBirth, _.daysPassed)}, ${_.character.name} has died.
-    A ceremony is organised in the local temple, to pray that ${_.character.name} will be warmly received
+    A ceremony is organised by the priests, to pray that ${_.character.name} will be warmly received
     in the halls of the gods. For everybody else, however, life goes on.
   `,
   actions: [
@@ -36,6 +36,36 @@ export const death = createEvent.triggered({
         newCharacter,
         notify('The story continues for another person in the town'),
       ),
+    },
+  ],
+});
+
+export const resurrectedByTemple = createEvent.triggered({
+  title: 'Resurrection',
+  getText: _ => `Though you have died, your family has decided to pay the local priests a large sum of
+    money to ask the gods to bring you back to life. You open your eyes and find yourself back amongst
+    the living`,
+  actions: [
+    {
+      text: 'Did I see the gods?',
+      perform: compose(
+        changeResource('coin', -1_000),
+        notify('You have died, but have been resurrected in the local temple'),
+      ),
+    },
+  ],
+});
+
+export const dying = createEvent.triggered({
+  title: 'The world fades',
+  getText: _ => `The world is fading fast before your eyes, strength draining out of you`,
+  actions: [
+    {
+      text: 'Is this it?',
+      perform: triggerEvent(death).withWeight(4)
+        .orTrigger(resurrectedByTemple)
+          .onlyWhen(_ => _.resources.coin >= 1_000 && _.worldFlags.temple! && (_.relationships.spouse != null || _.relationships.children.length > 0))
+        .toTransformer(),
     },
   ],
 });
@@ -92,7 +122,7 @@ export const noMoney = createEvent.regular({
       perform: compose(
         changeResource('renown', -50),
         changeResource('coin', 15),
-        notify('You shame yourself begging for coin in front of the local temple'),
+        notify('You shame yourself begging for coin on the town square'),
       ),
     },
     {
@@ -141,7 +171,7 @@ export const noFood = createEvent.regular({
       perform: compose(
         changeResource('renown', -30),
         changeResource('coin', 15),
-        notify('You shame yourself begging for food in front of the local temple'),
+        notify('You shame yourself begging for food on the town square'),
       ),
     },
     {
@@ -162,17 +192,13 @@ export const sicknessFullRecovery = createEvent.triggered({
   actions: [
     {
       text: 'Finally!',
-      perform: compose(
-        setCharacterFlag('sickness', false),
-        notify('You have made a full recovery from the sickness'),
-      ),
+      perform: notify('You have made a full recovery from the sickness')
     },
     {
       condition: _ => _.resources.coin >= 10,
-      text: 'Donate to the temple in thanks',
+      text: 'Donate to the gods in thanks',
       perform: compose(
         changeResource('coin', -10),
-        setCharacterFlag('sickness', false),
         notify('You have recovered from the sickness and made a donation to the gods to thank them'),
       ),
     },
@@ -187,17 +213,15 @@ export const sicknessDifficultRecovery = createEvent.triggered({
       {
         text: 'Finally!',
         perform: compose(
-          setCharacterFlag('sickness', false),
           changeStat('physical', -1 * inIntRange(1, 2)),
           notify('You have made a partial recovery from the sickness'),
         ),
       },
       {
         condition: _ => _.resources.coin >= 10,
-        text: 'Donate to the temple in thanks',
+        text: 'Donate to the gods in thanks',
         perform: compose(
           changeResource('coin', -10),
-          setCharacterFlag('sickness', false),
           changeStat('physical', -1),
           notify('You have recovered from the sickness, with difficulty, and made a donation to the gods to thank them'),
         ),
@@ -206,15 +230,14 @@ export const sicknessDifficultRecovery = createEvent.triggered({
 });
 
 export const sickness = createEvent.regular({
-  meanTimeToHappen: 3 * 30,
-  condition: _ => _.characterFlags.sickness!
-    && (_.character.physical < 2 || _.worldFlags.sickness!),
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.character.physical < 1 || _.worldFlags.sickness!,
   title: 'Sick!',
   getText: _ => `In the morning, you barely get out of bed. Everything hurts, you feel tired,
     and you are coughing. You don't remember when you have last felt this ill.`,
   actions: [
     {
-      condition: _ => _.resources.coin >= 100,
+      condition: _ => _.resources.coin >= 100 && _.worldFlags.temple!,
       text: 'Pay for priests to heal you',
       perform: compose(
         changeResource('coin', -100),
@@ -977,13 +1000,37 @@ export const verminEatGrain = createEvent.regular({
   condition: _ => _.worldFlags.vermin!,
   title: 'Mice get into grain',
   getText: _ => `You find that some of the sacks of grain in your basement have been bitten through
-    and partially eaten. It looks like mice got to them`,
+    and the grain eaten. It looks like mice got to them`,
   actions: [
     {
       text: 'They are everywhere!',
       perform: compose(
         changeResource('food', -50),
         notify('Mice got into your grain supplies'),
+      ),
+    },
+  ],
+});
+
+export const templeHelpsFood = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.worldFlags.temple! && _.resources.food < 25,
+  title: 'Temple gives food',
+  getText: _ => `The priests from the local temple have been going around and donating food to those unfortunate enough
+    not to have much. You have been judged to be one of those and offered some`,
+  actions: [
+    {
+      text: 'Take it',
+      perform: compose(
+        changeResource('food', 25),
+        notify('The local temple has given you some food'),
+      ),
+    },
+    {
+      text: 'My pride does not allow it',
+      perform: compose(
+        changeResource('renown', 5),
+        notify('You pridefully rejected a food donation from the local temple'),
       ),
     },
   ],

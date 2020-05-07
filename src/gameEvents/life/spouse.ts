@@ -96,7 +96,7 @@ export const sicknessFullRecovery = createEvent.triggered({
     },
     {
       condition: _ => _.resources.coin >= 10,
-      text: 'Donate to the temple in thanks',
+      text: 'Donate to the gods in thanks',
       perform: compose(
         changeResource('coin', -10),
         notify('Your spouse has recovered from the sickness and made a donation to the gods to thank them'),
@@ -113,7 +113,7 @@ export const sickness = createEvent.regular({
     of a great pain in their chest. They have caught a serious sickness`,
   actions: [
     {
-      condition: _ => _.resources.coin >= 100,
+      condition: _ => _.resources.coin >= 100 && _.worldFlags.temple!,
       text: 'Pay for priests to heal them',
       perform: compose(
         changeResource('coin', -100),

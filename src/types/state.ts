@@ -88,7 +88,6 @@ export type CharacterFlag =
   | 'friendsInHighPlaces'
   | 'tookBribe'
   | 'lover'
-  | 'sickness'
   | 'djinnFound'
   | 'fundedCaravan'
   | 'criminalActivity'
@@ -119,6 +118,7 @@ export type WorldFlag =
   | 'famine'
   | 'tradeDisrupted'
   | 'agriculturalRevolution'
+  | 'temple'
   ;
 
 export enum GameSpeed {

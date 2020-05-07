@@ -1650,7 +1650,24 @@ export const charmLost = createEvent.regular({
       text: 'Not a follower of fashion',
       perform: compose(
         changeStat('charm', -1),
-        notify('People no longer find you as charming and attractice as before'),
+        notify('People no longer find you as charming and attractive as before'),
+      ),
+    },
+  ],
+});
+
+export const learnFromTempleScrolls = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.characterFlags.focusEducation! && _.worldFlags.temple! && _.character.education < 8,
+  title: 'Learn from temple',
+  getText: _ => `You have been granted access to the library of the local temple in your pursuit of knowledge.
+    It holds amazing secrets you have never thought you would learn`,
+  actions: [
+    {
+      text: 'So much I did not know!',
+      perform: compose(
+        changeStat('education', 1),
+        notify('Studying in the local temple, you have learned many new things'),
       ),
     },
   ],

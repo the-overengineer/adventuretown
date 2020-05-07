@@ -11,7 +11,7 @@ import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
 import { removeJob } from 'utils/person';
-import { changeResource } from 'utils/resources';
+import { changeResource, changeResourcePercentage } from 'utils/resources';
 import { setWorldFlag } from 'utils/setFlag';
 import {
   decreaseFortifications,
@@ -684,6 +684,115 @@ export const agriculturalRevolutionBeatsFamine = createEvent.regular({
       perform: compose(
         setWorldFlag('famine', false),
         notify('The agricultural production of the region has outpaced the famine'),
+      ),
+    },
+  ],
+});
+
+export const templateEstablished = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => !_.worldFlags.temple
+    && (_.town.prosperity >= Prosperity.Average || _.town.size >= Size.Average),
+  title: 'Great temple built',
+  getText: _ => `So far your town has housed only small chapels and handfuls of priests, but now the
+    town has invested in building a great temple, where priests will live and learn, as well as help
+    the populace`,
+  actions: [
+    {
+      text: 'Praise the gods',
+      perform: compose(
+        setWorldFlag('temple', true),
+        notify('A temple has been built'),
+      ),
+    },
+  ],
+});
+
+export const templeGone = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.worldFlags.temple!
+    && (_.town.prosperity < Prosperity.Decent || _.town.size < Size.Modest),
+  title: 'Temple closes',
+  getText: _ => `Due to the state and population of the town, the local temple to the gods can no longer justify
+    or finance itself here, and has chosen to close its doors. The priests have scattered to the four winds`,
+  actions: [
+    {
+      text: 'Bad news',
+      perform: compose(
+        setWorldFlag('temple', false),
+        notify('The great temple has closed, and children now use its echoing halls to play'),
+      ),
+    },
+  ],
+});
+
+export const templeDemandsTax = createEvent.regular({
+  meanTimeToHappen: 15 * 365,
+  condition: _ => _.worldFlags.temple! && _.town.equality === ClassEquality.Equal,
+  title: 'Temple demands taxes',
+  getText: _ =>`The local temple is grand indeed, but now it has been authorised to demand funds from the populace.
+    It would appear that it cannot live on prayer alone. ALl people in ${_.town.name} are required to pay a hefty
+    10% of their worth to the temple`,
+  actions: [
+    {
+      text: 'Why do the gods not help?',
+      perform: compose(
+        changeResourcePercentage('coin', -0.1),
+        notify('The template has levied a great tax on the populace'),
+      ),
+    },
+  ],
+});
+
+export const templeHealsPlague = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.worldFlags.temple! && _.worldFlags.sickness!,
+  title: 'Priests heal plague',
+  getText: _ => `The priests have stepped out of the safety of their temple into the town, guided by their divine
+    principles, and have started healing the plague that is affecting the town. It would appear that nature cannot
+    stand up to the gods, and before long most are healed`,
+  actions: [
+    {
+      text: 'Praise the gods',
+      perform: compose(
+        setWorldFlag('sickness', false),
+        notify('The priests from the local template have eradicated the sickness'),
+      ),
+    },
+  ],
+});
+
+export const plagueTempleDestroyed = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.worldFlags.temple! && _.worldFlags.sickness!,
+  title: 'Temple destroyed',
+  getText: _ => `While sickness ravages the land, the priests hide behind the walls of their temple and pray, mostly
+    unaffected. The poor people of ${_.town.name} have risen up, sick of this, and have destroyed the temple and chased
+    the priests away`,
+  actions: [
+    {
+      text: 'Terrible!',
+      perform: compose(
+        setWorldFlag('temple', false),
+        notify('Out of desperation, the locals have destroyed the town temple')
+      ),
+    },
+  ],
+});
+
+export const famineTempleDestroyed = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.worldFlags.temple! && _.worldFlags.famine!,
+  title: 'Temple destroyed',
+  getText: _ => `While famine ravages the land, the priests hide behind the walls of their temple and pray, mostly
+    unaffected. The poor people of ${_.town.name} have risen up, sick of this, and have destroyed the temple and chased
+    the priests away`,
+  actions: [
+    {
+      text: 'Terrible!',
+      perform: compose(
+        setWorldFlag('temple', false),
+        notify('Out of desperation, the locals have destroyed the town temple')
       ),
     },
   ],

@@ -69,7 +69,7 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
       case Prosperity.Decent: return 'on the rise, financially, with most not having to fret about how to survive the day, but with some way to go';
       case Prosperity.Average: return 'in decent financial state, with all but the lowest strata of society living in relative comfort';
       case Prosperity.WellOff: return 'a bustling economy, where most with the means and rights to start a business can dream of prosperity';
-      case Prosperity.Rich: return 'extremely rich, with great stone houses and magnificent temples, a place where dreams come true';
+      case Prosperity.Rich: return 'extremely rich, with great stone houses and cultural buildings, a place where dreams come true';
     }
   }
 
@@ -140,6 +140,7 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
       townFlags.townGuard ? `A town guard protects it` : undefined,
       townFlags.tradeDisrupted ? `Trade and movement in and out of town have been disrupted` : undefined,
       townFlags.vermin ? `The town is suffering an infestation of vermin` : undefined,
+      townFlags.temple ? `The town houses a magnificent temple to the gods` : undefined,
     ].filter(_ => _ != null);
 
     return parts.length > 0
