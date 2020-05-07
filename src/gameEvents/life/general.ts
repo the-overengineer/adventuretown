@@ -1257,3 +1257,26 @@ export const briberyForgotten = createEvent.regular({
     },
   ],
 });
+
+export const sellSlavesFoodTight = createEvent.regular({
+  meanTimeToHappen: 4 * 30,
+  condition: _ => _.characterFlags.slaves!
+    && _.resources.food < 50
+    && (_.finances.foodIncome - _.finances.foodExpenses) <= 1,
+  title: 'Selling slaves',
+  getText: _ => `You have considered selling your slaves, though at a lower price than you bought them for, in an effort
+    to preserve your food stores, which are currently low`,
+  actions: [
+    {
+      text: 'Sell them',
+      perform: compose(
+        changeResource('coin', 35),
+        setCharacterFlag('slaves', false),
+        notify('You have sold your slaves in an effort to preserve your food stores'),
+      ),
+    },
+    {
+      text: 'Keep them',
+    },
+  ],
+});

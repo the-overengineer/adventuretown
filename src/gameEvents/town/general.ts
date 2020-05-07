@@ -798,3 +798,20 @@ export const famineTempleDestroyed = createEvent.regular({
     },
   ],
 });
+
+export const currencyDevalued = createEvent.regular({
+  meanTimeToHappen: 15 * 365,
+  condition: _ => _.town.prosperity >= Prosperity.WellOff,
+  title: 'Currency devalued',
+  getText: _ => `The town was forced to devalue its currency to remain competitive in trading with the neighbouring
+    settlements. All your coin is now worth less`,
+  actions: [
+    {
+      text: 'Damn',
+      perform: compose(
+        changeResourcePercentage('coin', -0.25),
+        notify('Currency was devalued, making all your savings worth less'),
+      ),
+    },
+  ],
+});
