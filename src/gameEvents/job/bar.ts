@@ -253,7 +253,7 @@ export const potentialAdventurerLover = createEvent.regular({
 });
 
 export const charmImproved = createEvent.regular({
-  meanTimeToHappen: 8 * 30,
+  meanTimeToHappen: 12 * 30,
   condition: _ => _.character.profession === Profession.BarWorker
     && _.character.charm < 6,
   title: 'Social interactions',
@@ -265,6 +265,24 @@ export const charmImproved = createEvent.regular({
       perform: compose(
         changeStat('charm', 1),
         notify('Working at the tavern has improved your social skills'),
+      ),
+    },
+  ],
+});
+
+export const leftovers = createEvent.regular({
+  meanTimeToHappen: 9 * 30,
+  condition: _ => _.character.profession === Profession.BarWorker
+    && _.resources.food <= 25,
+  title: 'Leftovers',
+  getText: _ => `You do not quite have large stockpiles of food, and a chance has presented itself
+    for you to take some leftovers from the tavern`,
+  actions: [
+    {
+      text: 'Excellent!',
+      perform: compose(
+        changeResource('food', 10),
+        notify('You picked up some leftovers from the tavern to eat'),
       ),
     },
   ],
