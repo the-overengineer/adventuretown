@@ -23,6 +23,7 @@ const createEvent = eventCreator(JOB_PREFIX);
 
 const jobActions: IGameAction[] = [
   {
+    condition: _ => _.character.profession !== Profession.Farmer,
     text: `I'll work at a farm`,
     perform: compose(
       startJob(Profession.Farmer),
@@ -30,7 +31,7 @@ const jobActions: IGameAction[] = [
     ),
   },
   {
-    condition: (state) => state.town.prosperity > Prosperity.DirtPoor,
+    condition: _ => _.town.prosperity > Prosperity.DirtPoor && _.character.profession !== Profession.BarWorker,
     text: `There is work at the bar`,
     perform: compose(
       startJob(Profession.BarWorker),
@@ -38,8 +39,9 @@ const jobActions: IGameAction[] = [
     ),
   },
   {
-    condition: (state) => state.character.physical >= 3
-      && state.worldFlags.townGuard!,
+    condition: _ => _.character.physical >= 3
+      && _.worldFlags.townGuard!
+      && _.character.profession !== Profession.Guard,
     text: `I am strong, I will guard the town`,
     perform: compose(
       startJob(Profession.Guard),
@@ -47,10 +49,11 @@ const jobActions: IGameAction[] = [
     ),
   },
   {
-    condition: (state) =>
-      state.town.prosperity >= Prosperity.Decent &&
-      state.character.charm >= 3 &&
-      !isOppressed(state, state.character),
+    condition: _ =>
+      _.town.prosperity >= Prosperity.Decent &&
+      _.character.charm >= 3 &&
+      !isOppressed(_, _.character)
+      && _.character.profession !== Profession.Trader,
     text: 'Trading is the way to go',
     perform: compose(
       startJob(Profession.Trader),
@@ -58,10 +61,11 @@ const jobActions: IGameAction[] = [
     ),
   },
   {
-    condition: (state) =>
-      state.town.prosperity >= Prosperity.Decent &&
-      state.character.charm >= 3 &&
-      !hasLimitedRights(state, state.character),
+    condition: _ =>
+      _.town.prosperity >= Prosperity.Decent &&
+      _.character.charm >= 3 &&
+      !hasLimitedRights(_, _.character)
+      && _.character.profession !== Profession.Politician,
     text: 'Why honest living? Politics it is!',
     perform: compose(
       startJob(Profession.Politician),
