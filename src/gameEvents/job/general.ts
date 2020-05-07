@@ -5,6 +5,8 @@ import {
   IGameAction,
   Prosperity,
   Gender,
+  GenderEquality,
+  ClassEquality,
 } from 'types/state';
 import { isOppressed, hasLimitedRights } from 'utils/town';
 import { compose } from 'utils/functional';
@@ -209,7 +211,7 @@ export const doYouKnowWhoIAmSuccess = createEvent.triggered({
   ],
 });
 
-export const firedEntry= createEvent.regular({
+export const firedEntry = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.character.professionLevel === ProfessionLevel.Entry
     && (isOppressed(_, _.character) || _.character.intelligence < 3 || _.character.education < 3 || _.character.charm < 3),
@@ -515,4 +517,85 @@ export const fromBusinessToPolitics = createEvent.regular({
       text: 'I like it where I am',
     },
   ],
-})
+});
+
+export const demotedFromLeadershipDueToRights = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.character.profession != null
+    && _.character.professionLevel === ProfessionLevel.Leadership
+    && hasLimitedRights(_, _.character),
+  title: 'Stripped of position',
+  getText: _ => `You have been stripped of your position, as due to your social status or gender you are not seen
+    as somebody fit to have a leading position in business or society`,
+  actions: [
+    {
+      text: 'Damn this town',
+      perform: compose(
+        setLevel(ProfessionLevel.Medium),
+        notify('You have been stripped of your leadership position due to your standing in society'),
+      ),
+    },
+  ],
+});
+
+export const demotedToEntryDueToRights = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.character.profession != null
+    && _.character.professionLevel === ProfessionLevel.Medium
+    && isOppressed(_, _.character),
+  title: 'Stripped of position',
+  getText: _ => `You have been stripped of your position and moved to an entry-level one, as due to your social status or gender you are not seen
+    as somebody fit to have any responsibility in your line of work`,
+  actions: [
+    {
+      text: 'Damn this town',
+      perform: compose(
+        setLevel(ProfessionLevel.Entry),
+        notify('You have been demoted to the lowest stratum due to discrimination'),
+      ),
+    },
+  ],
+});
+
+export const promotedForGenderQuota = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.character.profession != null
+    && _.character.profession !== Profession.Politician
+    && _.character.professionLevel === ProfessionLevel.Medium
+    && _.town.genderEquality === GenderEquality.Equal
+    && _.town.equality === ClassEquality.Equal,
+  title: 'Promoted due to gender',
+  getText: _ => `With the town leaders pushing for equality, they have noticed that there are not enough ${_.character.gender === Gender.Male ? 'men' : 'women'} in
+    leadership positions. Therefore, they have taken away the job of your ${_.character.gender === Gender.Male ? 'female' : 'male'} employer and given it
+    to you`,
+  actions: [
+    {
+      text: 'Good for me, I guess...',
+      perform: compose(
+        setLevel(ProfessionLevel.Leadership),
+        notify('You have been promoted to a leadership position to fill a gender quota'),
+      ),
+    },
+  ],
+});
+
+export const demotedForGenderQuota = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.character.profession != null
+    && _.character.profession !== Profession.Politician
+    && _.character.professionLevel === ProfessionLevel.Leadership
+    && _.town.genderEquality === GenderEquality.Equal
+    && _.town.equality === ClassEquality.Equal,
+  title: 'Promoted due to gender',
+  getText: _ => `With the town leaders pushing for equality, they have noticed that there are not enough ${_.character.gender === Gender.Male ? 'women' : 'men'} in
+    leadership positions. Therefore, they have taken away your job and given it to you ${_.character.gender === Gender.Male ? 'female' : 'male'} employee`,
+  actions: [
+    {
+      text: 'Is this equality?',
+      perform: compose(
+        setLevel(ProfessionLevel.Medium),
+        notify('You have been demoted from a leadership position to fill a gender quota'),
+      ),
+    },
+  ],
+});

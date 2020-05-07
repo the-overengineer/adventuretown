@@ -10,8 +10,13 @@ import {
   Taxation,
 } from 'types/state';
 
+const classInequal = [
+  ClassEquality.GeneralSlavery,
+  ClassEquality.IncomeInequality,
+];
+
 export const isOppressed = (state: IGameState, character: ICharacter): boolean => {
-  const { town, resources } = state;
+  const { town, resources, finances } = state;
   if (town.genderEquality === GenderEquality.FemaleOppression && character.gender === Gender.Female) {
     return true;
   }
@@ -20,7 +25,7 @@ export const isOppressed = (state: IGameState, character: ICharacter): boolean =
     return true;
   }
 
-  if (town.equality === ClassEquality.GeneralSlavery && resources.coin < 10) {
+  if (classInequal.includes(town.equality) && resources.coin < 100 && (finances.coinIncome - finances.coinExpenses < 1)) {
     return true;
   }
 
@@ -28,7 +33,7 @@ export const isOppressed = (state: IGameState, character: ICharacter): boolean =
 };
 
 export const hasLimitedRights = (state: IGameState, character: ICharacter): boolean => {
-  const { town, resources } = state;
+  const { town, resources, finances } = state;
 
   if (character.gender === Gender.Male) {
     if ([GenderEquality.FemaleDominance, GenderEquality.MaleOppression].includes(town.genderEquality)) {
@@ -42,12 +47,7 @@ export const hasLimitedRights = (state: IGameState, character: ICharacter): bool
     }
   }
 
-  const classInequal = [
-    ClassEquality.GeneralSlavery,
-    ClassEquality.IncomeInequality,
-  ];
-
-  if (resources.coin < 100 && classInequal.includes(town.equality)) {
+  if (resources.coin < 250 && classInequal.includes(town.equality) && (finances.coinIncome - finances.coinExpenses < 2)) {
     return true;
   }
 
