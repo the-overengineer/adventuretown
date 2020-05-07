@@ -141,6 +141,7 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
       townFlags.tradeDisrupted ? `Trade and movement in and out of town have been disrupted` : undefined,
       townFlags.vermin ? `The town is suffering an infestation of vermin` : undefined,
       townFlags.temple ? `The town houses a magnificent temple to the gods` : undefined,
+      townFlags.civilWar ? 'A civil war is raging in the streets' : undefined,
     ].filter(_ => _ != null);
 
     return parts.length > 0

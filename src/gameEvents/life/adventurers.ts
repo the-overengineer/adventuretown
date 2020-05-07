@@ -8,7 +8,7 @@ import {
 } from 'utils/person';
 import { changeResource } from 'utils/resources';
 import { setWorldFlag } from 'utils/setFlag';
-import { death } from './general';
+import { death, civilWarWon, civilWarLost } from './general';
 
 const ADVENTURERS_EVENT_PREFIX: number = 43_000;
 
@@ -441,6 +441,21 @@ export const adventurersWantMoreQuests = createEvent.regular({
         setWorldFlag('adventurersQuestCompleted', false),
         notify('A local adventuring party is looking for work once more'),
       ),
+    },
+  ],
+});
+
+export const civilWarTakeSide = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.worldFlags.civilWar! && (_.worldFlags.adventurerKeep! || _.worldFlags.adventurers!),
+  title: 'Adventurers take side',
+  getText: _ => `The adventurers in town take a side in the civil war. Their skills quickly bring it to a close`,
+  actions: [
+    {
+      text: 'Who won?',
+      perform: triggerEvent(civilWarWon).withWeight(2)
+        .orTrigger(civilWarLost)
+        .toTransformer(),
     },
   ],
 });

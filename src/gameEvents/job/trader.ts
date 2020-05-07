@@ -1,5 +1,5 @@
 import { eventCreator } from 'utils/events';
-import { Profession, ProfessionLevel } from 'types/state';
+import { Profession, ProfessionLevel, Prosperity } from 'types/state';
 import { compose } from 'utils/functional';
 import { changeStat } from 'utils/person';
 import { notify } from 'utils/message';
@@ -173,4 +173,23 @@ export const creativeBookkeeping = createEvent.regular({
       text: 'No, follow the laws',
     },
   ],
-})
+});
+
+export const businessSuffersBadEconomy = createEvent.regular({
+  meanTimeToHappen: 30 * 365,
+  condition: _ => _.character.profession === Profession.Trader
+    && _.character.professionLevel === ProfessionLevel.Leadership
+    && (_.worldFlags.tradeDisrupted! || _.town.prosperity < Prosperity.Average),
+  title: 'Business suffers',
+  getText: _ => `Conditions have been far less than ideal for trading recently, and the loss your business has been
+    suffering recently started coming out of your own pockets`,
+  actions: [
+    {
+      text: 'Unpleasant',
+      perform: compose(
+        changeResourcePercentage('coin', -0.15),
+        notify('Trading has taken a significant hit recently, and the loss comes out of your own pockets'),
+      ),
+    },
+  ],
+});

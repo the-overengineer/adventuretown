@@ -120,6 +120,7 @@ export type WorldFlag =
   | 'tradeDisrupted'
   | 'agriculturalRevolution'
   | 'temple'
+  | 'civilWar'
   ;
 
 export enum GameSpeed {

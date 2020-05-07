@@ -9,6 +9,7 @@ import {
   Fortification,
   Taxation,
 } from 'types/state';
+import { pickOne } from './random';
 
 const classInequal = [
   ClassEquality.GeneralSlavery,
@@ -152,5 +153,15 @@ export const setTaxation = (taxation: Taxation) => (state: IGameState): IGameSta
   town: {
     ...state.town,
     taxation,
+  },
+});
+
+export const setRandomGovernment = (state: IGameState): IGameState => ({
+  ...state,
+  town: {
+    ...state.town,
+    equality: pickOne([ClassEquality.Equal, ClassEquality.GeneralSlavery, ClassEquality.IncomeInequality, ClassEquality.Stratified]),
+    genderEquality: pickOne([GenderEquality.Equal, GenderEquality.FemaleDominance, GenderEquality.FemaleOppression, GenderEquality.MaleDominance, GenderEquality.MaleOppression]),
+    taxation: pickOne([Taxation.Flat, Taxation.None, Taxation.Percentage]),
   },
 });

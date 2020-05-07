@@ -1364,3 +1364,73 @@ export const farmlandsGoodSeason = createEvent.regular({
     },
   ],
 });
+
+export const civilWarStarts = createEvent.regular({
+  meanTimeToHappen: 30 * 365,
+  condition: _ => _.worldFlags.famine!
+    || _.town.prosperity > Prosperity.Average
+    || _.town.size > Size.Large
+    || _.town.equality === ClassEquality.GeneralSlavery,
+  title: 'Civil war',
+  getText: _ => `Tension in ${_.town.name}, as well as the fight over resources, has brought unrest, and then a full
+    civil war. There are fights happening openly in the streets`,
+  actions: [
+    {
+      text: 'This sounds bad',
+      perform: compose(
+        setWorldFlag('civilWar', true),
+        notify('A civil war has started in the town, and the future is very uncertain'),
+      ),
+    },
+  ],
+});
+
+export const civilWarWon = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.worldFlags.civilWar!,
+  title: 'Civil war ended',
+  getText: _ => `The rulers of the city have managed to quash the rebellion and end the unrest on the streets`,
+  actions: [
+    {
+      text: 'Finally!',
+      perform: compose(
+        setWorldFlag('civilWar', false),
+        notify('The civil war has finally ended and the town returns to normal'),
+      ),
+    },
+  ],
+});
+
+export const civilWarLost = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.worldFlags.civilWar!,
+  title: 'Civil war ended',
+  // TODO: Allow politician to participate
+  getText: _ => `The rulers of the city have been put to death and a new government establish`,
+  actions: [
+    {
+      text: 'Finally!',
+      perform: compose(
+        setWorldFlag('civilWar', false),
+        notify('The civil war has finally ended and the town returns to normal, more or less'),
+      ),
+    },
+  ],
+});
+
+export const civilWarRobbed = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.worldFlags.civilWar!,
+  title: 'Looting',
+  getText: _ => `With the civil war raging in the streets, nobody is safe, you included. It was a stroke of luck that nobody
+    was home when the enraged looters went into your home and stole many of your belongings`,
+  actions: [
+    {
+      text: 'You call this luck?',
+      perform: compose(
+        changeResourcePercentage('coin', -0.2),
+        notify('Looters broke into your home and stole many of your belongings'),
+      ),
+    },
+  ],
+});
