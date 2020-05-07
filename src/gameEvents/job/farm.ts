@@ -173,7 +173,8 @@ export const toughWork = createEvent.regular({
 export const famineFoodStolen = createEvent.regular({
   meanTimeToHappen: 365,
   condition: _ => _.character.profession === Profession.Farmer
-    && _.character.professionLevel === ProfessionLevel.Leadership,
+    && _.character.professionLevel === ProfessionLevel.Leadership
+    && _.worldFlags.famine!,
   title: 'Farm robbed due to famine',
   getText: _ => `With the famine going on, people have started getting more and more desperate. Last night, they
     seem to have broken into your farm while everybody was asleep and stolen large quantities of your stores.
