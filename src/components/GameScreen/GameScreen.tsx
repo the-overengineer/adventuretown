@@ -134,13 +134,13 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
             <Stats title='Status'>
               <StatBlock label='Job' value={describeJob(character)} />
               <StatBlock label='Focus' value={this.getFocus()} />
-              <StatBlock label='Spouse' value={relationships.spouse ? <Person person={relationships.spouse} /> : 'Unmarried'} />
+              <StatBlock label='Spouse' value={relationships.spouse ? <Person person={relationships.spouse} today={daysPassed} /> : 'Unmarried'} />
               {
                 relationships.children.map((child, index) => (
                   <StatBlock
                     key={index}
                     label='Child'
-                    value={<Person person={child} />}
+                    value={<Person person={child} today={daysPassed} />}
                   />
                 ))
               }
