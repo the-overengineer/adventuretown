@@ -12,7 +12,7 @@ const BAR_JOB_PREFIX: number = 31_000;
 const createEvent = eventCreator(BAR_JOB_PREFIX);
 
 export const secretOverheard = createEvent.regular({
-  meanTimeToHappen: 9 * 30,
+  meanTimeToHappen: 18 * 30,
   condition: _ => _.character.profession === Profession.BarWorker,
   title: 'Secret overheard',
   getText: _ => `While working at the tavern you overhear a few members of the council, well in their cups, talking about
@@ -40,7 +40,7 @@ export const secretOverheard = createEvent.regular({
 });
 
 export const aGoodNightAtWork = createEvent.regular({
-  meanTimeToHappen: 4 * 30,
+  meanTimeToHappen: 12 * 30,
   condition: _ => _.character.profession === Profession.BarWorker,
   title: 'Busy night',
   getText: _ => `The tavern was unusually full tonight. Though you end up exhausted, you have made good earnings tonight.`,
@@ -150,7 +150,7 @@ export const barFightFightBad = createEvent.triggered({
 });
 
 export const barFight = createEvent.regular({
-  meanTimeToHappen: 8 * 30,
+  meanTimeToHappen: 9 * 30,
   condition: _ => _.character.profession === Profession.BarWorker,
   title: 'Bar fight!',
   getText: _ => `This night in the bar, a lot of drinking is happening and the guests are getting rowdy. Before you know what's going on,
