@@ -7,7 +7,7 @@ import { notify } from 'utils/message';
 import { getAge } from 'utils/time';
 import { changeStat, newCharacter, eldestInherits, removeLastChild, addSpouse, removeSpouse, removeJob, setLevel } from 'utils/person';
 import { setCharacterFlag, pregnancyChance, setWorldFlag } from 'utils/setFlag';
-import { inIntRange } from 'utils/random';
+import { inIntRange, pickOne } from 'utils/random';
 import { hasLimitedRights, isOppressed } from 'utils/town';
 
 const GENERAL_LIFE_EVENT_PREFIX: number = 41_000;
@@ -208,12 +208,16 @@ export const sicknessFullRecovery = createEvent.triggered({
 export const sicknessDifficultRecovery = createEvent.triggered({
   title: 'Difficult recovery',
   getText: _ => `You wake up in the morning feeling better, but not like before. You have made a recovery,
-    but the sickness has left a mark on your body.`,
+    but the sickness has left a mark on your body and mind`,
     actions: [
       {
         text: 'Finally!',
         perform: compose(
-          changeStat('physical', -1 * inIntRange(1, 2)),
+          pickOne([
+            changeStat('physical', -1 * inIntRange(1, 2)),
+            changeStat('intelligence', -1 * inIntRange(1, 2)),
+            changeStat('charm', -1 * inIntRange(1, 2)),
+          ]),
           notify('You have made a partial recovery from the sickness'),
         ),
       },
