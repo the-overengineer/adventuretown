@@ -667,7 +667,7 @@ export const buySlaves = createEvent.regular({
     earn money and prestige for you`,
   actions: [
     {
-      text: 'But some slaves',
+      text: 'Buy some slaves',
       perform: compose(
         setCharacterFlag('slaves', true),
         setCharacterFlag('abusedSlaves', false),
