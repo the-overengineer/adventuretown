@@ -4,6 +4,9 @@ import {
   ProfessionLevel,
   StateTransformer,
   Taxation,
+  ICharacter,
+  Prosperity,
+  ClassEquality,
 } from 'types/state';
 import { getProfessionMap } from 'utils/employment';
 import { compose } from 'utils/functional';
@@ -110,10 +113,36 @@ const getTax = (state: IGameState, income: number): number => {
   }
 };
 
+// Add certain minimums and maximums on income depending on the state of the town economy
+export const getIncomeBounded = (state: IGameState, character: ICharacter) => {
+  const baseIncome = coinsFromProfession(character);
+  const prosperity = state.town.prosperity;
+  const equality = state.town.equality;
+
+  /* eslint-disable */
+  switch (prosperity) {
+    case Prosperity.DirtPoor:
+      return Math.min(baseIncome, 1);
+    case Prosperity.Poor:
+      return Math.min(baseIncome, 2);
+    case Prosperity.WellOff:
+      if (equality === ClassEquality.Equal) {
+        return Math.max(baseIncome, 2);
+      }
+    case Prosperity.Rich:
+      if (equality === ClassEquality.Equal) {
+        return Math.max(baseIncome, 3);
+      }
+    default:
+      return baseIncome;
+  }
+  /* eslint-enable */
+}
+
 export const calculateResourceAllocation = (state: IGameState): IGameState => {
-  const coinIncome = coinsFromProfession(state.character) +
-    (state.relationships.spouse ? coinsFromProfession(state.relationships.spouse) : 0) +
-    (state.relationships.children.map(child => coinsFromProfession(child)).reduce((sum, x) => x + sum, 0));
+  const coinIncome = getIncomeBounded(state, state.character) +
+    (state.relationships.spouse ? getIncomeBounded(state, state.relationships.spouse) : 0) +
+    (state.relationships.children.map(child => getIncomeBounded(state, child)).reduce((sum, x) => x + sum, 0));
 
   const foodIncome = foodFromProfession(state.character) +
     (state.relationships.spouse ? foodFromProfession(state.relationships.spouse) : 0) +
@@ -156,6 +185,6 @@ export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState =>
   state.characterFlags.slaves ? changeFinance('foodExpenses', 1) : undefined,
   state.characterFlags.slaves ? changeFinance('renownIncome', 1) : undefined,
   state.worldFlags.famine ? changeFinance('foodIncome', -2) : undefined,
-  state.worldFlags.tradeDisrupted! && !hasFixedIncome(state.character) ? changeFinance('coinIncome', - 1) : undefined,
+  state.worldFlags.tradeDisrupted! && !hasFixedIncome(state.character) ? changeFinance('coinIncome', -1) : undefined,
   state.worldFlags.agriculturalRevolution ? changeFinance('foodIncome', 2) : undefined,
 ].filter(_ => _ != null) as StateTransformer[])(state);
