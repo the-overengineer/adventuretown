@@ -645,6 +645,7 @@ export const startAgriculturalRevolution = createEvent.regular({
       condition: _ => _.resources.coin >= 1_000,
       text: 'Pay 1,000 coin to a druid',
       perform: compose(
+        changeResource('coin', -1000),
         setWorldFlag('agriculturalRevolution', true),
         notify('The ruling council allows you to hire a druid to improve the agriculture, to the benefit of all'),
       ),
