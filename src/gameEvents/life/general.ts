@@ -715,6 +715,9 @@ export const attractiveSlave = createEvent.regular({
         notify(`You've taken your slave to your bedroom and used them in all kinds of ways`),
       ),
     },
+    {
+      text: 'Leave them to their work',
+    },
   ],
 });
 
