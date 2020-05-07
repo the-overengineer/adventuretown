@@ -1,5 +1,5 @@
 import { eventCreator } from 'utils/events';
-import { ClassEquality, Gender, Size, ProfessionLevel } from 'types/state';
+import { ClassEquality, Gender, Size, ProfessionLevel, Profession } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
 import { compose } from 'utils/functional';
 import { changeResource, changeResourcePercentage } from 'utils/resources';
@@ -1146,6 +1146,108 @@ export const loverAtWork = createEvent.regular({
     },
     {
       text: 'Leave it be',
+    },
+  ],
+});
+
+export const briberyFine = createEvent.triggered({
+  title: 'Hefty fine',
+  getText: _ => `You are forced to pay a significant fine to the town due to your engaging in bribery`,
+  actions: [
+    {
+      text: 'No choice',
+      perform: compose(
+        changeResource('coin', -250),
+        changeResource('renown', -250),
+        setCharacterFlag('bribery', false),
+        notify('You pay a large fine due to the fact you engaged in bribery'),
+      ),
+    }
+  ],
+});
+
+export const briberyBanished = createEvent.triggered({
+  title: 'Banished for bribery',
+  getText: _ => `The town considers your actions very serious, and have decided on the ultimate punishment of having you banished from
+    the town and your belongings taken away`,
+  actions: [
+    {
+      text: `That's a bit much`,
+      perform: triggerEvent(banishment).toTransformer(),
+    },
+  ],
+});
+
+export const briberyBribe = createEvent.triggered({
+  title: 'Double bribe',
+  getText: _ => `You see the guards smile as you offer them a bribe to let this one slide. It seems that was all they were after`,
+  actions: [
+    {
+      text: 'How deep does it go?',
+      perform: compose(
+        changeResource('coin', -100),
+        notify('You bribed the guards to forget about all the bribery you engaged in'),
+      ),
+    },
+  ],
+});
+
+export const briberyFired = createEvent.triggered({
+  title: 'Position lost',
+  getText: _ => `Due to the fact that you have engaged in bribery, you have been stripped of your prestigious position completely`,
+  actions: [
+    {
+      text: `Damn it`,
+      perform: compose(
+        changeResource('renown', -250),
+        removeJob,
+        notify('You have lost your cushy job due to engaging in bribery'),
+      ),
+    },
+  ],
+});
+
+export const briberyDiscovered = createEvent.regular({
+  meanTimeToHappen: 20 * 365,
+  condition: _ => _.characterFlags.bribery! && _.worldFlags.townGuard!,
+  title: 'Bribery discovered',
+  getText: _ => `The town guard corner you. They have irrefutable evidence that you have engaged in giving or taking
+    of bribes, and mean to have you punished for it`,
+  actions: [
+    {
+      text: 'Admit it',
+      perform: triggerEvent(briberyFine).withWeight(4).onlyWhen(_ => _.resources.coin >= 250).multiplyByFactor(3, _ => _.resources.renown >= 250)
+        .orTrigger(briberyBanished)
+          .onlyWhen(_ => _.character.professionLevel !== ProfessionLevel.Leadership && _.resources.renown < 1000)
+          .multiplyByFactor(3, _ => _.characterFlags.enemiesInHighPlaces!)
+        .orTrigger(briberyFired).onlyWhen(_ => _.character.professionLevel === ProfessionLevel.Leadership || _.character.profession === Profession.Politician)
+        .toTransformer(),
+    },
+    {
+      condition: _ => _.resources.coin >= 100,
+      text: 'Um... bribe them?',
+      perform: triggerEvent(briberyFine).withWeight(4).onlyWhen(_ => _.resources.coin >= 250).multiplyByFactor(3, _ => _.resources.renown >= 250)
+      .orTrigger(briberyBanished).onlyWhen(_ => _.character.professionLevel !== ProfessionLevel.Leadership && _.resources.renown < 1000)
+      .orTrigger(briberyFired).onlyWhen(_ => _.character.professionLevel === ProfessionLevel.Leadership || _.character.profession === Profession.Politician)
+      .orTrigger(briberyBribe).withWeight(5).multiplyByFactor(3, _ => _.resources.renown >= 250 || _.character.charm >= 6)
+      .toTransformer(),
+    },
+  ],
+});
+
+export const briberyForgotten = createEvent.regular({
+  meanTimeToHappen: 15 * 365,
+  condition: _ => _.characterFlags.bribery!,
+  title: 'Bribery forgotten',
+  getText: _ => `You have engaged into bribery in the past, but apparently nobody cares that you are corrupt. You doubt this
+    will come to haunt you in the future`,
+  actions: [
+    {
+      text: 'Excellent!',
+      perform: compose(
+        setCharacterFlag('bribery', false),
+        notify('Nobody seems to care that you have engaged in bribery and corruption'),
+      ),
     },
   ],
 });

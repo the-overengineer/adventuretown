@@ -1485,6 +1485,7 @@ export const settingNoTax = createEvent.triggered({
       perform: compose(
         setTaxation(Taxation.None),
         changeResource('coin', -250),
+        setCharacterFlag('bribery', true),
         notify('You have bribed the town council to abolish taxes'),
       ),
     },
@@ -1513,6 +1514,7 @@ export const settingFlatTax = createEvent.triggered({
       perform: compose(
         setTaxation(Taxation.Flat),
         changeResource('coin', -250),
+        setCharacterFlag('bribery', true),
         notify('You have bribed the town council to set flat taxes'),
       ),
     },
@@ -1541,6 +1543,7 @@ export const settingProgressiveTaxes = createEvent.triggered({
       perform: compose(
         setTaxation(Taxation.Percentage),
         changeResource('coin', -250),
+        setCharacterFlag('bribery', true),
         notify('You have bribed the town council to set progressive taxes'),
       ),
     },

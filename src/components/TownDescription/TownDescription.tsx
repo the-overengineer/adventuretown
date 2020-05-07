@@ -134,7 +134,7 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
       townFlags.bandits! ? 'Bandits plague the town' : undefined,
       townFlags.blackMarket! ? 'There are rumours of a black market in town' : undefined,
       townFlags.famine! ? `The town is suffering a famine` : undefined,
-      townFlags.goblins! ? 'A band of goblins keeps robbind the town' : undefined,
+      townFlags.goblins! ? 'A band of goblins keeps robbing the town' : undefined,
       townFlags.orcs! ? `Orc tribes have settles nearby` : undefined,
       townFlags.sickness ? `A plague is going through the town` : undefined,
       townFlags.townGuard ? `A town guard protects it` : undefined,

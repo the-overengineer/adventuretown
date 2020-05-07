@@ -61,7 +61,7 @@ export const briberyAttempt = createEvent.regular({
   meanTimeToHappen: 12 * 30,
   condition: _ => _.character.profession === Profession.Guard
     && _.character.professionLevel! > ProfessionLevel.Entry
-    && _.characterFlags.tookBribe !== true,
+    && _.characterFlags.bribery !== true,
   title: 'Bribe offered',
   getText: _ => `You catch a wealthy miscreant breaking the law. As you have them cornered,
     they offer a toothy smile "Surely some coins can forget that you ever saw me?"`,
@@ -70,7 +70,7 @@ export const briberyAttempt = createEvent.regular({
       text: 'Accept the bribe',
       perform: compose(
         changeResource('coin', 20),
-        setCharacterFlag('tookBribe', true),
+        setCharacterFlag('bribery', true),
         notify('You took a hefty bribe to ignore a crime'),
       ),
     },

@@ -86,7 +86,7 @@ export type CharacterFlag =
   | 'pregnant'
   | 'enemiesInHighPlaces'
   | 'friendsInHighPlaces'
-  | 'tookBribe'
+  | 'bribery'
   | 'lover'
   | 'djinnFound'
   | 'fundedCaravan'
