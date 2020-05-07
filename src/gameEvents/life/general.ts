@@ -1,11 +1,11 @@
 import { eventCreator } from 'utils/events';
-import { ClassEquality, Gender, Size } from 'types/state';
+import { ClassEquality, Gender, Size, ProfessionLevel } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
 import { compose } from 'utils/functional';
 import { changeResource, changeResourcePercentage } from 'utils/resources';
 import { notify } from 'utils/message';
 import { getAge } from 'utils/time';
-import { changeStat, newCharacter, eldestInherits, removeLastChild, addSpouse, removeSpouse } from 'utils/person';
+import { changeStat, newCharacter, eldestInherits, removeLastChild, addSpouse, removeSpouse, removeJob, setLevel } from 'utils/person';
 import { setCharacterFlag, pregnancyChance, setWorldFlag } from 'utils/setFlag';
 import { inIntRange } from 'utils/random';
 import { hasLimitedRights, isOppressed } from 'utils/town';
@@ -1032,6 +1032,120 @@ export const templeHelpsFood = createEvent.regular({
         changeResource('renown', 5),
         notify('You pridefully rejected a food donation from the local temple'),
       ),
+    },
+  ],
+});
+
+export const loverAtWorkRejected = createEvent.triggered({
+  title: 'Rejected',
+  getText: _ => `You approach your colleague and tell them what you had on your mind. They are outraged that you
+    would think so, and do not seem to share your attraction`,
+  actions: [
+    {
+      text: 'But I was certain!',
+      perform: compose(
+        changeResource('renown', -10),
+        notify('You have been rejected by a lover at work'),
+      ),
+    },
+  ],
+});
+
+export const loverAtWorkOneTime = createEvent.triggered({
+  title: 'Pleasurable',
+  getText: _ => `You spend a fun hour or so with your colleague-turned-lover, but it looks like that is all there
+    will be to it for the time being`,
+  actions: [
+    {
+      text: 'It was fun!',
+      perform: compose(
+        pregnancyChance('pregnantLover'),
+        notify('You had a fun tumble with a co-worker'),
+      ),
+    },
+  ],
+});
+
+export const loverAtWorkAThing = createEvent.triggered({
+  title: 'Is this love?',
+  getText: _ => `After the brief time you spend together (when you should have been working), your infatuation seems to
+    only grow. Your lover looks at you adoringly and suggests that this should be a regular occurrence.`,
+  actions: [
+    {
+      text: 'Agree',
+      perform: compose(
+        pregnancyChance('pregnantLover'),
+        setCharacterFlag('lover', true),
+        notify('You have started a relationship with somebody you work with'),
+      )
+    },
+    {
+      text: 'This was enough for me',
+      perform: compose(
+        pregnancyChance('pregnantLover'),
+        notify('You had a fun time with a person you work with, but that is it'),
+      ),
+    },
+  ],
+});
+
+export const loverAtWorkFired = createEvent.triggered({
+  title: 'Discovered',
+  getText: _ => `To your dismay, your superior discovers you and your lover when you are just a mess of naked, sweaty bodies.
+    They are furious that you would do this instead of working, and immediately fire you`,
+  actions: [
+    {
+      text: 'Uh-oh',
+      perform: compose(
+        pregnancyChance('pregnantLover'),
+        removeJob,
+        notify('You lost your job for focusing on things other than work'),
+      ),
+    },
+  ],
+});
+
+export const loverAtWorkDemoted = createEvent.triggered({
+  title: 'Discovered',
+  getText: _ => `To your dismay, your superior discovers you and your lover when you are just a mess of naked, sweaty bodies.
+    They are furious that you would do this instead of working, and immediately demote you`,
+  actions: [
+    {
+      text: 'Uh-oh',
+      perform: compose(
+        pregnancyChance('pregnantLover'),
+        setLevel(ProfessionLevel.Entry),
+        notify('You lost your position at work for focusing on things other than work'),
+      ),
+    },
+  ],
+});
+
+export const loverAtWork = createEvent.regular({
+  meanTimeToHappen: 4 * 365,
+  condition: _ => !_.characterFlags.lover
+    && _.character.profession != null,
+  title: 'Working together',
+  getText: _ => {
+    const otherNoun = _.character.gender === Gender.Male ? 'woman' : 'man';
+    const otherPronoun = _.character.gender === Gender.Male ? 'she' : 'he';
+
+    return `You find yourself working together with a ${otherNoun} whom you are slowly starting to fancy.
+      You could not say ${otherPronoun} is especially attractive, but you still feel drawn to them and
+      better when around them. You are certain they feel the same`;
+  },
+  actions: [
+    {
+      text: 'Approach them at work',
+      perform: triggerEvent(loverAtWorkRejected).multiplyByFactor(3, _ => _.character.charm < 3 && _.character.physical < 3 && _.resources.coin < 250)
+        .orTrigger(loverAtWorkOneTime).withWeight(3).multiplyByFactor(2, _ => _.character.charm >= 6)
+        .orTrigger(loverAtWorkAThing).withWeight(2).multiplyByFactor(2, _ => _.character.charm >= 6)
+        .orTrigger(loverAtWorkFired).onlyWhen(_ => _.character.professionLevel === ProfessionLevel.Entry)
+        .orTrigger(loverAtWorkDemoted).onlyWhen(_ => _.character.professionLevel === ProfessionLevel.Medium)
+        .toTransformer(),
+    },
+    {
+      text: 'Leave it be',
     },
   ],
 });
