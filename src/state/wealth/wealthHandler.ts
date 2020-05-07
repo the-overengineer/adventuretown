@@ -187,4 +187,5 @@ export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState =>
   state.worldFlags.famine ? changeFinance('foodIncome', -2) : undefined,
   state.worldFlags.tradeDisrupted! && !hasFixedIncome(state.character) ? changeFinance('coinIncome', -1) : undefined,
   state.worldFlags.agriculturalRevolution ? changeFinance('foodIncome', 2) : undefined,
+  state.characterFlags.farmland! ? changeFinance('foodIncome', 1) : undefined,
 ].filter(_ => _ != null) as StateTransformer[])(state);

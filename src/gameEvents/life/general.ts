@@ -1,5 +1,5 @@
 import { eventCreator } from 'utils/events';
-import { ClassEquality, Gender, Size, ProfessionLevel, Profession } from 'types/state';
+import { ClassEquality, Gender, Size, ProfessionLevel, Profession, Prosperity } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
 import { compose } from 'utils/functional';
 import { changeResource, changeResourcePercentage } from 'utils/resources';
@@ -1281,6 +1281,86 @@ export const sellSlavesFoodTight = createEvent.regular({
     },
     {
       text: 'Keep them',
+    },
+  ],
+});
+
+export const purchaseFarmland = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => !_.characterFlags.farmland && _.resources.coin >= 500,
+  title: 'Purchase farmland',
+  getText: _ => `A farmer approaches you with the idea of selling his farmland to you. He needs investment
+    in his land, and in return you would be receiving a sizable chunk of his produce`,
+  actions: [
+    {
+      text: 'Invest',
+      perform: compose(
+        changeResource('coin', -500),
+        setCharacterFlag('farmland', true),
+        notify('You have purchased arable farmland, and farmers will work it fo you'),
+      ),
+    },
+    {
+      text: 'Seems like a poor investment',
+    },
+  ],
+});
+
+export const farmlandStruggles = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.characterFlags.farmland! && (_.worldFlags.famine! || _.worldFlags.sickness! || _.town.prosperity < Prosperity.Average || _.town.size <= Size.Modest),
+  title: 'Farm struggles',
+  getText: _ => `The farm you own has been going through some hard times recently. If they are not invested in, they will go out
+    of business`,
+  actions: [
+    {
+      condition: _ => _.resources.coin >= 100,
+      text: 'Invest in them',
+      perform: compose(
+        changeResource('coin', -100),
+        notify('You invested into your farm to keep it going'),
+      ),
+    },
+    {
+      text: 'Let it fail',
+      perform: compose(
+        setCharacterFlag('farmland', false),
+        notify('The arable land you own has gone to ruin due to lack of financial support'),
+      ),
+    },
+  ],
+});
+
+export const farmlandRuined = createEvent.regular({
+  meanTimeToHappen: 50 * 365,
+  condition: _ => _.characterFlags.farmland!,
+  title: 'Farm fails',
+  getText: _ => `The farms you have purchased are getting less and less fruitful, and are no longer providing enough food
+    to pay their debt to you. Before long, they will be but a memory`,
+  actions: [
+    {
+      text: 'Disappointing',
+      perform: compose(
+        setCharacterFlag('farmland', false),
+        notify('The farms you purchased have failed, the lands no longer bearing fruit'),
+      ),
+    },
+  ],
+});
+
+export const farmlandsGoodSeason = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.characterFlags.farmland!,
+  title: 'Farms produce surplus',
+  getText: _ => `The farms you own have produced a large surplus this season, and some of it goes directly
+    to your stores`,
+  actions: [
+    {
+      text: 'A good investment!',
+      perform: compose(
+        changeResource('food', 50),
+        notify('Your farms have had a good year, and you receive some of their food surplus'),
+      ),
     },
   ],
 });

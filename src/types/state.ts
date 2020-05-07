@@ -97,6 +97,7 @@ export type CharacterFlag =
   | 'slaves'
   | 'treatedSlavesWell'
   | 'abusedSlaves'
+  | 'farmland'
   ;
 
 export type WorldFlag =
