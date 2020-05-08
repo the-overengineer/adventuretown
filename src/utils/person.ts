@@ -129,12 +129,16 @@ export const removeSpouse = (state: IGameState): IGameState => ({
   },
 });
 
-export const startJob = (profession: Profession) => (state: IGameState): IGameState => ({
+export const startJob = (profession: Profession, professionLevel: ProfessionLevel = ProfessionLevel.Entry) => (state: IGameState): IGameState => ({
   ...state,
   character: {
     ...state.character,
     profession,
-    professionLevel: ProfessionLevel.Entry,
+    professionLevel,
+  },
+  characterFlags: {
+    ...state.characterFlags,
+    jobNeglect: undefined,
   },
 });
 
@@ -144,6 +148,10 @@ export const removeJob =  (state: IGameState): IGameState => ({
     ...state.character,
     profession: undefined,
     professionLevel: undefined,
+  },
+  characterFlags: {
+    ...state.characterFlags,
+    jobNeglect: undefined,
   },
 });
 
@@ -240,3 +248,6 @@ export const hasFixedIncome = (character: ICharacter) =>
 
 export const hasSmallChild = (state: IGameState): boolean =>
   state.relationships.children.some((child) => getAge(child.dayOfBirth, state.daysPassed) < 3);
+
+export const isInCouncil = (state: IGameState): boolean =>
+  state.character.profession === Profession.Politician && state.character.professionLevel === ProfessionLevel.Leadership;

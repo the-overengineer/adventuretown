@@ -106,7 +106,7 @@ class EventActionBuilder {
   }
 }
 
-class EventChainBuilder {
+export class EventChainBuilder {
   private events: EventActionBuilder[] = [];
 
   public constructor(event: IEvent) {

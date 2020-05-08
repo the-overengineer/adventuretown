@@ -7,6 +7,7 @@ import * as bar from './bar';
 import * as farm from './farm';
 import * as guard from './guard';
 import * as trader from './trader';
+import * as politics from './politics';
 
 export const events: IEvent[] = [
   ...collectEvents(general),
@@ -14,4 +15,5 @@ export const events: IEvent[] = [
   ...collectEvents(farm),
   ...collectEvents(guard),
   ...collectEvents(trader),
+  ...collectEvents(politics),
 ];

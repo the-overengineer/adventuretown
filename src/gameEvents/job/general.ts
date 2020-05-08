@@ -132,6 +132,7 @@ export const promotedFromEntry = createEvent.regular({
 export const promotedToLeading = createEvent.regular({
   meanTimeToHappen: 3 * 365,
   condition: _ => _.character.professionLevel === ProfessionLevel.Medium
+    && _.character.profession !== Profession.Politician
     && !hasLimitedRights(_, _.character)
     && (_.character.intelligence >= 5 || _.character.education >= 5 || _.character.charm >= 5),
   title: 'A leading role',
@@ -512,8 +513,7 @@ export const fromBusinessToPolitics = createEvent.regular({
     {
       text: 'Accept',
       perform: compose(
-        startJob(Profession.Politician),
-        setLevel(ProfessionLevel.Leadership),
+        startJob(Profession.Politician, ProfessionLevel.Leadership),
         notify('You have abandoned your business to join the town council'),
       ),
     },

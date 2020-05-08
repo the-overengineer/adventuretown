@@ -43,8 +43,8 @@ export enum Fortification {
 
 export enum Taxation {
   None,
-  Flat,
   Percentage,
+  Flat,
 }
 
 export enum Gender {
@@ -98,6 +98,12 @@ export type CharacterFlag =
   | 'treatedSlavesWell'
   | 'abusedSlaves'
   | 'farmland'
+  | 'jobNeglect'
+  | 'campaign'
+  | 'promisedWalls'
+  | 'promisedLowerTaxes'
+  | 'promisedBuildTemple'
+  | 'promisedTownGuard'
   ;
 
 export type WorldFlag =
@@ -235,6 +241,7 @@ export interface IGameState {
   characterFlags: Partial<ICharacterFlags>;
   worldFlags: Partial<IWorldFlags>;
   messages: string[];
+  tmp?: Map<string, any>;
 }
 
 export type StateTransformer = (gameState: IGameState) => IGameState;

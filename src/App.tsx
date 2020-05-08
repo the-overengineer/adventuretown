@@ -41,6 +41,7 @@ interface IAppState {
   isRunning: boolean;
   daysPassed: number;
   messages: string[];
+  tmp?: Map<string, any>;
 }
 
 const initialState: IAppState = {
@@ -86,6 +87,7 @@ export class App extends React.PureComponent<{}, IAppState> {
           ...game.town,
           taxation: game.town.taxation ?? Taxation.None, // Temporary compat layer TODO: Remove
         } : undefined,
+        isRunning: false,
       });
     }
     this.ticker = window.setInterval(this.handleTick, getTickDuration(this.state.settings.speed));

@@ -1,6 +1,6 @@
 import { IGameState, CharacterFlag, WorldFlag, Gender } from 'types/state';
 
-export const setCharacterFlag = (flag: CharacterFlag, to: boolean) =>
+export const setCharacterFlag = (flag: CharacterFlag, to: boolean = true) =>
   (state: IGameState): IGameState => ({
     ...state,
     characterFlags: {
