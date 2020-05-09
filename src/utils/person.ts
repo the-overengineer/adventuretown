@@ -13,7 +13,7 @@ import {
 } from './random';
 import { setCharacterFlag } from './setFlag';
 import { getAge } from './time';
-import { isOppressed } from './town';
+import { isOppressed, isGenderOppressed } from './town';
 
 const boyNames = ['Arnold', 'Geoff', 'Eirich', 'Mark', 'Elron', 'Marr'];
 const girlNames = ['Rose', 'Aerin', 'Elisabeth', 'Zaira', 'Leona', 'Jasmine'];
@@ -118,7 +118,7 @@ export const newCharacter = (state: IGameState): IGameState => ({
 
 export const eldestInherits = (keepResources: boolean = true) => (state: IGameState): IGameState => {
   const eldest = state.relationships.children[0];
-  const part = state.relationships.children.length;
+  const part = Math.max(state.relationships.children.filter(child => !isGenderOppressed(state, child)).length, 1);
   const resources = {
     coin: keepResources ? Math.floor(state.resources.coin / part) : 0,
     food: keepResources ? Math.floor(state.resources.food / part) : 0,

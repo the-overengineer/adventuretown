@@ -18,6 +18,7 @@ import {
   removeSpouse,
   setLevel,
   startJob,
+  improveSpouseRelationship,
 } from 'utils/person';
 import {
   cityFocusOptions,
@@ -895,7 +896,7 @@ export const proposedTo = createEvent.regular({
 });
 
 export const pushForChildren = createEvent.regular({
-  meanTimeToHappen: 3 * 30,
+  meanTimeToHappen: 4 * 30,
   condition: _ => _.characterFlags.focusFamily!
     && _.relationships.spouse != null
     && !(_.characterFlags.pregnant || !_.worldFlags.spousePregnant)
@@ -922,6 +923,18 @@ export const pushForChildren = createEvent.regular({
     {
       text: 'Rather not',
     },
+  ],
+});
+
+export const keepingSpouseHappy = createEvent.regular({
+  meanTimeToHappen: 9 * 30,
+  condition: _ => _.characterFlags.focusFamily!
+    && _.relationships.spouse != null,
+  title: 'Spending time with spouse',
+  getText: `You always make sure to make time for your spouse and see to their needs and wants. Not everything you do is perfect,
+    but it helps you keep you relationship going better`,
+  actions: [
+    action('You know I love you').and(improveSpouseRelationship).log('You always remember to do the little things for your spouse'),
   ],
 });
 

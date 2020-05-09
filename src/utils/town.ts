@@ -16,13 +16,22 @@ const classInequal = [
   ClassEquality.IncomeInequality,
 ];
 
-export const isOppressed = (state: IGameState, character: ICharacter): boolean => {
-  const { town, resources, finances } = state;
+export const isGenderOppressed = (state: IGameState, character: ICharacter): boolean => {
+  const { town } = state;
   if (town.genderEquality === GenderEquality.FemaleOppression && character.gender === Gender.Female) {
     return true;
   }
 
   if (town.genderEquality === GenderEquality.MaleOppression && character.gender === Gender.Male) {
+    return true;
+  }
+
+  return false;
+}
+
+export const isOppressed = (state: IGameState, character: ICharacter): boolean => {
+  const { town, resources, finances } = state;
+  if (isGenderOppressed(state, character)) {
     return true;
   }
 
