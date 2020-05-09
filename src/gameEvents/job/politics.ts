@@ -284,7 +284,7 @@ export const campaignDonateFood = createEvent.regular({
 
 export const campaignBlamedForProblems = createEvent.regular({
   meanTimeToHappen: 6 * 30,
-  condition: _ => _.characterFlags.campaign! && (_.worldFlags.goblins! || _.worldFlags.orcs! || _.worldFlags.bandits! || _.worldFlags.sickness! || _.worldFlags.famine!),
+  condition: _ => _.characterFlags.campaign! && (_.worldFlags.goblins! || _.worldFlags.orcs! || _.worldFlags.bandits! || _.worldFlags.sickness! || _.worldFlags.famine! || _.worldFlags.dragon!),
   title: 'Blamed for problems',
   getText: `Your campaign suffers a little bit of a hit as some people start blaming you for some of the problems affecting the area`,
   actions: [
@@ -482,7 +482,7 @@ export const voteStartedByAnother = createEvent.regular({
 
 export const leaderBlamedForProblems = createEvent.regular({
   meanTimeToHappen: 3 * 365,
-  condition: _ => isInCouncil(_) && (_.worldFlags.goblins! || _.worldFlags.orcs! || _.worldFlags.bandits! || _.worldFlags.sickness! || _.worldFlags.famine!),
+  condition: _ => isInCouncil(_) && (_.worldFlags.goblins! || _.worldFlags.orcs! || _.worldFlags.bandits! || _.worldFlags.sickness! || _.worldFlags.famine! || _.worldFlags.dragon!),
   title: 'Blamed for problems',
   getText: `As a member of the town council, you are being blamed for the issues currently plaguing the town!`,
   actions: [
@@ -492,7 +492,7 @@ export const leaderBlamedForProblems = createEvent.regular({
 
 export const leaderPraisedForGoodState = createEvent.regular({
   meanTimeToHappen: 3 * 365,
-  condition: _ => isInCouncil(_) && !(_.worldFlags.goblins! || _.worldFlags.orcs! || _.worldFlags.bandits! || _.worldFlags.sickness! || _.worldFlags.famine!),
+  condition: _ => isInCouncil(_) && !(_.worldFlags.goblins! || _.worldFlags.orcs! || _.worldFlags.bandits! || _.worldFlags.sickness! || _.worldFlags.famine! || _.worldFlags.dragon!),
   title: 'Praised',
   getText: `Townspeople, or at least those who matter, seem to think that you are doing a splendid job in council, as the town is not being
     plagued by any serious issues that would concern them`,

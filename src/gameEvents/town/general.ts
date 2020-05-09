@@ -344,7 +344,7 @@ export const defendAgainstAttackers = createEvent.regular({
   meanTimeToHappen: 2 * 365,
   condition: _ => _.town.fortification < Fortification.Palisade
     && _.town.prosperity >= Prosperity.Decent
-    && (_.worldFlags.orcs! || _.worldFlags.goblins! || _.worldFlags.bandits!),
+    && (_.worldFlags.orcs! || _.worldFlags.goblins! || _.worldFlags.bandits! || _.worldFlags.dragon!),
   title: 'Defenses improved',
   getText: _ => `With a looming threat not for from the town, the ruling council has invested
     some money into raising its defences, hoping to keep the attackers out`,

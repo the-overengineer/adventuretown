@@ -1,8 +1,8 @@
-import { eventCreator } from 'utils/events';
+import { eventCreator, action } from 'utils/events';
 import { notify } from 'utils/message';
 import { compose } from 'utils/functional';
 import { setWorldFlag, setCharacterFlag } from 'utils/setFlag';
-import { decreaseFortifications } from 'utils/town';
+import { decreaseFortifications, decreaseSize, decreaseProsperity } from 'utils/town';
 import { removeRandomChild, removeSpouse, changeStat, hasSmallChild, removeLastChild } from 'utils/person';
 import { triggerEvent } from 'utils/eventChain';
 import { death } from 'gameEvents/life/general';
@@ -692,5 +692,194 @@ export const adventurersKeepGone = createEvent.regular({
         notify('The town is no longer home to a party of adventurers'),
       ),
     },
+  ],
+});
+
+export const dragonSpotted = createEvent.regular({
+  meanTimeToHappen: 30 * 354,
+  condition: _ => !_.worldFlags.dragon && (_.town.size >= Size.Large || _.town.prosperity >= Prosperity.WellOff || _.resources.coin >= 2_000),
+  title: 'Dragon spotted',
+  getText: `At first you thought it was rumours. Then, too many people were saying it for it to be false. A great
+    dragon has been spotted in the area. Hopefully it does not attack the town!`,
+  actions: [
+    action('Frightening!').do(setWorldFlag('dragon')).log(`A fierce dragon has been spotted in the area`),
+  ],
+});
+
+export const dragonLeaves = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.worldFlags.dragon! && ((_.town.size < Size.Large && _.town.prosperity < Prosperity.WellOff) || _.town.fortification === Fortification.MoatAndCastle),
+  title: 'Dragon leaves',
+  getText: `It would appear that the dragon has left the area, finding nothing of interest that would make it remain here`,
+  actions: [
+    action('Thank the gods!').do(setWorldFlag('dragon', false)).log('The dragon has finally left the area'),
+  ],
+});
+
+export const neighbourEaten = createEvent.triggered({
+  title: 'Neighbours eaten',
+  getText: `Your neighbours are lit on fire by the dragon's breath. You will never forget their screams as they ran off - those who survived -
+    only to be caught by the dragon's teeth. That crunching noise. It, too, will haunt you. Luckily for you, the dragon flew off without attacking
+    your household`,
+  actions: [
+    action('Horrifying').log('The dragon attacked your neighbourhood, but you and yours were spared'),
+  ],
+});
+
+export const dragonEatsYou = createEvent.triggered({
+  title: 'Eaten',
+  getText: `Being on fire hurts so much. On the bright side, the dragon's jaws close around you before you have to suffer it for long`,
+  actions: [
+    action('Aaaaaarrgh').do(triggerEvent(death)).log('You have been slain by a mighty dragon'),
+  ],
+});
+
+export const dragonEatsSpouse = createEvent.triggered({
+  title: 'Spouse eaten',
+  getText: `You run to save them, but you are not close enough. Your spouse is caught by the dragon, and the mighty jaws break them in two
+    with ease`,
+  actions: [
+    action('Noooo!').do(removeSpouse).log('Your spouse has been eaten by a dragon'),
+  ],
+});
+
+export const dragonEatsChild = createEvent.triggered({
+  title: 'Little one eaten',
+  getText: `You run from your house. You are safe. Only then do you remember to do a head count. Somebody... somebody is missing. When you return to your
+    house later, you find the corpse of one of your children`,
+  actions: [
+    action('No! My dear child!').do(removeRandomChild).log('A dragon ate one of your children'),
+  ],
+});
+
+export const dragonEatsSlaves = createEvent.triggered({
+  title: 'Slaves eaten',
+  getText: `When you ran from the dragon, you did not consider your slaves. When you return to your damaged home, you discover that they have been eaten
+    to the last person, even the children`,
+  actions: [
+    action('A horrible way to go').do(setCharacterFlag('slaves', false)).log('Your slaves have been eaten by a dragon'),
+  ],
+});
+
+export const dragonEatsPeople = createEvent.triggered({
+  title: 'Neighbourhood attacked',
+  getText: `The mighty dragon lands not far from your house. Immediately, it starts grabbing people in its jaws and burning and devouring them.
+    Its primary goal seems to be food`,
+  actions: [
+    action('Run!').do(
+      triggerEvent(dragonEatsSlaves).withWeight(2).onlyWhen(_ => _.characterFlags.slaves!)
+        .orTrigger(neighbourEaten).withWeight(2)
+        .orTrigger(dragonEatsChild).withWeight(2).onlyWhen(_ => _.relationships.children.length > 0)
+        .orTrigger(dragonEatsSpouse).withWeight(2)
+        .orTrigger(dragonEatsYou),
+    ),
+  ],
+});
+
+export const dragonBurnsArea = createEvent.triggered({
+  title: 'Town burned',
+  getText: `The dragon seems to be here primarily to destroy. Its fiery breath burns down whole areas of the city, killing many and ruining
+    buildings, shops, and even melting down some of the cobbled streets`,
+  actions: [
+    action('The horror!').do(decreaseSize).and(decreaseProsperity).log('The dragon burns down large parts of the city'),
+  ],
+});
+
+export const dragonsTakesYourGold = createEvent.triggered({
+  title: 'Dragon greed',
+  getText: `The greedy dragon must have heard of your gold, because by the time you reach your home you find that most of your wealth has been
+    stolen by the dragon`,
+  actions: [
+    action('Better than my life!').resourceLosePercentage('coin', 80).log('The dragon stole most of your coin'),
+  ],
+});
+
+export const dragonKillsAdventurers = createEvent.triggered({
+  title: 'Adventurers slain',
+  getText: `The dragon is stopped by the group of adventurers who are in town before it manages to decide what to do. The battle is fierce, but
+    the adventurers stand no chance. After slaying them, the wounded dragon retreats`,
+  actions: [
+    action('Brave heroes!').and(setWorldFlag('adventurerKeep', false)).and(setWorldFlag('adventurers', false)).and(setWorldFlag('adventurersQuestCompleted', false)).log(
+      'The dragon is held back by a group of adventurers, but they lose their lives in the process',
+    ),
+  ],
+});
+
+export const dragonChasedOff = createEvent.triggered({
+  title: 'Dragon turned',
+  getText: `The defenders put on a valiant show and manage to chase off the dragon, though not without heavy casualties. But it might yet return`,
+  actions: [
+    action('We must prepare'),
+  ],
+});
+
+export const dragonSlain = createEvent.triggered({
+  title: 'Dragon slain',
+  getText: `The fighting is fierce, and it looks like the dragon is winning. Until, that is, a large bolt pierces its side. After that, unable
+    to fly, it continues fighting valiantly, but is eventually slain by the defenders`,
+  actions: [
+    action('Huzzah!').do(setWorldFlag('dragon', false)).log('The dragon is slain while attacking the town'),
+  ],
+});
+
+export const dragonAttacks = createEvent.regular({
+  meanTimeToHappen: 9 * 30,
+  condition: _ => _.worldFlags.dragon!,
+  title: 'Dragon attacks',
+  getText: `First you hear the heavy wings beat. Then, you see the breath of fire in the evening sky. Moment later, the dragon soars down towards
+    the town, starting to attack it`,
+  actions: [
+    action('Gods help us!').do(
+      triggerEvent(dragonSlain)
+        .orTrigger(dragonChasedOff)
+        .orTrigger(dragonKillsAdventurers).onlyWhen(_ => _.worldFlags.adventurerKeep! || _.worldFlags.adventurers!).withWeight(3)
+        .orTrigger(dragonsTakesYourGold).withWeight(2)
+        .orTrigger(dragonBurnsArea).withWeight(2)
+        .orTrigger(dragonEatsPeople),
+    ),
+  ],
+})
+
+export const dragonBurnsFarm = createEvent.regular({
+  meanTimeToHappen: 12 * 30,
+  condition: _ => _.worldFlags.dragon! && _.characterFlags.farmland!,
+  title: 'Farm burned',
+  getText: `You receive news that the dragon who made its home in the area has attacked your farm and burned it down completely.
+    Nothing remains but a charred hole in the ground`,
+  actions: [
+    action('Damn it').do(setCharacterFlag('farmland', false)).log('The dragon has burned down the farm you... used to own'),
+  ],
+});
+
+export const dragonDestroysOrcs = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.worldFlags.dragon! && _.worldFlags.orcs!,
+  title: 'Dragon kills orcs',
+  getText: `The dragon does not seem to like other creatures in its area. After being provoked by them, it made short works of the orcs,
+    killing every last one of them`,
+  actions: [
+    action('At least some good news').do(setWorldFlag('orcs', false)).log('The dragon kills all the orcs in the area'),
+  ],
+});
+
+export const dragonDestroysGoblins = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.worldFlags.dragon! && _.worldFlags.goblins!,
+  title: 'Dragon kills goblins',
+  getText: `The dragon does not seem to like other creatures in its area. After being provoked by them, it made short works of the goblins,
+    killing every last one of them`,
+  actions: [
+    action('At least some good news').do(setWorldFlag('goblins', false)).log('The dragon kills all the goblins in the area'),
+  ],
+});
+
+export const dragonDestroysBandits = createEvent.regular({
+  meanTimeToHappen: 6 * 30,
+  condition: _ => _.worldFlags.dragon! && _.worldFlags.bandits!,
+  title: 'Dragon kills bandits',
+  getText: `The dragon does not seem to like other creatures in its area. After being provoked by them, it made short works of the bandits,
+    killing every last one of them`,
+  actions: [
+    action('At least some good news').do(setWorldFlag('bandits', false)).log('The dragon kills all the bandits in the area'),
   ],
 });

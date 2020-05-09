@@ -3,7 +3,7 @@ import {
   civilWarWon,
 } from 'gameEvents/town/general';
 import { triggerEvent } from 'utils/eventChain';
-import { eventCreator } from 'utils/events';
+import { eventCreator, action } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
 import {
@@ -135,6 +135,18 @@ export const adventurersHandleOrcs = createEvent.triggered({
   ],
 });
 
+export const adventurersHandleDragon = createEvent.triggered({
+  title: 'Dragon slain',
+  getText: _ => `The adventurers have returned from their quest victorious, and after all this time ${_.town.name} is
+    free of the vicious dragon who made all quake with fear`,
+  actions: [
+    action('Thank you, brave adventurers')
+      .do(setWorldFlag('adventurersQuestCompleted'))
+      .and(setWorldFlag('dragon', false))
+      .log('The adventurers have slain the fierce dragon who was nearby'),
+  ],
+});
+
 export const adventurersFarawayQuest = createEvent.triggered({
   title: 'Adventurers leave for quest',
   getText: _ => `You have told the adventurers of a great quest on another continent, where they can find great fame
@@ -200,6 +212,11 @@ export const adventurersSeekQuest = createEvent.regular({
         .orTrigger(adventurersHandleBandits).withWeight(2)
         .toTransformer(),
     },
+    action(`"Kill the dragon"`).when(_ => _.worldFlags.dragon!).do(
+      triggerEvent(adventurersFail).withWeight(2)
+        .orTrigger(adventurersDie).withWeight(8)
+        .orTrigger(adventurersHandleDragon)
+    ),
     {
       condition: _ => _.character.charm >= 6,
       text: 'Invent quest in faraway land',
