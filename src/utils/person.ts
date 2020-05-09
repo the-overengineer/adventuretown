@@ -96,10 +96,11 @@ export const newCharacter = (state: IGameState): IGameState => ({
 
 export const eldestInherits = (keepResources: boolean = true) => (state: IGameState): IGameState => {
   const eldest = state.relationships.children[0];
+  const part = state.relationships.children.length;
   const resources = {
-    coin: keepResources ? state.resources.coin : 0,
-    food: keepResources ? state.resources.food : 0,
-    renown: Math.floor(state.resources.renown / 2), // keep half the fame of your parent
+    coin: keepResources ? Math.floor(state.resources.coin / part) : 0,
+    food: keepResources ? Math.floor(state.resources.food / part) : 0,
+    renown: Math.floor(state.resources.renown / 10), // keep percentage of fame of parent
   };
 
   return {

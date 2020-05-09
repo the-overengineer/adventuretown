@@ -1,4 +1,4 @@
-import { eventCreator } from 'utils/events';
+import { eventCreator, action } from 'utils/events';
 import { ClassEquality, Gender, Size, ProfessionLevel, Profession, Prosperity } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
 import { compose } from 'utils/functional';
@@ -22,21 +22,11 @@ export const death = createEvent.triggered({
     in the halls of the gods. For everybody else, however, life goes on.
   `,
   actions: [
-    {
-      condition: _ => _.relationships.children.length > 0,
-      text: 'My eldest inherits',
-      perform: compose(
-        eldestInherits(),
-        notify('With your death, your eldest child inherits your possessions'),
-      ),
-    },
-    {
-      text: 'Start anew',
-      perform: compose(
-        newCharacter,
-        notify('The story continues for another person in the town'),
-      ),
-    },
+    action('My eldest adult child inherits')
+      .when(_ => _.relationships.children.filter(child => getAge(child.dayOfBirth, _.daysPassed) >= 14).length > 0)
+      .do(eldestInherits())
+      .log('With your death, your belongings are split between your children, and your eldest child is the head of the family'),
+    action('Start anew').do(newCharacter).log(`The story continues for another person in the town`),
   ],
 });
 
@@ -46,13 +36,7 @@ export const resurrectedByTemple = createEvent.triggered({
     money to ask the gods to bring you back to life. You open your eyes and find yourself back amongst
     the living`,
   actions: [
-    {
-      text: 'Did I see the gods?',
-      perform: compose(
-        changeResource('coin', -1_000),
-        notify('You have died, but have been resurrected in the local temple'),
-      ),
-    },
+    action('Did I see the gods?').do(changeResource('coin', -1_000)).log(`Your have been resurrected by the local temple`),
   ],
 });
 
@@ -60,13 +44,11 @@ export const dying = createEvent.triggered({
   title: 'The world fades',
   getText: _ => `The world is fading fast before your eyes, strength draining out of you`,
   actions: [
-    {
-      text: 'Is this it?',
-      perform: triggerEvent(death).withWeight(4)
+    action('Is this it?').do(
+      triggerEvent(death).withWeight(2)
         .orTrigger(resurrectedByTemple)
           .onlyWhen(_ => _.resources.coin >= 1_000 && _.worldFlags.temple! && (_.relationships.spouse != null || _.relationships.children.length > 0))
-        .toTransformer(),
-    },
+    ),
   ],
 });
 
@@ -78,21 +60,11 @@ export const banishment = createEvent.triggered({
     town again. For everyone else, life goes on.
   `,
   actions: [
-    {
-      condition: _ => _.relationships.children.length > 0,
-      text: 'Continue as my eldest',
-      perform: compose(
-        eldestInherits(false),
-        notify('With your banishment, your eldest child remains, but your possessions have been confiscated'),
-      ),
-    },
-    {
-      text: 'Start anew',
-      perform: compose(
-        newCharacter,
-        notify('The story continues for another person in the town'),
-      ),
-    },
+    action('My eldest adult child inherits')
+      .when(_ => _.relationships.children.filter(child => getAge(child.dayOfBirth, _.daysPassed) >= 14).length > 0)
+      .do(eldestInherits())
+      .log('With your banishment, your belongings are confiscated, but your eldest child is the head of the family'),
+    action('Start anew').do(newCharacter).log(`The story continues for another person in the town`),
   ]
 })
 
