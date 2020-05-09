@@ -65,6 +65,7 @@
 }
 
 .TownAscii {
+  font-size: 10px;
   font-family: monospace;
   padding: 16px;
   margin: 24px;

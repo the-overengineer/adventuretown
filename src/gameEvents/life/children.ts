@@ -1,16 +1,14 @@
-import { GenderEquality, Gender } from 'types/state';
+import { GenderEquality } from 'types/state';
 import { eventCreator } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
-import { createChild, findEmployableChild, hireEmployableChild, findFireableChild, fireFireableChild, removeRandomChild, isEmployable } from 'utils/person';
+import { createChild, findEmployableChild, hireEmployableChild, findFireableChild, fireFireableChild, removeRandomChild, isEmployable, worsenSpouseRelationship } from 'utils/person';
 import { changeResource } from 'utils/resources';
 import { isOppressed } from 'utils/town';
 import {
   setCharacterFlag,
   setWorldFlag,
-  pregnancyChance,
 } from 'utils/setFlag';
-import { getAge } from 'utils/time';
 
 export const CHILDREN_PREFIX = 5_000;
 
@@ -99,6 +97,7 @@ export const loverPregnantDiscovered = createEvent.regular({
       perform: compose(
         setWorldFlag('pregnantLover', false),
         setWorldFlag('pregnantLoverKnown', true),
+        worsenSpouseRelationship,
         notify('Your lover informed you that you have a child on the way'),
       ),
     },
@@ -135,108 +134,8 @@ export const loverGivesBirth = createEvent.regular({
         setWorldFlag('pregnantLover', false),
         setWorldFlag('pregnantLoverKnown', false),
         createChild,
+        worsenSpouseRelationship,
         notify('Your lover has given birth to your child'),
-      ),
-    },
-  ],
-});
-
-export const wifePregnantDiscovered = createEvent.regular({
-  meanTimeToHappen: 21,
-  condition: _ => _.worldFlags.spousePregnant! && !_.worldFlags.spousePregnantDiscovered,
-  title: 'One in the oven',
-  getText: _ => `Your wife awaits your return home in the evening with a nervous smile and glinting eyes. "${_.character.name}, my love! We will have a child!"`,
-  actions: [
-    {
-      condition: _ => _.town.genderEquality === GenderEquality.FemaleOppression,
-      text: '"You must get rid of it',
-      perform: compose(
-        setWorldFlag('spousePregnant', false),
-        notify('You made your wife get rid of the child'),
-      ),
-    },
-    {
-      text: `"Delightful!`,
-      perform: compose(
-        setWorldFlag('spousePregnant', false),
-        setWorldFlag('spousePregnantDiscovered', true),
-        notify('Your wife informed you that you have a child on the way'),
-      ),
-    },
-  ],
-});
-
-export const wifePregnancyFails = createEvent.regular({
-  meanTimeToHappen: 12 * 30,
-  condition: _ => _.worldFlags.spousePregnant! || _.worldFlags.spousePregnantDiscovered!,
-  title: 'Pregnancy lost',
-  getText: _ => `"Come, quick!" one of your neighbours seems panicked. You find your wife in tears on a bloody bed. She has lost the child`,
-  actions: [
-    {
-      text: `Life is cruel`,
-      perform: compose(
-        setWorldFlag('spousePregnant', false),
-        setWorldFlag('spousePregnantDiscovered', false),
-        notify('Your wife has lost your child during her pregnancy'),
-      ),
-    },
-  ],
-});
-
-export const wifeGivesBirth = createEvent.regular({
-  meanTimeToHappen: 8 * 30,
-  condition: _ => _.worldFlags.spousePregnant! || _.worldFlags.spousePregnantDiscovered!,
-  title: 'A child is born!',
-  getText: _ => `"Come, quick!" one of your neighbours seems delighted, if nervous.
-    You find your wife with a tired smile on her face, holding your new child in her arms.`,
-  actions: [
-    {
-      text: `How exciting!`,
-      perform: compose(
-        setWorldFlag('spousePregnant', false),
-        setWorldFlag('spousePregnantDiscovered', false),
-        createChild,
-        notify('Your wife has given birth to your child'),
-      ),
-    },
-  ],
-});
-
-export const becomePregnantWithSpouse = createEvent.regular({
-  meanTimeToHappen: 365,
-  condition: _ => _.character.gender === Gender.Female
-    && _.relationships.spouse != null
-    && !_.characterFlags.pregnant
-    && getAge(_.character.dayOfBirth, _.daysPassed) < 40,
-  title: 'Bliss in bed',
-  getText: _ => `You and your husband have been quite active in bed recently. Not only is it a good way
-    to spend time, it might leave you with child as well!`,
-  actions: [
-    {
-      text: 'Who knows?',
-      perform: compose(
-        pregnancyChance('spousePregnant'),
-        notify('Beds are not just for sleeping'),
-      ),
-    },
-  ],
-});
-
-export const spouseBecomesPregnant = createEvent.regular({
-  meanTimeToHappen: 365,
-  condition: _ => _.character.gender === Gender.Male
-    && _.relationships.spouse != null
-    && !_.worldFlags.spousePregnantDiscovered
-    && getAge(_.relationships.spouse.dayOfBirth, _.daysPassed) < 40,
-  title: 'Bliss in bed',
-  getText: _ => `You and your wife have been quite active in bed recently. Not only is it a good way
-    to spend time, it might leave her with child as well!`,
-  actions: [
-    {
-      text: 'Who knows?',
-      perform: compose(
-        pregnancyChance('spousePregnant'),
-        notify('Beds are not just for sleeping'),
       ),
     },
   ],

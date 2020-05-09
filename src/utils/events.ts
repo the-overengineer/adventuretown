@@ -4,10 +4,12 @@ import {
   IGameState,
   StateTransformer,
   IGameAction,
+  IResources,
 } from 'types/state';
 import { notify } from './message';
 import { compose } from './functional';
 import { EventChainBuilder } from './eventChain';
+import { changeResource, changeResourcePercentage } from './resources';
 
 type TextFromState = (state: IGameState) => string;
 
@@ -55,13 +57,13 @@ export const eventCreator = (prefix: number) => {
 }
 
 export class ActionBuilder {
-  private condition?: (state: IGameState) => boolean;
+  private conditions: Array<(state: IGameState) => boolean> = [];
   private actions: Array<StateTransformer> = [];
 
   public constructor(private text: string) {}
 
   public when(condition: (state: IGameState) => boolean): this {
-    this.condition = condition;
+    this.conditions.push(condition);
     return this;
   }
 
@@ -74,6 +76,19 @@ export class ActionBuilder {
     return this.do(...actions);
   }
 
+  // Such a common pattern that we're encoding it here
+  public spendResource(resource: keyof IResources, amount: number): this {
+    return this.when(_ => _.resources[resource] >= amount).do(changeResource(resource, -amount));
+  }
+
+  public resourceLosePercentage(resource: keyof IResources, percentage: number): this {
+    return this.do(changeResourcePercentage(resource, -percentage / 100));
+  }
+
+  public gainResource(resource: keyof IResources, amount: number): this {
+    return this.do(changeResource(resource, amount));
+  }
+
   public log(message: string): IGameAction {
     this.actions.push(notify(message));
     return this.done();
@@ -81,7 +96,7 @@ export class ActionBuilder {
 
   public done(): IGameAction {
     return {
-      condition: this.condition,
+      condition: (state: IGameState) => this.conditions.length === 0 || this.conditions.every(condition => condition(state)),
       text: this.text,
       perform: this.actions.length > 0 ? compose(...this.actions) : undefined,
     }

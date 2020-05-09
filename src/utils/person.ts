@@ -6,7 +6,12 @@ import {
   Profession,
   ProfessionLevel,
 } from 'types/state';
-import { pickOne, inIntRange } from './random';
+import { compose } from './functional';
+import {
+  inIntRange,
+  pickOne,
+} from './random';
+import { setCharacterFlag } from './setFlag';
 import { getAge } from './time';
 import { isOppressed } from './town';
 
@@ -59,6 +64,23 @@ export const changeStat = (stat: Stat, by: number) => (state: IGameState): IGame
     [stat]: Math.max(0, Math.min(10, state.character[stat] + by)),
   },
 });
+
+export const changeSpouseStat = (stat: Stat, by: number) => (state: IGameState): IGameState => {
+  if (state.relationships.spouse == null) {
+    return state;
+  }
+
+  return {
+    ...state,
+    relationships: {
+      ...state.relationships,
+      spouse: {
+        ...state.relationships.spouse!,
+        [stat]: Math.max(0, Math.min(10, state.relationships.spouse![stat] + by)),
+      }
+    },
+  };
+}
 
 export const removeLastChild = (state: IGameState): IGameState => ({
   ...state,
@@ -127,6 +149,11 @@ export const removeSpouse = (state: IGameState): IGameState => ({
   relationships: {
     ...state.relationships,
     spouse: undefined,
+  },
+  characterFlags: {
+    ...state.characterFlags,
+    spouseLove: undefined,
+    spouseResent: undefined,
   },
 });
 
@@ -252,3 +279,30 @@ export const hasSmallChild = (state: IGameState): boolean =>
 
 export const isInCouncil = (state: IGameState): boolean =>
   state.character.profession === Profession.Politician && state.character.professionLevel === ProfessionLevel.Leadership;
+
+const spouseLovesYou = compose(setCharacterFlag('spouseLove'), setCharacterFlag('spouseResent', false));
+const spouseResentsYou = compose(setCharacterFlag('spouseLove', false), setCharacterFlag('spouseResent'));
+const cleanSlate = compose(setCharacterFlag('spouseLove', false), setCharacterFlag('spouseResent', false));
+export const improveSpouseRelationship = (state: IGameState) => {
+  if (state.relationships.spouse == null) {
+    return state;
+  }
+
+  if (state.characterFlags.spouseResent!) {
+    return cleanSlate(state);
+  } else if (!state.characterFlags.spouseLove) {
+    return spouseLovesYou(state);
+  } else {
+    return state;
+  }
+};
+
+export const worsenSpouseRelationship = (state: IGameState) => {
+  if (state.characterFlags.spouseLove!) {
+    return cleanSlate(state);
+  } else if (!state.characterFlags.spouseResent) {
+    return spouseResentsYou(state);
+  } else {
+    return state;
+  }
+};

@@ -105,6 +105,8 @@ export type CharacterFlag =
   | 'promisedBuildTemple'
   | 'promisedTownGuard'
   | 'backedCityCouncil'
+  | 'spouseLove'
+  | 'spouseResent'
   ;
 
 export type WorldFlag =
