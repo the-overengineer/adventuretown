@@ -477,6 +477,7 @@ export const startBlackMarket = createEvent.regular({
   actions: [
     action('Pass this up'),
     action('Involve yourself').and(setCharacterFlag('criminalActivity')).log('You have involved yourself in the black market'),
+  ],
 });
 
 export const almostCaughtBlackMarket = createEvent.regular({
