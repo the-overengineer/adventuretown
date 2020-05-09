@@ -1248,7 +1248,7 @@ export const decideCityFocus = createEvent.regular({
 });
 
 export const cityFocusCompleted = createEvent.regular({
-  meanTimeToHappen: 2 * 30,
+  meanTimeToHappen: 30,
   condition: _ => _.characterFlags.focusCity! && hasCityFocus(_) && completedCityFocus(_),
   title: 'Goal achieved',
   getText: _ => `You have achieved your goals for the city. It will take some time for you to decide what you would want
@@ -1262,7 +1262,7 @@ export const cityFocusCompleted = createEvent.regular({
 });
 
 export const voteRumoursOnYourCause = createEvent.regular({
-  meanTimeToHappen: 5 * 365,
+  meanTimeToHappen: 18 * 30,
   condition: _ => _.characterFlags.focusCity! && hasCityFocus(_),
   title: 'Vote to happen soon',
   getText: `A contact of yours has informed you that they have heard that the council will soon convene
@@ -1334,7 +1334,7 @@ export const candidateYouCanBack = createEvent.triggered({
 });
 
 export const potentialCandidate = createEvent.regular({
-  meanTimeToHappen: 4 * 365,
+  meanTimeToHappen: 3 * 365,
   condition: _ => _.characterFlags.focusCity! && !_.characterFlags.backedCityCouncil,
   title: 'Potential ally',
   getText: `A friend of yours approaches you with some good news. They believe they have found a candidate who might make
@@ -1368,7 +1368,7 @@ export const backedCandidateLostSeat = createEvent.regular({
 });
 
 export const backedCandidateWantsBribe = createEvent.regular({
-  meanTimeToHappen: 6 * 365,
+  meanTimeToHappen: 4 * 365,
   condition: _ => _.characterFlags.focusCity! && _.characterFlags.backedCityCouncil!,
   title: 'Councillor wants bribe',
   getText: `The councillor whom you have backed wants a hefty bribe to continue favouring your cause.
@@ -1385,7 +1385,7 @@ export const backedCandidateWantsBribe = createEvent.regular({
 });
 
 export const offeredCampaignDueToTownFocus = createEvent.regular({
-  meanTimeToHappen: 10 * 365,
+  meanTimeToHappen: 6 * 365,
   condition: _ => !hasLimitedRights(_, _.character) && _.characterFlags.focusCity!,
   title: 'Political influence',
   getText: `You have been building up significant political influence with you efforts to change the town.
@@ -1402,11 +1402,11 @@ export const offeredCampaignDueToTownFocus = createEvent.regular({
 });
 
 export const giveUpOnFocus = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
+  meanTimeToHappen: 2 * 365,
   condition: _ => _.characterFlags.focusCity! && hasCityFocus(_),
   title: 'Change focus?',
   getText: _ => `You have spent some time focusing on ${currentFocusDescription(_)} in your political life. The issue is
-    not yet solve, but there might be more important things to focus on`,
+    not yet solved, but there might be more important things to focus on`,
   actions: [
     action('Stay the course'),
     action('Find something different').do(resetCityFocus).log('You decide to focus on changing something else around town'),

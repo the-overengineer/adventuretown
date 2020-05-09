@@ -15,66 +15,41 @@ import { changeResource } from 'utils/resources';
 import { pregnancyChance } from 'utils/setFlag';
 import { triggerEvent } from 'utils/eventChain';
 import { startJob, setLevel, removeJob } from 'utils/person';
-import { eventCreator } from 'utils/events';
+import { eventCreator, action, ActionBuilder } from 'utils/events';
 
 export const JOB_PREFIX = 1_000;
 
 const createEvent = eventCreator(JOB_PREFIX);
 
-const jobActions: IGameAction[] = [
-  {
-    condition: _ => _.character.profession !== Profession.Farmer,
-    text: `I'll work at a farm`,
-    perform: compose(
-      startJob(Profession.Farmer),
-      notify(`Farm work is not easy, but you won't lack for food`),
-    ),
-  },
-  {
-    condition: _ => _.town.prosperity > Prosperity.DirtPoor && _.character.profession !== Profession.BarWorker,
-    text: `There is work at the bar`,
-    perform: compose(
-      startJob(Profession.BarWorker),
-      notify(`Working at a bar is both lucrative and a good chance to meet people`)
-    ),
-  },
-  {
-    condition: _ => _.character.physical >= 3
-      && _.worldFlags.townGuard!
-      && _.character.profession !== Profession.Guard,
-    text: `I am strong, I will guard the town`,
-    perform: compose(
-      startJob(Profession.Guard),
-      notify(`The town guard can always use more warm bodies`),
-    ),
-  },
-  {
-    condition: _ =>
-      _.town.prosperity >= Prosperity.Decent &&
-      _.character.charm >= 3 &&
-      !isOppressed(_, _.character)
-      && _.character.profession !== Profession.Trader,
-    text: 'Trading is the way to go',
-    perform: compose(
-      startJob(Profession.Trader),
-      notify('If you move enough money around, some is bound to end up in your pockets'),
-    ),
-  },
-  {
-    condition: _ =>
-      _.town.prosperity >= Prosperity.Decent &&
-      _.character.charm >= 3 &&
-      !hasLimitedRights(_, _.character)
-      && _.character.profession !== Profession.Politician,
-    text: 'Why honest living? Politics it is!',
-    perform: compose(
-      startJob(Profession.Politician),
-      notify(`You start climbing the ladder of rulership in this city`),
-    ),
-  },
-  {
-    text: `I'm fine as is`,
-  },
+const jobActions: Array<ActionBuilder | IGameAction> = [
+  action(`I'll work at a farm`).when(_ => _.character.profession !== Profession.Farmer).do(startJob(Profession.Farmer)).log(
+    `Farm work is not easy, but you won't lack for food`,
+  ),
+  action(`There is work at the tavern`)
+    .when(_ => _.town.prosperity > Prosperity.DirtPoor && _.character.profession !== Profession.BarWorker)
+    .do(startJob(Profession.BarWorker))
+    .log(`Working at a bar is both lucrative and a good chance to meet people`),
+  action(`I am strong, I will guard the town`).when(_ => _.character.physical >= 3
+    && _.worldFlags.townGuard!
+    && _.character.profession !== Profession.Guard
+  ).do(startJob(Profession.Guard)).log(
+    `The town guard can always use more warm bodies`
+  ),
+  action('I will trade').when(_ => _.town.prosperity >= Prosperity.Decent
+    && _.character.charm >= 3
+    && !isOppressed(_, _.character)
+    && _.character.profession !== Profession.Trader,
+  ).do(startJob(Profession.Trader)).log (
+    'If you move enough money around, some is bound to end up in your pockets',
+  ),
+  action('Why honest living? Politics it is!').when(_ => _.town.prosperity >= Prosperity.Decent
+    && _.character.charm >= 3
+    && !hasLimitedRights(_, _.character)
+    && _.character.profession !== Profession.Politician
+  ).do(startJob(Profession.Politician)).log(
+    `You start climbing the ladder of government in this city`
+  ),
+  action(`I'm fine as is`),
 ];
 
 export const seekJob = createEvent.regular({
@@ -115,17 +90,8 @@ export const promotedFromEntry = createEvent.regular({
     to a more meaningful position! This will mean more income, certainly, but increased
     responsibility.`,
   actions: [
-    {
-      text: 'Accept, of course',
-      perform: compose(
-        setLevel(ProfessionLevel.Medium),
-        notify(`You're no longer a nobody, but this might mean more work.`),
-      ),
-    },
-    {
-      text: 'No, I am happy as is',
-      perform: notify('Who needs extra responsibility?'),
-    },
+    action('Accept, of course').do(setLevel(ProfessionLevel.Medium)).log(`You're no longer a nobody, but this might mean more work.`),
+    action('No, I am happy as is'),
   ],
 });
 
@@ -140,16 +106,8 @@ export const promotedToLeading = createEvent.regular({
     as though you are. A new opportunity has opened up for you to take on a leadership role in your business. This will mean
     money and respect, but also a much greater share of personal responsibility and risk.`,
   actions: [
-    {
-      text: 'Take the job',
-      perform: compose(
-        setLevel(ProfessionLevel.Leadership),
-        notify('You take a leading role in your business'),
-      ),
-    },
-    {
-      text: 'It is too much',
-    },
+    action('Take the job').do(setLevel(ProfessionLevel.Leadership)).log('You take a leading role in your business'),
+    action('It is too much'),
   ],
 });
 
@@ -158,14 +116,7 @@ export const anythingToKeepTheJobFailure = createEvent.triggered({
   getText: _ => `Your employer looks at you with disgust. "You would offer your body for this?
     You disgust me, you ${_.character.gender === Gender.Male ? 'man-whore' : 'slut'}! My decision stands!`,
   actions: [
-    {
-      text: 'All this for nothing!',
-      perform: compose(
-        removeJob,
-        changeResource('renown', -5),
-        notify('Not only did you lose your job, word of your actions got around town'),
-      ),
-    },
+    action('All this for nothing').do(removeJob).and(changeResource('renown', -25)).log('Not only did you lose your job, word of your actions got around town'),
   ]
 });
 
@@ -174,20 +125,8 @@ export const anythingToKeepTheJobSuccess = createEvent.triggered({
   getText: _ => `Your employer looks you up and down, and then smiles.
     "Very well, then, that seems fair to me. Meet me in the back room."`,
   actions: [
-    {
-      text: 'You follow',
-      perform: compose(
-        pregnancyChance('pregnantLover'),
-        notify('You had to offer your body, but you kept your job'),
-      ),
-    },
-    {
-      text: 'The job is not worth this',
-      perform: compose(
-        removeJob,
-        notify('You lost your job, but kept your pride'),
-      ),
-    },
+    action('You follow').do(pregnancyChance('pregnantLover')).log('You had to offer your body, but you kept your job'),
+    action('The job is not worth this').do(removeJob).log('You lost your job, but kept your pride'),
   ],
 });
 
@@ -195,13 +134,7 @@ export const doYouKnowWhoIAmFailure = createEvent.triggered({
   title: 'Who are you?',
   getText: _ => `"I don't care who you are. Get out!" your former employer is not impressed, and not open to any further attempts at placating.`,
   actions: [
-    {
-      text: 'Nothing to do',
-      perform: compose(
-        removeJob,
-        notify(`You've lost your job, but you can always find another`),
-      ),
-    },
+    action('Nothing to do').do(removeJob).log(`You've lost your job, but you can always find another`),
   ],
 });
 
@@ -209,10 +142,7 @@ export const doYouKnowWhoIAmSuccess = createEvent.triggered({
   title: 'Too important to fire',
   getText: _ => `"R-right, I'm sorry, I didn't mean that!" your employer stammers nervously as they remember your connections "Of course you can keep the job!"`,
   actions: [
-    {
-      text: '"I thought as much"',
-      perform:  notify(`You have influence in this town, too much influence to be fired just like that`),
-    },
+    action(`"I though as much"`).log(`You have influence in this town, too much influence to be fired just like that`),
   ],
 });
 
@@ -231,35 +161,19 @@ export const firedEntry = createEvent.regular({
     "This is the last time!" your employer shouts, red in the face, as you make a mistake yet another time. "You are fired! Get out of here before I kick you out!"
     `,
   actions: [
-    {
-      condition: _ => _.resources.coin >= 20,
-      text: '"How about you take 20 coins and keep me on?"',
-      perform: changeResource('coin', -20),
-    },
-    {
-      condition: _ => _.character.charm > 3,
-      text: '"I will do ANYTHING to keep this job"',
-      perform: triggerEvent(anythingToKeepTheJobFailure).withWeight(1)
-        .orTrigger(anythingToKeepTheJobSuccess).withWeight(2).multiplyByFactor(2, _ => _.character.charm > 5)
-        .toTransformer(),
-    },
-    {
-      condition: _ => _.resources.renown >= 50 || _.characterFlags.friendsInHighPlaces!,
-      text: '"Fire ME?! Do you know who I am?!"',
-      perform: triggerEvent(doYouKnowWhoIAmFailure).withWeight(3)
-        .orTrigger(doYouKnowWhoIAmSuccess).withWeight(2)
-          .multiplyByFactor(2, _ => _.resources.renown >= 100)
-          .multiplyByFactor(2, _ => _.resources.renown >= 250)
-          .multiplyByFactor(2, _ => _.characterFlags.friendsInHighPlaces!)
-        .toTransformer(),
-    },
-    {
-      text: `I didn't want this job, anyway`,
-      perform: compose(
-        removeJob,
-        notify(`You've lost your job, but you can always find another`),
-      ),
-    },
+    action("How about you take some coins and keep me on?").spendResource('coin', 20),
+    action(`"I will do ANYTHING to keep this job"`).when(_ => _.character.charm >= 3).do(
+      triggerEvent(anythingToKeepTheJobFailure).withWeight(1)
+        .orTrigger(anythingToKeepTheJobSuccess).withWeight(2).multiplyByFactor(2, _ => _.character.charm > 5),
+    ),
+    action(`"Fire ME?! Do you know who I am?!`).when(_ => _.resources.renown >= 50 || _.characterFlags.friendsInHighPlaces!).do(
+      triggerEvent(doYouKnowWhoIAmFailure).withWeight(3)
+      .orTrigger(doYouKnowWhoIAmSuccess).withWeight(2)
+        .multiplyByFactor(2, _ => _.resources.renown >= 100)
+        .multiplyByFactor(2, _ => _.resources.renown >= 250)
+        .multiplyByFactor(2, _ => _.characterFlags.friendsInHighPlaces!),
+    ),
+    action(`I didn't want this job, anyway`).do(removeJob).log(`You've lost your job, but you can always find another`),
   ],
 });
 
@@ -271,13 +185,9 @@ export const difficultTrainee = createEvent.regular({
     to be incompetent to the extreme, even causing material damage. You'll have to fire them, but it is considered
     a personal failure of yours`,
   actions: [
-    {
-      text: 'How can they be so stupid?',
-      perform: compose(
-        changeResource('renown', -10),
-        notify('You had to fire a trainee and it reflects poorly on you'),
-      ),
-    },
+    action('How can they be so stupid').gainResource('renown', -20).log(
+      'You had to fire a trainee and it reflects poorly on you',
+    ),
   ],
 });
 
@@ -288,13 +198,9 @@ export const goodTrainee = createEvent.regular({
   getText: _ => `You've been assigned with training a new employee at your business. They have shown themselves
     to be amazingly competent, and this will reflect well on you`,
   actions: [
-    {
-      text: 'Good job!',
-      perform: compose(
-        changeResource('renown', 10),
-        notify('You trained a competent worker, and this reflects well on you'),
-      ),
-    },
+    action('Good job!').gainResource('renown', 20).log(
+      'You trained a competent worker, and this reflects well on you',
+    ),
   ],
 });
 

@@ -166,7 +166,7 @@ export const voteDescription: Record<VotingMatter, string> = {
   [VotingMatter.IncreaseMenRights]: `A proposal is on the table to give men more rights`,
   [VotingMatter.IncreaseWomenRights]: `A proposal is on the table to give women more rights`,
   [VotingMatter.IncreasePoorRights]: `A vote is proposed in the council to give even those who own little land or profits more rights`,
-  [VotingMatter.DecreasePoorRights]: `The council will start a vote on whether `,
+  [VotingMatter.DecreasePoorRights]: `The council will start a vote on whether to give rich landowners more rights`,
 };
 
 export const voteDirectionDescription: Record<VoteDirection, string> = {

@@ -85,6 +85,10 @@ export class ActionBuilder {
     return this.do(changeResourcePercentage(resource, -percentage / 100));
   }
 
+  public resourceGainPercentage(resource: keyof IResources, percentage: number): this {
+    return this.do(changeResourcePercentage(resource, percentage / 100));
+  }
+
   public gainResource(resource: keyof IResources, amount: number): this {
     return this.do(changeResource(resource, amount));
   }
