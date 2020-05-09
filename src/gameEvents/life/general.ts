@@ -673,13 +673,7 @@ export const costsOfLiving = createEvent.regular({
   title: 'Costs of living',
   getText: _ => `Life costs a bit extra every now and then`,
   actions: [
-    {
-      text: 'So it does',
-      perform: compose(
-        changeResource('coin', -20),
-        notify('You have incurred some regular costs of living'),
-      ),
-    },
+    action('So it does').resourceLosePercentage('coin', 5).log('You have incurred some regular costs of living'),
   ],
 });
 

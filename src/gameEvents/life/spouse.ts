@@ -44,7 +44,8 @@ export const spouseFired = createEvent.regular({
   meanTimeToHappen: 8 * 30,
   condition: _ => _.relationships.spouse != null
     && _.relationships.spouse.profession != null
-    && _.relationships.spouse.professionLevel === ProfessionLevel.Entry,
+    && _.relationships.spouse.professionLevel === ProfessionLevel.Entry
+    && (_.relationships.spouse.physical < 3 || _.relationships.spouse.intelligence < 3 || _.relationships.spouse.education < 3 || _.relationships.spouse.charm < 3),
   title: 'Spouse fired',
   getText: `Due to either poor performance or workplace politics, your spouse has lost their job
     and cannot help support the family anymore`,
@@ -59,7 +60,8 @@ export const spousePromoted = createEvent.regular({
   condition: _ => _.relationships.spouse != null
     && _.relationships.spouse.profession != null
     && _.relationships.spouse.professionLevel === ProfessionLevel.Entry
-    && !hasLimitedRights(_, _.relationships.spouse),
+    && !hasLimitedRights(_, _.relationships.spouse)
+    && (_.relationships.spouse.physical > 3 || _.relationships.spouse.intelligence > 3 || _.relationships.spouse.education > 3 || _.relationships.spouse.charm > 3),
   title: 'Spouse promoted',
   getText: `Either for good work, or due to favouritism, your spouse has been promoted to a more
     responsible position in their workplace. This means that they might start bringing home more coin`,
