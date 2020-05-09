@@ -22,22 +22,22 @@ const coinsFromProfession = getProfessionMap({
   [Profession.Farmer]: {
     [ProfessionLevel.Entry]: 1,
     [ProfessionLevel.Medium]: 2,
-    [ProfessionLevel.Leadership]: 3,
+    [ProfessionLevel.Leadership]: 2,
   },
   [Profession.Guard]: {
     [ProfessionLevel.Entry]: 1,
     [ProfessionLevel.Medium]: 2,
-    [ProfessionLevel.Leadership]: 3,
+    [ProfessionLevel.Leadership]: 2,
   },
   [Profession.Trader]: {
     [ProfessionLevel.Entry]: 1,
-    [ProfessionLevel.Medium]: 3,
-    [ProfessionLevel.Leadership]: 5,
+    [ProfessionLevel.Medium]: 2,
+    [ProfessionLevel.Leadership]: 4,
   },
   [Profession.Politician]: {
     [ProfessionLevel.Entry]: 1,
     [ProfessionLevel.Medium]: 2,
-    [ProfessionLevel.Leadership]: 4,
+    [ProfessionLevel.Leadership]: 3,
   },
 }, 0);
 
@@ -73,27 +73,27 @@ const renownFromProfession = getProfessionMap({
   [Profession.BarWorker]: {
     [ProfessionLevel.Entry]: 1,
     [ProfessionLevel.Medium]: 1,
-    [ProfessionLevel.Leadership]: 4,
+    [ProfessionLevel.Leadership]: 2,
   },
   [Profession.Farmer]: {
     [ProfessionLevel.Entry]: 0,
     [ProfessionLevel.Medium]: 0,
-    [ProfessionLevel.Leadership]: 2,
+    [ProfessionLevel.Leadership]: 1,
   },
   [Profession.Guard]: {
     [ProfessionLevel.Entry]: 0,
     [ProfessionLevel.Medium]: 1,
-    [ProfessionLevel.Leadership]: 3,
+    [ProfessionLevel.Leadership]: 2,
   },
   [Profession.Trader]: {
     [ProfessionLevel.Entry]: 0,
     [ProfessionLevel.Medium]: 1,
-    [ProfessionLevel.Leadership]: 3,
+    [ProfessionLevel.Leadership]: 2,
   },
   [Profession.Politician]: {
     [ProfessionLevel.Entry]: 1,
     [ProfessionLevel.Medium]: 2,
-    [ProfessionLevel.Leadership]: 5,
+    [ProfessionLevel.Leadership]: 3,
   },
 }, 0);
 
