@@ -503,10 +503,10 @@ export const tradeRecovers = createEvent.regular({
   getText: _ => `With the bandits gone, trade and movement of people are slowly recovering`,
   actions: [
     {
-      text: 'Finally,',
+      text: 'Finally!',
       perform: compose(
         setWorldFlag('tradeDisrupted', false),
-        notify('With the bandits gone, trade if finally back to normal'),
+        notify('With the bandits gone, trade is finally back to normal'),
       ),
     },
   ],

@@ -115,12 +115,16 @@ const getTax = (state: IGameState, income: number): number => {
 
 // Add certain minimums and maximums on income depending on the state of the town economy
 export const getIncomeBounded = (state: IGameState, character: ICharacter) => {
-  const baseIncome = coinsFromProfession(character);
+  let baseIncome = coinsFromProfession(character);
   const prosperity = state.town.prosperity;
   const equality = state.town.equality;
 
   if (baseIncome <= 0) {
     return baseIncome;
+  }
+
+  if (state.town.taxation === Taxation.None && hasFixedIncome(character)) {
+    baseIncome = Math.min(baseIncome, 2);
   }
 
   /* eslint-disable */
@@ -135,7 +139,7 @@ export const getIncomeBounded = (state: IGameState, character: ICharacter) => {
       }
     case Prosperity.Rich:
       if (equality === ClassEquality.Equal) {
-        return Math.max(baseIncome, 3);
+        return Math.max(baseIncome, 2);
       }
     default:
       return baseIncome;

@@ -9,8 +9,6 @@ import {
   ClassEquality,
 } from 'types/state';
 import { isOppressed, hasLimitedRights } from 'utils/town';
-import { compose } from 'utils/functional';
-import { notify } from 'utils/message';
 import { changeResource } from 'utils/resources';
 import { pregnancyChance } from 'utils/setFlag';
 import { triggerEvent } from 'utils/eventChain';
@@ -209,14 +207,7 @@ export const difficultJobSuccess = createEvent.triggered({
   getText: _ => `You have done your work in a way that hardly anyone can criticise. Your employer is very
     satisfied with your performance`,
   actions: [
-    {
-      text: 'I knew I could do it',
-      perform: compose(
-        changeResource('coin', 5),
-        changeResource('renown', 15),
-        notify('You were praised for your good work'),
-      ),
-    },
+    action('I knew I could do it').gainResource('coin', 10).gainResource('renown', 15).log('You were praised for your good work'),
   ],
 });
 
@@ -225,14 +216,7 @@ export const difficultJobFailure = createEvent.triggered({
   getText: _ => `You have made a complete hash out of your assigned, and shamed yourself. Worst of all,
     some of the loss is coming out of your pocket`,
   actions: [
-    {
-      text: 'A honest mistake',
-      perform: compose(
-        changeResource('coin', -5),
-        changeResource('renown', -15),
-        notify('You failed miserably at work and were shamed for it'),
-      ),
-    },
+    action('A honest mistake').gainResource('coin', -10).gainResource('renown', -15).log('You were praised for your good work'),
   ],
 });
 
@@ -244,17 +228,13 @@ export const difficultJob = createEvent.regular({
     to it. Not only is your reputation on the line, but you might be monetarily rewarded or punished depending
     on your performance`,
   actions: [
-    {
-      text: 'Get to it',
-      perform: triggerEvent(difficultJobSuccess).multiplyByFactor(2, _ => _.character.intelligence > 5).multiplyByFactor(2, _ => _.character.education > 5)
-        .orTrigger(difficultJobFailure).multiplyByFactor(2, _ => _.character.intelligence < 2).multiplyByFactor(2, _ => _.character.education < 2)
-        .toTransformer(),
-    },
-    {
-      condition: _ => _.character.charm > 5,
-      text: 'Weasel out of it',
-      perform: notify('You smooth-talked your way out of a difficult task'),
-    },
+    action('Get to it').do(
+      triggerEvent(difficultJobSuccess).multiplyByFactor(2, _ => _.character.intelligence > 5).multiplyByFactor(2, _ => _.character.education > 5)
+        .orTrigger(difficultJobFailure).multiplyByFactor(2, _ => _.character.intelligence < 2).multiplyByFactor(2, _ => _.character.education < 2),
+    ),
+    action('Weasel out of it').when(_ => _.character.charm >= 5).log(
+      'You smooth-talked your way out of a difficult task'
+    ),
   ],
 });
 
@@ -267,14 +247,9 @@ export const businessThrives = createEvent.regular({
   title: 'Business thrives',
   getText: _ => `Your business has been doing very well recently, and you reap the benefits`,
   actions: [
-    {
-      text: 'I am good at this',
-      perform: compose(
-        changeResource('coin', 25),
-        changeResource('renown', 10),
-        notify('You reap the benefits of successfully leading a business'),
-      ),
-    },
+    action('I am good at this!').resourceGainPercentage('coin', 5).gainResource('renown', 25).log(
+      'You reap the benefits of successfully leading a business',
+    ),
   ],
 });
 
@@ -287,35 +262,26 @@ export const businessDoesPoorly = createEvent.regular({
   title: 'Business does poorly',
   getText: _ => `Your business has been doing very poorly recently, and you pay the price`,
   actions: [
-    {
-      text: `There is no I in team`,
-      perform: compose(
-        changeResource('coin', -25),
-        changeResource('renown', -10),
-        notify('You pay the price of a failing business'),
-      ),
-    },
+    action('I did my best').resourceLosePercentage('coin', 5).resourceLosePercentage('renown', 5).log(
+      'You paid the price of a failing business',
+    ),
   ],
 });
 
 export const businessFails = createEvent.regular({
-  meanTimeToHappen: 50 * 365,
+  meanTimeToHappen: 40 * 365,
   condition: _ => _.character.profession != null
     && _.character.professionLevel === ProfessionLevel.Leadership
     && _.character.profession !== Profession.Guard
-    && _.character.profession !== Profession.Politician,
+    && _.character.profession !== Profession.Politician
+    && _.town.prosperity < Prosperity.Rich,
   title: 'Business collapses',
   getText: _ => `Your business has collapsed entirely and there was nothing you could
     have done about it. You went from having it all to having nothing at all.`,
   actions: [
-    {
-      text: 'And it was going so well',
-      perform: compose(
-        removeJob,
-        changeResource('renown', -50),
-        notify('Your business has collapsed, to your shame and loss'),
-      ),
-    },
+    action('And it was doing so well, I thought').do(removeJob).resourceLosePercentage('renown', 10).log(
+      'Your business has collapsed, to your shame and loss',
+    ),
   ],
 });
 
@@ -324,13 +290,7 @@ export const expandBusinessFailure = createEvent.triggered({
   getText: _ => `Your idea sounded brilliant on paper, but did not function in the real world.
     You have wasted your money and damaged your reputation`,
   actions: [
-    {
-      text: 'Curses!',
-      perform: compose(
-        changeResource('renown', -30),
-        notify('You had a business idea and apparently it was terrible'),
-      ),
-    },
+    action('Curses!').resourceLosePercentage('renown', 5).log('You had a business idea, but it was terrible'),
   ],
 });
 
@@ -338,14 +298,7 @@ export const expandBusinessSuccess = createEvent.triggered({
   title: 'Business expanded',
   getText: _ => `Your idea worked, and your business has made an expansion, all thanks to your brilliance`,
   actions: [
-    {
-      text: 'I knew it!',
-      perform: compose(
-        changeResource('coin', 10),
-        changeResource('renown', 30),
-        notify('You had a business idea and it worked out well'),
-      ),
-    },
+    action('I knew it!').resourceGainPercentage('renown', 5).gainResource('coin', 125).log('You had a wonderful business idea which succeeded'),
   ],
 });
 
@@ -354,27 +307,18 @@ export const expandBusiness = createEvent.regular({
   condition: _ => _.character.profession != null
     && _.character.professionLevel === ProfessionLevel.Leadership
     && _.character.profession !== Profession.Guard
-    && _.character.profession !== Profession.Politician
-    && _.resources.coin >= 30,
+    && _.character.profession !== Profession.Politician,
   title: 'Expanding the business',
   getText: _ => `You were thinking about how your business was run, and you had an idea on how to expand
     it and maybe grow your profits. It would take some risk and investment, but it might work out`,
   actions: [
-    {
-      text: 'Take the risk',
-      perform: compose(
-        changeResource('coin', -30),
-        triggerEvent(expandBusinessFailure).withWeight(2)
-          .orTrigger(expandBusinessSuccess)
-            .multiplyByFactor(1.5, _ => _.character.intelligence > 5)
-            .multiplyByFactor(1.5, _ => _.character.education > 5)
-            .multiplyByFactor(1.5, _ => _.character.charm > 5)
-            .toTransformer(),
-      ),
-    },
-    {
-      text: 'Pass on this idea',
-    },
+    action('Take the risk').spendResource('coin', 75).and(
+      triggerEvent(expandBusinessFailure).withWeight(2)
+      .orTrigger(expandBusinessSuccess)
+        .multiplyByFactor(1.5, _ => _.character.intelligence > 5)
+        .multiplyByFactor(1.5, _ => _.character.education > 5)
+        .multiplyByFactor(1.5, _ => _.character.charm > 5),
+    ),
   ],
 });
 
@@ -387,45 +331,30 @@ export const massFiring = createEvent.regular({
     the people working for you. It has damaged your reputation, but allowed your business to survive without
     having to waste your own coin`,
   actions: [
-    {
-      text: 'It was a hard decision',
-      perform: compose(
-        changeResource('renown', -50),
-        notify('You have become hated due to having to fire many of your employees'),
-      ),
-    },
-    {
-      condition: _ => _.resources.coin >= 100,
-      text: 'No, I will take the loss upon me',
-      perform: compose(
-        changeResource('coin', -100),
-        changeResource('renown', 30),
-        notify('You paid heavily from your own pockets to keep your employees safe'),
-      ),
-    },
+    action('It was a hard decision').resourceLosePercentage('renown', 5).log(
+      'You have become hated due to having to fire many of your employees',
+    ),
+    action('No, I will take the loss upon me').when(_ => _.resources.coin >= 500).resourceLosePercentage('coin', 10).resourceGainPercentage('renown', 2.5).log(
+      'You paid heavily from your own pockets to keep your employees safe',
+    ),
   ],
 });
 
 export const fromBusinessToPolitics = createEvent.regular({
   meanTimeToHappen: 40 * 365,
   condition: _ => _.character.profession != null
+    && _.character.profession !== Profession.Politician
     && _.character.professionLevel === ProfessionLevel.Leadership
-    && _.resources.renown >= 250,
+    && _.resources.renown >= 500,
   title: 'Prestigious offer',
   getText: _ => `The way your run your business has drawn attention from the ruling council.
     They have gone as far as to offer you a seat amongst them, though you would have no
     more time for leading your business`,
   actions: [
-    {
-      text: 'Accept',
-      perform: compose(
-        startJob(Profession.Politician, ProfessionLevel.Leadership),
-        notify('You have abandoned your business to join the town council'),
-      ),
-    },
-    {
-      text: 'I like it where I am',
-    },
+    action('Accept').do(startJob(Profession.Politician, ProfessionLevel.Leadership)).log(
+      'You have abandoned your business to join the town council',
+    ),
+    action('I like it where I am'),
   ],
 });
 
@@ -438,13 +367,9 @@ export const demotedFromLeadershipDueToRights = createEvent.regular({
   getText: _ => `You have been stripped of your position, as due to your social status or gender you are not seen
     as somebody fit to have a leading position in business or society`,
   actions: [
-    {
-      text: 'Damn this town',
-      perform: compose(
-        setLevel(ProfessionLevel.Medium),
-        notify('You have been stripped of your leadership position due to your standing in society'),
-      ),
-    },
+    action('Damn this town!').do(setLevel(ProfessionLevel.Medium)).log(
+      'You have been stripped of your leadership position due to your standing in society',
+    ),
   ],
 });
 
@@ -457,13 +382,9 @@ export const demotedToEntryDueToRights = createEvent.regular({
   getText: _ => `You have been stripped of your position and moved to an entry-level one, as due to your social status or gender you are not seen
     as somebody fit to have any responsibility in your line of work`,
   actions: [
-    {
-      text: 'Damn this town',
-      perform: compose(
-        setLevel(ProfessionLevel.Entry),
-        notify('You have been demoted to the lowest stratum due to discrimination'),
-      ),
-    },
+    action('Damn this town!').do(setLevel(ProfessionLevel.Entry)).log(
+      'You have been demoted to the lowest stratum due to discrimination',
+    ),
   ],
 });
 
@@ -479,13 +400,9 @@ export const promotedForGenderQuota = createEvent.regular({
     leadership positions. Therefore, they have taken away the job of your ${_.character.gender === Gender.Male ? 'female' : 'male'} employer and given it
     to you`,
   actions: [
-    {
-      text: 'Good for me, I guess...',
-      perform: compose(
-        setLevel(ProfessionLevel.Leadership),
-        notify('You have been promoted to a leadership position to fill a gender quota'),
-      ),
-    },
+    action('Good for me, I guess...').do(setLevel(ProfessionLevel.Leadership)).log(
+      'You have been promoted to a leadership position to fill a gender quota',
+    ),
   ],
 });
 
@@ -500,13 +417,9 @@ export const demotedForGenderQuota = createEvent.regular({
   getText: _ => `With the town leaders pushing for equality, they have noticed that there are not enough ${_.character.gender === Gender.Male ? 'women' : 'men'} in
     leadership positions. Therefore, they have taken away your job and given it to you ${_.character.gender === Gender.Male ? 'female' : 'male'} employee`,
   actions: [
-    {
-      text: 'Is this equality?',
-      perform: compose(
-        setLevel(ProfessionLevel.Medium),
-        notify('You have been demoted from a leadership position to fill a gender quota'),
-      ),
-    },
+    action('Is this equality?').do(setLevel(ProfessionLevel.Medium)).log(
+      'You have been demoted from a leadership position to fill a gender quota',
+    ),
   ],
 });
 
@@ -517,12 +430,6 @@ export const cheated = createEvent.regular({
   getText: _ => `Shamefully, it took you over a day to realise it, but you have been cheated by a customer, and the difference
     comes out of your own pocket`,
   actions: [
-    {
-      text: 'Am I that stupid?',
-      perform: compose(
-        changeResource('coin', -10),
-        notify('You were naive at work, and you had to pay the price'),
-      ),
-    },
+    action('Am I that stupid?').resourceLosePercentage('coin', 1).log('You were naive at work, and you had to pay the price'),
   ],
 });
