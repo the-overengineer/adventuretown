@@ -751,26 +751,18 @@ export const hiringABard = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.characterFlags.focusRenown!,
   title: 'Bard offers service',
-  getText: _ => `A travelling bard offers their services to you, promising to spread word
+  getText: `A travelling bard offers their services to you, promising to spread word
     about your name across town and the region if you would just give them some money.`,
   actions: [
-    {
-      condition: _ => _.resources.coin >= 20,
-      text: 'Pay a little',
-      perform: triggerEvent(hiringBardFailure).withWeight(3)
-        .orTrigger(hiringBardSuccess)
-        .toTransformer(),
-    },
-    {
-      condition: _ => _.resources.coin >= 50,
-      text: 'Pay more',
-      perform: triggerEvent(hiringBardFailure)
-        .orTrigger(hiringBardSuccess).withWeight(3)
-        .toTransformer(),
-    },
-    {
-      text: `Can't trust a bard`,
-    },
+    action('Pay a little')
+      .when(_ => _.resources.coin >= 25)
+      .do(changeResource('coin', -25))
+      .and(triggerEvent(hiringBardFailure).withWeight(3).orTrigger(hiringBardSuccess)),
+    action('Pay more')
+      .when(_ => _.resources.coin >= 75)
+      .do(changeResource('coin', -75))
+      .and(triggerEvent(hiringBardFailure).orTrigger(hiringBardSuccess).withWeight(3)),
+    action(`Can't trust a bard`),
   ],
 });
 
@@ -779,25 +771,16 @@ export const becomesPoet = createEvent.triggered({
   getText: _ => `Your attempt at poetry is well-received! You continue writing poetry and people are
     starting to notice, increasing your fame and renown`,
   actions: [
-    {
-      text: 'I will be famous!',
-      perform: compose(
-        setCharacterFlag('poet', true),
-        notify('You have decided to become a famous poet'),
-      ),
-    },
+    action('I will be famous!').do(setCharacterFlag('poet')).log('You have decided to become a poet, and your fame spreads'),
   ],
 });
 
 export const terriblePoetry = createEvent.triggered({
   title: 'Failed poet',
-  getText: _ => `You are very proud of your attempts at poetry, but nobody else seems to agree. Even the
+  getText: `You are very proud of your attempts at poetry, but nobody else seems to agree. Even the
     friend who originally made the suggestion seems to regret their idea.`,
   actions: [
-    {
-      text: `They don't understand art`,
-      perform: notify('It seems that poetry is not your thing after all'),
-    },
+    action(`They don't understand art`).log('It seems that poetry is not your thing after all'),
   ],
 });
 
@@ -806,21 +789,17 @@ export const attemptedPoetry = createEvent.regular({
   condition: _ => _.characterFlags.focusRenown!
     && !_.characterFlags.poet,
   title: 'Attempted poetry',
-  getText: _ => `One day at a tavern, a friend of yours brings up a way that you can become more well-known in the region.
+  getText: `One day at a tavern, a friend of yours brings up a way that you can become more well-known in the region.
     "Why not try your hand at poetry?" they suggest merrily, though some of that can surely be ascribed to the drinks the
     two of you had imbibed.`,
   actions: [
-    {
-      text: `Doesn't sound like me`,
-    },
-    {
-      text: `Start writing`,
-      perform: triggerEvent(terriblePoetry)
+    action(`Doesn't sound like me`),
+    action('Start writing').do(
+      triggerEvent(terriblePoetry)
         .orTrigger(becomesPoet)
           .multiplyByFactor(2, _ => _.character.intelligence >= 5)
-          .multiplyByFactor(2, _ => _.character.education >= 5)
-        .toTransformer()
-    },
+          .multiplyByFactor(2, _ => _.character.education >= 5),
+    ),
   ],
 });
 
@@ -828,16 +807,10 @@ export const writersBlock = createEvent.regular({
   meanTimeToHappen: 18 * 30,
   condition: _ => _.characterFlags.poet!,
   title: `Writer's block`,
-  getText: _ => `After some time, your attempts at poetry are getting more and more feeble. You cannot find the muse
+  getText: `After some time, your attempts at poetry are getting more and more feeble. You cannot find the muse
     anymore, and no amount of trying or even praying seems to help.`,
   actions: [
-    {
-      text: 'It was nice while it lasted',
-      perform: compose(
-        setCharacterFlag('poet', false),
-        notify('You have stopped working on poetry'),
-      ),
-    },
+    action('It was nice while it lasted').do(setCharacterFlag('poet', false)).log('You have stopped writing poetry'),
   ],
 });
 
