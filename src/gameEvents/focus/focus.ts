@@ -469,23 +469,14 @@ export const startBlackMarket = createEvent.regular({
   meanTimeToHappen: 18 * 30,
   condition: _ => !_.characterFlags.criminalActivity
     && _.worldFlags.blackMarket!
-    && _.characterFlags.focusWealth!,
+    && (_.characterFlags.focusWealth! || _.character.profession === Profession.Trader),
   title: 'Black market opportunity',
-  getText: _ => `As your attempts to accumulate wealth have become known, you have been reached out to with an
+  getText: _ => `As your skill with making money have become known, you have been reached out to with an
     offer to participate in an underground black market. They do not tell you enough to reveal anything substantial
     to the guards, but if you wish to risk criminal activity, it could make quite a profit for you`,
   actions: [
-    {
-      text: 'Pass this up',
-    },
-    {
-      text: 'Involve yourself',
-      perform: compose(
-        setCharacterFlag('criminalActivity', true),
-        notify('You have involved yourself with the black market'),
-      ),
-    },
-  ],
+    action('Pass this up'),
+    action('Involve yourself').and(setCharacterFlag('criminalActivity')).log('You have involved yourself in the black market'),
 });
 
 export const almostCaughtBlackMarket = createEvent.regular({
