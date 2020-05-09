@@ -38,10 +38,6 @@ export const hasSavedGame = (): boolean =>
 
 export const loadGame = (): IGameState => {
   const baseGameState = JSON.parse(localStorage.getItem(KEY)!) as IGameState;
-  console.log({
-    ...baseGameState,
-    tmp: baseGameState.tmp ? objToMap(baseGameState.tmp as any) : undefined,
-  });
   return {
     ...baseGameState,
     tmp: baseGameState.tmp ? objToMap(baseGameState.tmp as any) : undefined,
