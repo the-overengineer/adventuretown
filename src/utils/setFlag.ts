@@ -9,7 +9,7 @@ export const setCharacterFlag = (flag: CharacterFlag, to: boolean = true) =>
     },
   });
 
-export const setWorldFlag = (flag: WorldFlag, to: boolean) =>
+export const setWorldFlag = (flag: WorldFlag, to: boolean = true) =>
   (state: IGameState): IGameState => ({
     ...state,
     worldFlags: {

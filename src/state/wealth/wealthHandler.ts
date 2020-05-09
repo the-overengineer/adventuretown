@@ -119,6 +119,10 @@ export const getIncomeBounded = (state: IGameState, character: ICharacter) => {
   const prosperity = state.town.prosperity;
   const equality = state.town.equality;
 
+  if (baseIncome <= 0) {
+    return baseIncome;
+  }
+
   /* eslint-disable */
   switch (prosperity) {
     case Prosperity.DirtPoor:

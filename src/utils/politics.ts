@@ -242,7 +242,7 @@ export const describeVoteMatter = (state: IGameState): string =>
   getTmp(VOTING_MATTER_KEY, undefined)(state) != null ? voteDescription[getTmp(VOTING_MATTER_KEY, VotingMatter.AbolishGuard)(state)!] : ''
 
 export const describeVoteDirection = (state: IGameState): string =>
-  getTmp(VOTING_DIRECTION_KEY, undefined)(state) != null ? voteDescription[getTmp(VOTING_DIRECTION_KEY, VoteDirection.For)(state)!] : ''
+  getTmp(VOTING_DIRECTION_KEY, undefined)(state) != null ? voteDirectionDescription[getTmp(VOTING_DIRECTION_KEY, VoteDirection.For)(state)!] : ''
 
 export const describeVote = (state: IGameState): string => `The town council will soon convene to have a voting session to
   decide on the laws of the city. ${describeVoteMatter(state)}. As things now stand, ${describeVoteDirection(state)}, but it might

@@ -7,10 +7,10 @@ import {
   Size,
   Taxation,
 } from 'types/state';
-import { eventCreator } from 'utils/events';
+import { eventCreator, action } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
-import { removeJob } from 'utils/person';
+import { removeJob, isInCouncil } from 'utils/person';
 import { changeResource, changeResourcePercentage } from 'utils/resources';
 import { setWorldFlag } from 'utils/setFlag';
 import {
@@ -23,8 +23,11 @@ import {
   increaseMaleRights,
   increaseProsperity,
   increaseSize,
+  setRandomGovernment,
   setTaxation,
 } from 'utils/town';
+import { death } from 'gameEvents/life/general';
+import { triggerEvent } from 'utils/eventChain';
 
 const TOWN_GENERAL_PREFIX: number = 71_000;
 
@@ -195,7 +198,7 @@ export const townGuardAbolished = createEvent.regular({
   meanTimeToHappen: 2 * 365,
   condition: _ => _.worldFlags.townGuard!
     && _.town.prosperity < Prosperity.Average
-    && _.town.size < Size.Modest, // TODO: Allow player a choice if in the city council
+    && _.town.size < Size.Modest,
   title: 'Town guard abolished',
   getText: _ => `Given the size and the economy of the city, the rulers of it have decided that they can no
     longer finance a town guard. It has been abolished and all members of it must find new work`,
@@ -211,85 +214,96 @@ export const townGuardAbolished = createEvent.regular({
   ],
 });
 
-// TODO: Allow player a choice if in the city council
 export const flatTaxIntroduced = createEvent.regular({
   meanTimeToHappen: 3 * 365,
-  condition: _ => _.town.taxation === Taxation.None,
+  condition: _ => _.town.taxation === Taxation.None && !isInCouncil(_),
   title: 'Flat taxation introduced',
   getText: _ => `The council of nobles has decided to introduce a flat tax to be able to finance
     the various city operations. Every household will now have to pay equal tax, even if that would leave
     then without a viable income`,
   actions: [
-    {
-      text: 'But my money!',
-      perform: compose(
-        setTaxation(Taxation.Flat),
-        notify('A flat tax rate was introduced to allow for the town to fund its operations'),
-      ),
-    },
+    action('But my money!').do(setTaxation(Taxation.Flat)).log('A flat tax rate was introduced to allow for the town to fund its operations'),
   ],
 });
 
-// TODO: Allow player a choice if in the town council
 export const progressiveTaxIntroduced = createEvent.regular({
   meanTimeToHappen: 20 * 365,
   condition: _ => _.town.taxation !== Taxation.Percentage
-    && _.town.equality === ClassEquality.Equal,
+    && _.town.equality === ClassEquality.Equal
+    && !isInCouncil(_),
   title: 'Progressive taxation introduced',
-  getText: _ => `Given the equality of people in law, the rulers of the town have decided to introduce a progressive tax,
+  getText: `Given the equality of people in law, the rulers of the town have decided to introduce a progressive tax,
     where the rich pay more, and the poor less - or none, if they live on a tiny income. This will be used to fund
     various town endeavours.`,
   actions: [
-    {
-      text: 'I see',
-      perform: compose(
-        setTaxation(Taxation.Percentage),
-        notify('A progressive tax rate has been introduced to allow the town to function without harming the poor'),
-      ),
-    },
+    action('I see').do(setTaxation(Taxation.Percentage)).log(
+      'A progressive tax rate has been introduced to allow the town to function without harming the poor',
+    ),
   ],
 });
 
 export const taxAbolished = createEvent.regular({
-  meanTimeToHappen: 20 * 365,
+  meanTimeToHappen: 15 * 365,
   condition: _ => _.town.taxation !== Taxation.None
-    && _.town.prosperity <= Prosperity.Poor,
+    && _.town.prosperity <= Prosperity.Poor
+    && !isInCouncil(_),
   title: 'Tax abolished',
-  getText: _ => `Due to the poor economy of the town, the rulers of the town have decided to abolish taxes for the time being,
+  getText: `Due to the poor economy of the town, the rulers of the town have decided to abolish taxes for the time being,
     to allow the local economy to strengthen itself`,
   actions: [
-    {
-      text: 'More money for me!',
-      perform: compose(
-        setTaxation(Taxation.None),
-        notify('Taxes have been abolished to allow the town economy to recover'),
-      ),
-    },
+    action('More money for me!').do(setTaxation(Taxation.None)).log('Taxes have been abolished to allow the town economy to recover'),
   ],
 });
 
 export const notEnoughTaxesForGuard = createEvent.regular({
   meanTimeToHappen: 3 * 365,
-  condition: _ => _.worldFlags.townGuard! && _.town.taxation === Taxation.None,
+  condition: _ => _.worldFlags.townGuard! && _.town.taxation === Taxation.None && !isInCouncil(_),
   title: 'Town guard closing down',
-  getText: _ => `Without any taxes to keep them going, the town guard is about to close down. Only a large donation could
+  getText: `Without any taxes to keep them going, the town guard is about to close down. Only a large donation could
     keep them operational`,
   actions: [
-    {
-      condition: _ => _.resources.coin >= 100,
-      text: 'Donate',
-      perform: compose(
-        changeResource('coin', -100),
-        notify('You donated a large sum of money to keep the town guard operational'),
-      ),
-    },
-    {
-      text: 'Let them fail',
-      perform: compose(
-        setWorldFlag('townGuard', false),
-        notify('Without funding, the town guard has been abolished'),
-      ),
-    },
+    action('Donate').when(_ => _.resources.coin >= 100).do(changeResource('coin', -100)).log(
+      'You donated a large sum of money to keep the town guard operational',
+    ),
+    action('Let them fail').do(setWorldFlag('townGuard', false)).log('Without function, the town guard has been disbanded'),
+  ],
+});
+
+export const taxationProposed = createEvent.regular({
+  meanTimeToHappen: 2.5 * 365,
+  condition: _ => _.town.taxation === Taxation.None
+    && (_.town.size >= Size.Modest || _.worldFlags.famine! || _.worldFlags.sickness!)
+    && isInCouncil(_),
+  title: 'Flat tax proposed',
+  getText: `The council convenes urgently. The city coffers have almost run dry and some city service will need to be cut, unless a new
+    tax is introduced to allow the city to function. The council is split on the issue, and you have the deciding vote`,
+  actions: [
+    action('Donate my own money').when(_ => _.resources.coin >= 500).do(changeResource('coin', -500)).log(
+      'You use your own money to keep key services going for the time being'
+    ),
+    action('Abolish the guard').when(_ => _.worldFlags.townGuard!).do(setWorldFlag('townGuard', false)).log(
+      'The town guard has been abolished to save the town money',
+    ),
+    action('Stop maintaining defences').when(_ => _.town.fortification > Fortification.None).do(decreaseFortifications).log(
+      'Some of the fortifications needed to be left to decay',
+    ),
+    action('Introduce flat tax').do(setTaxation(Taxation.Flat)).log('The council introduces a flat tax to pay for town operations'),
+    action('Introduce progressive tax').do(setTaxation(Taxation.Percentage)).log('The council introduces a progressive tax to pay for town operations'),
+  ],
+});
+
+export const taxAbolishProposed = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.town.taxation !== Taxation.None
+    && _.town.prosperity <= Prosperity.Poor
+    && isInCouncil(_),
+  title: 'Taxes too high?',
+  getText: `A heated discussion was started in the council on whether to abolish taxes for the time being. It would appear that the high
+    taxes might be the reason so few people decide to settle in the town, and the economy is choking. With the council split, the decision
+    is yours`,
+  actions: [
+    action('Abolish tax').do(setTaxation(Taxation.None)).log('As per your advice, the ruling council abolishes taxation to boost the economy'),
+    action('Leave the tax').log('As per your advice, the ruling council leaves the tax in place'),
   ],
 });
 
@@ -543,13 +557,7 @@ export const famineEnds = createEvent.regular({
   getText: _ => `Finally, farms start producing sufficient food again. It would seem that the difficult period of famine as ended
     at last`,
   actions: [
-    {
-      text: 'Finally!',
-      perform: compose(
-        setWorldFlag('famine', false),
-        notify('After a period of starvation, the famine has come to an end'),
-      ),
-    },
+    action('Finally!').do(setWorldFlag('famine', false)).log('After a period of starvation, the famine has come to an end'),
   ],
 });
 
@@ -559,51 +567,35 @@ export const famineShrinksPopulation = createEvent.regular({
   title: 'Famine shrinks population',
   getText: _ => `With so many people dying due to the famine, ${_.town.name} is not as populous as it used to be`,
   actions: [
-    {
-      text: 'A tragedy',
-      perform: compose(
-        decreaseSize,
-        notify('So many people have died out due to the famine that the population has shrunk'),
-      ),
-    },
+    action('A tragedy').do(decreaseSize).log('So many people have died out due to the famine that the population has shrunk'),
   ],
 });
 
 export const fortificationDecayHighFort = createEvent.regular({
   meanTimeToHappen: 10 * 365,
   condition: _ => _.town.fortification >= Fortification.Walls
-    && (_.town.prosperity <= Prosperity.Average || _.town.size <= Size.Average),
+    && (_.town.prosperity <= Prosperity.Average || _.town.size <= Size.Average || _.town.taxation === Taxation.None)
+    && !isInCouncil(_),
   title: 'Fortifications decay',
   getText: _ => `The town of ${_.town.name} simply cannot afford to maintain the extensive fortifications
     it had built in the past with the present state of the economy. Soon, they decay, leaving the town more
     vulnerable`,
   actions: [
-    {
-      text: 'Bad News',
-      perform: compose(
-        decreaseFortifications,
-        notify('Due to lack of maintenance, fortifications have decayed'),
-      ),
-    },
+    action('Bad news').do(decreaseFortifications).log('Due to lack of maintenance, fortifications have decayed'),
   ],
 });
 
 export const fortificationDecayRegular = createEvent.regular({
   meanTimeToHappen: 10 * 365,
   condition: _ => _.town.fortification > Fortification.Ditch
-    && (_.town.prosperity <= Prosperity.Poor || _.town.size <= Size.Tiny),
+    && (_.town.prosperity <= Prosperity.Poor || _.town.size <= Size.Tiny || _.town.taxation === Taxation.None)
+    && !isInCouncil(_),
   title: 'Fortifications decay',
   getText: _ => `The town of ${_.town.name} simply cannot afford to maintain the extensive fortifications
     it had built in the past with the present state of the economy. Soon, they decay, leaving the town more
     vulnerable`,
   actions: [
-    {
-      text: 'Bad News',
-      perform: compose(
-        decreaseFortifications,
-        notify('Due to lack of maintenance, fortifications have decayed'),
-      ),
-    },
+    action('Bad news').do(decreaseFortifications).log('Due to lack of maintenance, fortifications have decayed'),
   ],
 });
 
@@ -611,16 +603,10 @@ export const agriculturalRevolutionHappens = createEvent.regular({
   meanTimeToHappen: 150 * 365,
   condition: _ => !_.worldFlags.agriculturalRevolution,
   title: 'Agricultural revolution',
-  getText: _ => `Local farmers have discovered a better way of ploughing the fields,
+  getText: `Local farmers have discovered a better way of ploughing the fields,
     which will allow the populace to produce much more food. This will be good for everybody`,
   actions: [
-    {
-      text: 'Incredible!',
-      perform: compose(
-        setWorldFlag('agriculturalRevolution', true),
-        notify('An agricultural revolution has boosted the food production in the town'),
-      ),
-    },
+    action('Incredible!').do(setWorldFlag('agriculturalRevolution')).log('An agricultural revolution has boosted the food production in the town'),
   ],
 });
 
@@ -629,47 +615,32 @@ export const startAgriculturalRevolution = createEvent.regular({
   condition: _ => !_.worldFlags.agriculturalRevolution
     && (_.character.intelligence >= 8 || _.character.education >= 8 || _.resources.coin >= 1_000),
   title: 'Agricultural reform',
-  getText: _ => `You believe you can make a revolution in food production by reforming the agricultural
+  getText: `You believe you can make a revolution in food production by reforming the agricultural
     practices. You go before the ruling council to present your idea that will make the food production
     stronger than ever`,
   actions: [
-    {
-      condition: _ => _.character.intelligence >= 8 || _.character.education >= 8,
-      text: 'Explain your brilliant idea',
-      perform: compose(
-        setWorldFlag('agriculturalRevolution', true),
-        notify('The ruling council happily approves your idea for agricultural reform'),
-      ),
-    },
-    {
-      condition: _ => _.resources.coin >= 1_000,
-      text: 'Pay 1,000 coin to a druid',
-      perform: compose(
-        changeResource('coin', -1000),
-        setWorldFlag('agriculturalRevolution', true),
-        notify('The ruling council allows you to hire a druid to improve the agriculture, to the benefit of all'),
-      ),
-    },
-    {
-      text: 'Never mind',
-    },
+    action('Explain your brilliant idea')
+      .when(_ => _.character.intelligence >= 8 || _.character.education >= 9)
+      .do(setWorldFlag('agriculturalRevolution'))
+      .log('The ruling council happily approves your idea for agricultural reform'),
+    action('Hire a druid')
+      .when(_ => _.resources.coin >= 1_000)
+      .do(changeResource('coin', -1_000))
+      .and(setWorldFlag('agriculturalRevolution')),
+    action('Never mind'),
   ],
 });
 
 export const agricultureOutdated = createEvent.regular({
-  meanTimeToHappen: 50 * 365,
+  meanTimeToHappen: 30 * 365,
   condition: _ => _.worldFlags.agriculturalRevolution!,
   title: 'Agriculture normalises',
-  getText: _ => `The improvements performed to the agriculture in times past are no longer relevant,
+  getText: `The improvements performed to the agriculture in times past are no longer relevant,
     as the region has caught up.`,
   actions: [
-    {
-      text: 'It was good while it lasted',
-      perform: compose(
-        setWorldFlag('agriculturalRevolution', false),
-        notify('Your agricultural ways are no longer special for the area'),
-      ),
-    },
+    action('It was good while it lasted').do(setWorldFlag('agriculturalRevolution', false)).log(
+      'Your agricultural methods are no longer especially advanced for the area',
+    ),
   ],
 });
 
@@ -677,16 +648,12 @@ export const agriculturalRevolutionBeatsFamine = createEvent.regular({
   meanTimeToHappen: 5 * 365,
   condition: _ => _.worldFlags.agriculturalRevolution! && !_.worldFlags.famine,
   title: 'Sufficient food',
-  getText: _ => `The overwhelming efficiency of your agriculture has allowed to the town to beat
+  getText: `The overwhelming efficiency of your agriculture has allowed to the town to beat
     the famine`,
   actions: [
-    {
-      text: 'Excellent!',
-      perform: compose(
-        setWorldFlag('famine', false),
-        notify('The agricultural production of the region has outpaced the famine'),
-      ),
-    },
+    action('Excellent!').do(setWorldFlag('famine', false)).log(
+      'The agricultural production of the region has outpaced the famine',
+    ),
   ],
 });
 
@@ -699,13 +666,7 @@ export const templateEstablished = createEvent.regular({
     town has invested in building a great temple, where priests will live and learn, as well as help
     the populace`,
   actions: [
-    {
-      text: 'Praise the gods',
-      perform: compose(
-        setWorldFlag('temple', true),
-        notify('A temple has been built'),
-      ),
-    },
+    action('Praise the gods!').do(setWorldFlag('temple')).log('A magnificent template has been built'),
   ],
 });
 
@@ -717,67 +678,43 @@ export const templeGone = createEvent.regular({
   getText: _ => `Due to the state and population of the town, the local temple to the gods can no longer justify
     or finance itself here, and has chosen to close its doors. The priests have scattered to the four winds`,
   actions: [
-    {
-      text: 'Bad news',
-      perform: compose(
-        setWorldFlag('temple', false),
-        notify('The great temple has closed, and children now use its echoing halls to play'),
-      ),
-    },
+    action('Bad news').do(setWorldFlag('temple', false)).log('The great temple has closed, and children now use its echoing halls to play'),
   ],
 });
 
 export const templeDemandsTax = createEvent.regular({
   meanTimeToHappen: 15 * 365,
-  condition: _ => _.worldFlags.temple! && _.town.equality === ClassEquality.Equal,
+  condition: _ => _.worldFlags.temple! && _.town.equality >= ClassEquality.Stratified,
   title: 'Temple demands taxes',
   getText: _ =>`The local temple is grand indeed, but now it has been authorised to demand funds from the populace.
     It would appear that it cannot live on prayer alone. ALl people in ${_.town.name} are required to pay a hefty
-    10% of their worth to the temple`,
+    percentage of their worth to the temple`,
   actions: [
-    {
-      text: 'Why do the gods not help?',
-      perform: compose(
-        changeResourcePercentage('coin', -0.1),
-        notify('The template has levied a great tax on the populace'),
-      ),
-    },
+    action('Why do the gods not help?').do(changeResourcePercentage('coin', -0.1)).log('The temple levies a great tax'),
   ],
 });
 
 export const templeHealsPlague = createEvent.regular({
-  meanTimeToHappen: 10 * 365,
+  meanTimeToHappen: 5 * 365,
   condition: _ => _.worldFlags.temple! && _.worldFlags.sickness!,
   title: 'Priests heal plague',
-  getText: _ => `The priests have stepped out of the safety of their temple into the town, guided by their divine
+  getText: `The priests have stepped out of the safety of their temple into the town, guided by their divine
     principles, and have started healing the plague that is affecting the town. It would appear that nature cannot
     stand up to the gods, and before long most are healed`,
   actions: [
-    {
-      text: 'Praise the gods',
-      perform: compose(
-        setWorldFlag('sickness', false),
-        notify('The priests from the local template have eradicated the sickness'),
-      ),
-    },
+    action('Praise the gods!').do(setWorldFlag('sickness', false)).log('The priests from the local temple eradicate the sickness'),
   ],
 });
 
 export const plagueTempleDestroyed = createEvent.regular({
-  meanTimeToHappen: 10 * 365,
+  meanTimeToHappen: 7 * 365,
   condition: _ => _.worldFlags.temple! && _.worldFlags.sickness!,
   title: 'Temple destroyed',
   getText: _ => `While sickness ravages the land, the priests hide behind the walls of their temple and pray, mostly
     unaffected. The poor people of ${_.town.name} have risen up, sick of this, and have destroyed the temple and chased
     the priests away`,
   actions: [
-    {
-      text: 'Terrible!',
-      perform: compose(
-        setWorldFlag('temple', false),
-        notify('Out of desperation, the locals have destroyed the town temple')
-      ),
-    },
+    action('Terrible').do(setWorldFlag('temple', false)).log('Out of desperation, the locals have destroyed the town temple'),
   ],
 });
 
@@ -789,13 +726,7 @@ export const famineTempleDestroyed = createEvent.regular({
     unaffected. The poor people of ${_.town.name} have risen up, sick of this, and have destroyed the temple and chased
     the priests away`,
   actions: [
-    {
-      text: 'Terrible!',
-      perform: compose(
-        setWorldFlag('temple', false),
-        notify('Out of desperation, the locals have destroyed the town temple')
-      ),
-    },
+    action('Terrible').do(setWorldFlag('temple', false)).log('Out of desperation, the locals have destroyed the town temple'),
   ],
 });
 
@@ -806,66 +737,85 @@ export const currencyDevalued = createEvent.regular({
   getText: _ => `The town was forced to devalue its currency to remain competitive in trading with the neighbouring
     settlements. All your coin is now worth less`,
   actions: [
-    {
-      text: 'Damn',
-      perform: compose(
-        changeResourcePercentage('coin', -0.25),
-        notify('Currency was devalued, making all your savings worth less'),
-      ),
-    },
+    action('Damn!').do(changeResourcePercentage('coin', -0.25)).log('Currency was devalued, decreasing the worth of your savings'),
   ],
 });
 
 export const civilWarLost = createEvent.regular({
   meanTimeToHappen: 3 * 365,
-  condition: _ => _.worldFlags.civilWar!,
+  condition: _ => _.worldFlags.civilWar! && !isInCouncil(_),
   title: 'Civil war ended',
-  // TODO: Allow politician to participate
-  getText: _ => `The rulers of the city have been put to death and a new government establish`,
+  getText: _ => `The rulers of the city have been put to death and a new government establish. They establish new laws
+    and no longer respect the decisions of their predecessors`,
   actions: [
-    {
-      text: 'Finally!',
-      perform: compose(
-        setWorldFlag('civilWar', false),
-        notify('The civil war has finally ended and the town returns to normal, more or less'),
-      ),
-    },
+    action('Finally!').do(setWorldFlag('civilWar', false)).and(setRandomGovernment).log(
+      'The civil war has finally ended and the town returns to normal, more or less',
+    ),
   ],
 });
 
+export const civilWarLostCouncil = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => _.worldFlags.civilWar! && isInCouncil(_),
+  title: 'Civil war lost!',
+  getText: `The government that you are a part of has lost the civil war, and they are putting the council members to death`,
+  actions: [
+    action('Spare me! Have half my wealth!')
+      .when(_ => _.resources.coin >= 500)
+      .do(changeResourcePercentage('renown', -0.5))
+      .do(changeResourcePercentage('coin', -0.5))
+      .do(setWorldFlag('civilWar', false))
+      .and(removeJob)
+      .log('When the government falls, your life is spared, but at great expense, and you lose much prestige, and your office'),
+    action('Convince them to spare you')
+      .when(_ => _.character.intelligence >= 8 || _.character.charm >= 8)
+      .do(changeResourcePercentage('renown', -0.5))
+      .do(setWorldFlag('civilWar', false))
+      .and(removeJob)
+      .log('When the government falls, your life is spared due to your cunning and charm, but you lose much prestige, and your office'),
+    action('My life is yours')
+      .do(triggerEvent(death))
+      .do(setWorldFlag('civilWar', false))
+      .log('When your side loses the civil war, your life is lost as well'),
+  ],
+})
+
 export const civilWarStarts = createEvent.regular({
-  meanTimeToHappen: 30 * 365,
+  meanTimeToHappen: 20 * 365,
   condition: _ => _.worldFlags.famine!
+    || _.worldFlags.sickness!
     || _.town.prosperity > Prosperity.Average
     || _.town.size > Size.Large
     || _.town.equality === ClassEquality.GeneralSlavery,
   title: 'Civil war',
-  getText: _ => `Tension in ${_.town.name}, as well as the fight over resources, has brought unrest, and then a full
+  getText: _ => `Tension in the streets of ${_.town.name}, as well as the fight over resources, has brought unrest, and then a full
     civil war. There are fights happening openly in the streets`,
   actions: [
-    {
-      text: 'This sounds bad',
-      perform: compose(
-        setWorldFlag('civilWar', true),
-        notify('A civil war has started in the town, and the future is very uncertain'),
-      ),
-    },
+    action('This is bad').do(setWorldFlag('civilWar')).log('Rebel factions in the town have started a rebellion, and now a civil war. The future is uncertain'),
   ],
 });
 
 export const civilWarWon = createEvent.regular({
-  meanTimeToHappen: 365,
-  condition: _ => _.worldFlags.civilWar!,
+  meanTimeToHappen: 1.25 * 365,
+  condition: _ => _.worldFlags.civilWar! && !isInCouncil(_),
   title: 'Civil war ended',
-  getText: _ => `The rulers of the city have managed to quash the rebellion and end the unrest on the streets`,
+  getText: `The rulers of the city have managed to quash the rebellion and end the unrest on the streets`,
   actions: [
-    {
-      text: 'Finally!',
-      perform: compose(
-        setWorldFlag('civilWar', false),
-        notify('The civil war has finally ended and the town returns to normal'),
-      ),
-    },
+    action('Finally!').do(setWorldFlag('civilWar', false)).log('The civil war finally comes to an end, and things return to normal'),
+  ],
+});
+
+export const civilWarWonCouncil = createEvent.regular({
+  meanTimeToHappen: 1.25 * 365, // TODO: Modifiy depending on whether the is a guard
+  condition: _ => _.worldFlags.civilWar! && isInCouncil(_),
+  title: 'Civil war won',
+  getText: `You, the rest and the council, and your forces have finally quashed the rebellion. Your enemies are gone, and you
+    keep your position, as well as gain great prestige`,
+  actions: [
+    action('Our enemies are gone')
+      .do(changeResource('renown', 500))
+      .and(setWorldFlag('civilWar', false))
+      .log('Your forces win the civil war'),
   ],
 });
 
@@ -873,15 +823,9 @@ export const civilWarFamine = createEvent.regular({
   meanTimeToHappen: 2 * 365,
   condition: _ => _.worldFlags.civilWar! && !_.worldFlags.famine,
   title: 'Supply lines broken',
-  getText: _ => `With a civil war raging, the supply line shave been broken. Getting goods is getting quite difficult`,
+  getText: _ => `With a civil war raging, the supply lines have been broken. Getting goods is now quite difficult`,
   actions: [
-    {
-      text: 'I hope I make it',
-      perform: compose(
-        setWorldFlag('famine', true),
-        notify('With the civil war raging on, getting food has gotten near impossible'),
-      ),
-    },
+    action('I hope I make it!').do(setWorldFlag('famine')).log('With the civil war raging on, getting food has gotten near impossible'),
   ],
 });
 
@@ -891,12 +835,6 @@ export const famineDisruptsEconomy = createEvent.regular({
   title: 'Hunger chokes economy',
   getText: _ => `With the average citizen hungry, the economy has been taking a down turn`,
   actions: [
-    {
-      text: 'Troubling',
-      perform: compose(
-        decreaseProsperity,
-        notify('With famine ravaging the workforce, the economy is crumbling'),
-      ),
-    },
+    action('Troubling').do(decreaseProsperity).log('With famine ravaging the workforce, the economy is crumbling'),
   ],
 });

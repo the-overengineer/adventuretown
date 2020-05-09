@@ -1329,7 +1329,7 @@ export const candidateYouCanBack = createEvent.triggered({
 });
 
 export const potentialCandidate = createEvent.regular({
-  meanTimeToHappen: 8 * 365,
+  meanTimeToHappen: 4 * 365,
   condition: _ => _.characterFlags.focusCity! && !_.characterFlags.backedCityCouncil,
   title: 'Potential ally',
   getText: `A friend of yours approaches you with some good news. They believe they have found a candidate who might make
@@ -1352,7 +1352,7 @@ export const backedCandidateStartsVote = createEvent.regular({
 });
 
 export const backedCandidateLostSeat = createEvent.regular({
-  meanTimeToHappen: 10 * 365,
+  meanTimeToHappen: 6 * 365,
   condition: _ => _.characterFlags.focusCity! && _.characterFlags.backedCityCouncil!,
   title: 'Friendly councillor loses seat',
   getText: `The councillor whose election you have backed, and who was amenable to your goals, seems to have
@@ -1363,7 +1363,7 @@ export const backedCandidateLostSeat = createEvent.regular({
 });
 
 export const backedCandidateWantsBribe = createEvent.regular({
-  meanTimeToHappen: 10 * 365,
+  meanTimeToHappen: 6 * 365,
   condition: _ => _.characterFlags.focusCity! && _.characterFlags.backedCityCouncil!,
   title: 'Councillor wants bribe',
   getText: `The councillor whom you have backed wants a hefty bribe to continue favouring your cause.
@@ -1380,7 +1380,7 @@ export const backedCandidateWantsBribe = createEvent.regular({
 });
 
 export const offeredCampaignDueToTownFocus = createEvent.regular({
-  meanTimeToHappen: 20 * 365,
+  meanTimeToHappen: 10 * 365,
   condition: _ => !hasLimitedRights(_, _.character) && _.characterFlags.focusCity!,
   title: 'Political influence',
   getText: `You have been building up significant political influence with you efforts to change the town.
@@ -1397,7 +1397,7 @@ export const offeredCampaignDueToTownFocus = createEvent.regular({
 });
 
 export const giveUpOnFocus = createEvent.regular({
-  meanTimeToHappen: 10 * 365,
+  meanTimeToHappen: 3 * 365,
   condition: _ => _.characterFlags.focusCity! && hasCityFocus(_),
   title: 'Change focus?',
   getText: _ => `You have spent some time focusing on ${currentFocusDescription(_)} in your political life. The issue is
