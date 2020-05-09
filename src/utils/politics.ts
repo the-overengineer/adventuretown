@@ -2,16 +2,21 @@ import {
   ClassEquality,
   Fortification,
   GenderEquality,
+  IEvent,
   IGameState,
   StateTransformer,
   Taxation,
 } from 'types/state';
-import { EventChainBuilder } from './eventChain';
+import {
+  triggerEvent,
+  EventChainBuilder,
+} from './eventChain';
 import { action } from './events';
 import {
   compose,
   enumValues,
 } from './functional';
+import { notify } from './message';
 import { pickOne } from './random';
 import { changeResource } from './resources';
 import {
@@ -20,6 +25,7 @@ import {
 } from './setFlag';
 import {
   getTmp,
+  hasTmp,
   removeTmp,
   setTmp,
   updateTmp,
@@ -33,7 +39,6 @@ import {
   increaseMaleRights,
   setTaxation,
 } from './town';
-import { notify } from './message';
 
 enum VotingMatter {
   EstablishGuard,
@@ -60,6 +65,8 @@ enum VoteDirection {
 const VOTING_MATTER_KEY = 'votingMatter';
 const VOTING_DIRECTION_KEY = 'votingDirection';
 const CAMPAIGN_SCORE_KEY = 'campaignScore';
+const CITY_FOCUS_KEY = 'cityFocusMatter';
+const BACKED_CANDIDATE_KEY = 'backedCandidatePreferences';
 
 export const startNewCampaign = compose(
   setCharacterFlag('campaign', true),
@@ -84,6 +91,23 @@ export const getReElectionScore = (state: IGameState): number => {
 
   return score;
 };
+export const getBackedCandidateScore = (state: IGameState): number =>
+  Math.floor(state.resources.renown / 10);
+
+export const voteOpposedType: Record<VotingMatter, Set<VotingMatter>> = {
+  [VotingMatter.EstablishGuard]: new Set([VotingMatter.AbolishGuard]),
+  [VotingMatter.AbolishGuard]: new Set([VotingMatter.EstablishGuard]),
+  [VotingMatter.FinanceTemple]: new Set([]),
+  [VotingMatter.AbolishTax]: new Set([VotingMatter.SetFlatTax, VotingMatter.SetProgressiveTax]),
+  [VotingMatter.SetFlatTax]: new Set([VotingMatter.AbolishTax, VotingMatter.SetProgressiveTax]),
+  [VotingMatter.SetProgressiveTax]: new Set([VotingMatter.AbolishTax, VotingMatter.SetFlatTax]),
+  [VotingMatter.BuildFortifications]: new Set([VotingMatter.TearDownFortifications]),
+  [VotingMatter.TearDownFortifications]: new Set([VotingMatter.BuildFortifications]),
+  [VotingMatter.IncreaseMenRights]: new Set([VotingMatter.IncreaseWomenRights]),
+  [VotingMatter.IncreaseWomenRights]: new Set([VotingMatter.IncreaseMenRights]),
+  [VotingMatter.IncreasePoorRights]: new Set([VotingMatter.DecreasePoorRights]),
+  [VotingMatter.DecreasePoorRights]: new Set([VotingMatter.IncreasePoorRights]),
+}
 
 export const voteCondition: Record<VotingMatter, (state: IGameState) => boolean> = {
   [VotingMatter.EstablishGuard]: _ => !_.worldFlags.townGuard,
@@ -171,6 +195,49 @@ export const createRandomVoteProposal = (state: IGameState) => createRandomVotin
   ),
 )(state);
 
+export const hasCityFocus = hasTmp(CITY_FOCUS_KEY);
+
+export const getCityFocus = getTmp(CITY_FOCUS_KEY, VotingMatter.AbolishTax); // Dummy default
+
+export const setCityFocus = (matter: VotingMatter) => setTmp(CITY_FOCUS_KEY, matter);
+
+export const resetCityFocus = removeTmp(CITY_FOCUS_KEY);
+
+export const completedCityFocus = (state: IGameState): boolean => {
+  if (!hasCityFocus(state)) {
+    return true;
+  }
+
+  const focus = getCityFocus(state);
+
+  switch (focus) {
+    case VotingMatter.AbolishGuard:
+      return !state.worldFlags.townGuard;
+    case VotingMatter.AbolishTax:
+      return state.town.taxation === Taxation.None;
+    case VotingMatter.BuildFortifications:
+      return state.town.fortification === Fortification.MoatAndCastle;
+    case VotingMatter.DecreasePoorRights:
+      return state.town.equality === ClassEquality.GeneralSlavery;
+    case VotingMatter.EstablishGuard:
+      return state.worldFlags.townGuard!;
+    case VotingMatter.FinanceTemple:
+      return state.worldFlags.temple!;
+    case VotingMatter.IncreaseMenRights:
+      return state.town.genderEquality === GenderEquality.FemaleOppression;
+    case VotingMatter.IncreaseWomenRights:
+      return state.town.genderEquality === GenderEquality.MaleOppression;
+    case VotingMatter.SetFlatTax:
+      return state.town.taxation === Taxation.Flat;
+    case VotingMatter.SetProgressiveTax:
+      return state.town.taxation === Taxation.Percentage;
+    case VotingMatter.TearDownFortifications:
+      return state.town.fortification === Fortification.None;
+    default:
+      return false;
+  }
+}
+
 export const describeVoteMatter = (state: IGameState): string =>
   getTmp(VOTING_MATTER_KEY, undefined)(state) != null ? voteDescription[getTmp(VOTING_MATTER_KEY, VotingMatter.AbolishGuard)(state)!] : ''
 
@@ -187,6 +254,14 @@ export const getVoteProposalOptions = (endAction: StateTransformer | EventChainB
       .when(voteCondition[matter])
       .do(createRandomVotingDisposition(matter))
       .and(endAction)
+      .done()
+  ));
+
+export const cityFocusOptions = enumValues<VotingMatter>(VotingMatter)
+  .map((matter) => (
+    action(voteLabel[matter])
+      .when(voteCondition[matter])
+      .do(setCityFocus(matter))
       .done()
   ));
 
@@ -298,4 +373,83 @@ export const councilVoteInfluenceActions = [
     .do(doConvince(VoteDirection.Against))
     .and(endVotingProcess)
     .log('The proposal is shot down. If somebody disagreed, you used your influence to sway them'),
-]
+];
+
+export const getCandidateBackedMatters = getTmp<Array<VotingMatter>>(BACKED_CANDIDATE_KEY, []);
+
+export const setCandidateBackedMatters = (matters: VotingMatter[]) => setTmp(BACKED_CANDIDATE_KEY, matters);
+
+export const setBackedCouncillor = setCharacterFlag('backedCityCouncil');
+
+export const removeBackedCouncillor = compose(
+  setCharacterFlag('backedCityCouncil', false),
+  removeTmp(BACKED_CANDIDATE_KEY),
+);
+
+export const generateBackableCandidate = (state: IGameState) => {
+  const focus = getCityFocus(state);
+  const otherFocus = pickOne(
+    enumValues<VotingMatter>(VotingMatter).filter((matter) => matter !== focus && !voteOpposedType[matter].has(matter)),
+  );
+
+  // Generate candidate that agrees with you, plus has one other goal
+  return setCandidateBackedMatters([focus, otherFocus])(state);
+};
+
+export const describeCandidate = (state: IGameState) => {
+  const matters = getCandidateBackedMatters(state);
+
+  return `The candidate presented to you seems like somebody who could actually win, with a little bit of help.
+    Their agenda seems to revolve mostly around two things: 1. ${voteLabel[matters[0]]}; 2. ${voteLabel[matters[1]]}`;
+}
+
+export const startVoteByBackedCouncillor = (event: IEvent) => (state: IGameState) => {
+  // Select one of the councillor's preferred matters. If one of them or both become ineligible, ignore them
+  const option = pickOne(
+    getCandidateBackedMatters(state).filter((matter) => voteCondition[matter](state)),
+  );
+
+  if (option != null) {
+    return compose(
+      createRandomVotingDisposition(option),
+      triggerEvent(event).toTransformer(),
+    )(state);
+  } else {
+    return notify('It would appear that the rumours have been false, and no vote starts')(state);
+  }
+};
+
+export const currentFocusDescription = (state: IGameState) => {
+  const focus = getCityFocus(state);
+
+  if (focus == null) {
+    return `nothing at all`;
+  }
+
+  switch (focus) {
+    case VotingMatter.AbolishGuard:
+      return 'abolishing the town guard';
+    case VotingMatter.AbolishTax:
+      return 'abolishing all taxation';
+    case VotingMatter.BuildFortifications:
+      return 'building up town defences';
+    case VotingMatter.DecreasePoorRights:
+      return 'giving the rich more power over the poor';
+    case VotingMatter.EstablishGuard:
+      return 'establishing a town guard to protect the town';
+    case VotingMatter.FinanceTemple:
+      return 'financing the construction of a grand temple';
+    case VotingMatter.IncreaseMenRights:
+      return 'increasing the rights of men';
+    case VotingMatter.IncreaseWomenRights:
+      return 'increasing the rights of women';
+    case VotingMatter.SetFlatTax:
+      return 'setting a flat tax independent of income';
+    case VotingMatter.SetProgressiveTax:
+      return 'setting a progressive tax that scales with income';
+    case VotingMatter.TearDownFortifications:
+      return 'reducing the town fortifications';
+    default:
+      return 'something completely different';
+  }
+};

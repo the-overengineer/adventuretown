@@ -185,7 +185,7 @@ export class App extends React.PureComponent<{}, IAppState> {
   }
 
   private onReset = () => {
-    const state = { ...initialState, town: undefined, character: undefined };
+    const state = { ...initialState, town: undefined, character: undefined, tmp: undefined };
     this.setState(state);
     saveGame(state as unknown as IGameState);
   }

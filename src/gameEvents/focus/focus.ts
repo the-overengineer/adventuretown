@@ -2,17 +2,13 @@ import { banishment } from 'gameEvents/life/general';
 import {
   CharacterFlag,
   ClassEquality,
-  Fortification,
   Gender,
-  GenderEquality,
   Profession,
   ProfessionLevel,
   Prosperity,
-  Size,
-  Taxation,
 } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
-import { eventCreator } from 'utils/events';
+import { eventCreator, action } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
 import {
@@ -20,9 +16,25 @@ import {
   changeStat,
   removeLastChild,
   removeSpouse,
-  startJob,
   setLevel,
+  startJob,
 } from 'utils/person';
+import {
+  cityFocusOptions,
+  hasCityFocus,
+  completedCityFocus,
+  resetCityFocus,
+  getCityFocus,
+  createRandomVotingDisposition,
+  setBackedCouncillor,
+  removeBackedCouncillor,
+  describeCandidate,
+  generateBackableCandidate,
+  startVoteByBackedCouncillor,
+  getBackedCandidateScore,
+  changeCampaignScore,
+  currentFocusDescription,
+} from 'utils/politics';
 import { inIntRange } from 'utils/random';
 import { changeResource } from 'utils/resources';
 import {
@@ -31,20 +43,10 @@ import {
   setWorldFlag,
 } from 'utils/setFlag';
 import {
-  decreaseClassEquality,
-  decreaseFortifications,
-  decreaseProsperity,
-  decreaseSize,
-  equaliseGenderRights,
   hasLimitedRights,
-  increaseClassEquality,
-  increaseFortifications,
-  increaseMyGenderRights,
-  increaseSize,
   isOppressed,
-  increaseProsperity,
-  setTaxation,
 } from 'utils/town';
+import { votingHappens } from 'gameEvents/job/politics';
 
 export const FOCUS_PREFIX = 3_000;
 
@@ -73,7 +75,7 @@ export const setFocusFlag = (flag: CharacterFlag) => compose(
 );
 
 export const chooseFocus = createEvent.regular({
-  meanTimeToHappen: 3,
+  meanTimeToHappen: 30,
   condition: _ => !_.characterFlags.focusCharm
     && !_.characterFlags.focusCity
     && !_.characterFlags.focusEducation
@@ -89,77 +91,21 @@ export const chooseFocus = createEvent.regular({
     It's time to decide what your direction in life will be. Where will most of
     your free time be spent?`,
   actions: [
-    {
-      text: 'Physical prowess',
-      perform: compose(
-        setFocusFlag('focusPhysical'),
-        notify('You start working on becoming stronger and better equipped'),
-      ),
-    },
-    {
-      text: 'Challenging your mind',
-      perform: compose(
-        setFocusFlag('focusIntelligence'),
-        notify('Much of your time is spent on puzzles and discussions'),
-      ),
-    },
-    {
-      text: 'Educating yourself',
-      perform: compose(
-        setFocusFlag('focusEducation'),
-        notify('Much can be acquired from books and learned men'),
-      ),
-    },
-    {
-      text: 'Social skills',
-      perform: compose(
-        setFocusFlag('focusCharm'),
-        notify('Much can be achieved if you can just learn to talk to people'),
-      ),
-    },
-    {
-      text: 'Acquiring wealth',
-      perform: compose(
-        setFocusFlag('focusWealth'),
-        notify(`Money makes the world go 'round`),
-      ),
-    },
-    {
-      text: 'Stockpiling food',
-      perform: compose(
-        setFocusFlag('focusFood'),
-        notify('Never go hungry again'),
-      ),
-    },
-    {
-      text: 'Fame and renown',
-      perform: compose(
-        setFocusFlag('focusRenown'),
-        notify(`Hopefully your fame will grow soon`),
-      ),
-    },
-    {
-      text: 'Family and children',
-      perform: compose(
-        setFocusFlag('focusFamily'),
-        notify('Children are the future, after all'),
-      ),
-    },
-    {
-      text: 'Having fun',
-      perform: compose(
-        setFocusFlag('focusFun'),
-        notify('What is there to life if you do not enjoy yourself?'),
-      ),
-    },
-    {
-      condition: _ => !hasLimitedRights(_, _.character) || _.resources.renown >= 100 || _.resources.coin >= 100,
-      text: 'Changing things around town',
-      perform: compose(
-        setFocusFlag('focusCity'),
-        notify(`It's about time things changed around here.`),
-      ),
-    },
+    action('Physical prowess').do(setFocusFlag('focusPhysical')).log('You start working on becoming stronger and better equipped'),
+    action('Challenging your mind').do(setFocusFlag('focusIntelligence')).log('Much of your time is spent on puzzles and discussions'),
+    action('Educating yourself').do(setFocusFlag('focusEducation')).log('Much can be acquired from books and learned men'),
+    action('Improving social skills').do(setFocusFlag('focusCharm')).log('Much can be achieved if you can just learn to talk to people'),
+    action('Acquiring wealth').do(setFocusFlag('focusWealth')).log(`Money makes the world go 'round`),
+    action('Stockpiling food').do(setFocusFlag('focusFood')).log('Never go hungry again'),
+    action('Fame and renown').do(setFocusFlag('focusRenown')).log('Hopefully your fame will grow soon'),
+    action('Family and children').do(setFocusFlag('focusFamily')).log('Children are the future, after all'),
+    action('Having fun').do(setFocusFlag('focusFun')).log('What is there to life if you do not enjoy yourself?'),
+    action('Changing things around town')
+      .when(_ => !isOppressed(_, _.character) || _.resources.renown >= 250 || _.resources.coin >= 250)
+      .do(setFocusFlag('focusCity'))
+      .and(resetCityFocus)
+      .and(removeBackedCouncillor)
+      .log(`It's about time some things changed around here`),
   ],
 });
 
@@ -1206,251 +1152,6 @@ export const randomDrinking = createEvent.regular({
   ],
 });
 
-export const changeTownProsperity = createEvent.regular({
-  meanTimeToHappen: 365,
-  condition: _ => _.characterFlags.focusCity!,
-  title: 'Influence town economy',
-  getText: _ => `You see a chance to modify the economy, the beating heart of this city, by making some wise
-    investments. You can use your coin or call on your fame`,
-  actions: [
-    {
-      condition: _ => _.resources.coin >= 150 && _.town.prosperity > Prosperity.DirtPoor,
-      text: 'Pay to reduce the economy',
-      perform: compose(
-        changeResource('coin', -150),
-        decreaseProsperity,
-        notify('You paid off the lawmakers to weaken the economy. This wil make you less wealthy, but also less interesting prey')
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 100 && _.town.prosperity > Prosperity.DirtPoor,
-      text: 'Campaign to reduce the economy',
-      perform: compose(
-        changeResource('renown', -100),
-        decreaseProsperity,
-        notify('You campaigned the lawmakers to weaken the economy. This wil make you less wealthy, but also less interesting prey')
-      ),
-    },
-    {
-      condition: _ => _.resources.coin >= 150 && _.town.prosperity < Prosperity.Rich,
-      text: 'Pay to strengthen the economy',
-      perform: compose(
-        changeResource('coin', -150),
-        increaseProsperity,
-        notify('You paid off the lawmakers to strengthen the economy. This wil make you more wealthy, but also more interesting prey')
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 100 && _.town.prosperity < Prosperity.Rich,
-      text: 'Campaign to strengthen the economy',
-      perform: compose(
-        changeResource('renown', -100),
-        increaseProsperity,
-        notify('You campaigned the lawmakers to strengthen the economy. This wil make you more wealthy, but also more interesting prey')
-      ),
-    },
-    {
-      text: 'Never mind',
-    },
-  ],
-});
-
-export const changeTownSize = createEvent.regular({
-  meanTimeToHappen: 365,
-  condition: _ => _.characterFlags.focusCity! && _.town.size > Size.Minuscule,
-  title: 'Influence town size',
-  getText: _ => `You see a chance to influence the rate at which the area is settled. Larger cities are more powerful,
-    but also bait for raiders and for disease. You can use money or your influence to affect the change`,
-  actions: [
-    {
-      condition: _ => _.resources.coin >= 150 && _.town.size > Size.Minuscule,
-      text: 'Pay to reduce the population',
-      perform: compose(
-        changeResource('coin', -150),
-        decreaseSize,
-        notify('You paid off the nobles to reduce the town size')
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 100 && _.town.size > Size.Minuscule,
-      text: 'Campaign to reduce the population',
-      perform: compose(
-        changeResource('renown', -100),
-        decreaseSize,
-        notify('You campaigned the nobles to reduce the town size')
-      ),
-    },
-    {
-      condition: _ => _.resources.coin >= 150 && _.town.size < Size.Huge,
-      text: 'Pay to increase the population',
-      perform: compose(
-        changeResource('coin', -150),
-        increaseSize,
-        notify('You paid off the nobles to increase the population')
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 100 && _.town.size < Size.Huge,
-      text: 'Campaign to increase the population',
-      perform: compose(
-        changeResource('renown', -100),
-        increaseSize,
-        notify('You campaigned the nobles to increase the population')
-      ),
-    },
-    {
-      text: 'Never mind',
-    },
-  ],
-});
-
-export const changeClassEquality = createEvent.regular({
-  meanTimeToHappen: 365,
-  condition: _ => _.characterFlags.focusCity!,
-  title: 'Change class dynamic',
-  getText: _ => `You look at the class dynamics and you are not satisfied. Be it that the poor have too much or too little power,
-    something needs to change. You can use your wealth or your influence to change this`,
-  actions: [
-    {
-      condition: _ => _.resources.coin >= 150 && _.town.equality > ClassEquality.GeneralSlavery,
-      text: 'Pay to give the rich power',
-      perform: compose(
-        changeResource('coin', -150),
-        decreaseClassEquality,
-        notify('You paid off the nobles to reduce the rights of the poor')
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 100 && _.town.equality > ClassEquality.GeneralSlavery,
-      text: 'Campaign to give the rich power',
-      perform: compose(
-        changeResource('renown', -100),
-        decreaseClassEquality,
-        notify('You campaigned the nobles to reduce the rights of the poor')
-      ),
-    },
-    {
-      condition: _ => _.resources.coin >= 150 && _.town.equality < ClassEquality.Equal,
-      text: 'Pay to give the poor power',
-      perform: compose(
-        changeResource('coin', -150),
-        increaseClassEquality,
-        notify('You paid off the nobles to increase the rights of the poor')
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 100 && _.town.equality < ClassEquality.Equal,
-      text: 'Campaign to give the poor power',
-      perform: compose(
-        changeResource('renown', -100),
-        increaseClassEquality,
-        notify('You campaigned the nobles to increase the rights of the poor')
-      ),
-    },
-    {
-      text: 'Never mind',
-    },
-  ],
-});
-
-export const changeGenderEquality = createEvent.regular({
-  meanTimeToHappen: 365,
-  condition: _ => _.characterFlags.focusCity!,
-  title: 'Change gender dynamic',
-  getText: _ => `You look at the gender dynamics and you are not satisfied. Be it that ${_.character.gender === Gender.Male ? 'women' : 'men'} have
-    too much power, or too little, something needs to change.`,
-  actions: [
-    {
-      condition: _ => _.resources.coin >= 150 && _.town.genderEquality !== GenderEquality.Equal,
-      text: 'Pay to equalise rights',
-      perform: compose(
-        changeResource('coin', -150),
-        equaliseGenderRights,
-        notify('You paid off the nobles to make the genders more equal')
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 100 && _.town.genderEquality !== GenderEquality.Equal,
-      text: 'Campaign to equalise rights',
-      perform: compose(
-        changeResource('renown', -100),
-        equaliseGenderRights,
-        notify('You campaigned the nobles to make the genders more equal')
-      ),
-    },
-    {
-      condition: _ => _.resources.coin >= 150,
-      text: 'Pay to give your gender power',
-      perform: compose(
-        changeResource('coin', -150),
-        increaseMyGenderRights,
-        notify('You paid off the nobles to give your gender more power')
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 100,
-      text: 'Campaign to give your gender power',
-      perform: compose(
-        changeResource('renown', -100),
-        increaseMyGenderRights,
-        notify('You campaigned the nobles to give your gender more power')
-      ),
-    },
-    {
-      text: 'Never mind',
-    },
-  ],
-});
-
-export const changeFortifications = createEvent.regular({
-  meanTimeToHappen: 365,
-  condition: _ => _.characterFlags.focusCity!,
-  title: 'Change fortifications',
-  getText: _ => `The way the town is protected is not quite what you envisioned. Things need to change here. You could use your
-    wealth or your influence to make it so.`,
-  actions: [
-    {
-      condition: _ => _.resources.coin >= 150 && _.town.fortification > Fortification.None,
-      text: 'Pay to tear down walls',
-      perform: compose(
-        changeResource('coin', -150),
-        decreaseFortifications,
-        notify('You paid off the nobles to tear down the town fortifications')
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 100 && _.town.fortification > Fortification.None,
-      text: 'Campaign to tear down walls',
-      perform: compose(
-        changeResource('renown', -100),
-        decreaseFortifications,
-        notify('You campaigned the nobles to tear down the town fortifications')
-      ),
-    },
-    {
-      condition: _ => _.resources.coin >= 150 && _.town.fortification < Fortification.MoatAndCastle,
-      text: 'Pay to improve fortifications',
-      perform: compose(
-        changeResource('coin', -150),
-        increaseFortifications,
-        notify('You paid off the nobles to build up the town fortifications')
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 100 && _.town.fortification < Fortification.MoatAndCastle,
-      text: 'Campaign to improve fortifications',
-      perform: compose(
-        changeResource('renown', -100),
-        increaseFortifications,
-        notify('You campaigned the nobles to build up the town fortifications')
-      ),
-    },
-    {
-      text: 'Never mind',
-    },
-  ],
-});
-
 export const establishTownGuard = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.characterFlags.focusCity! && !_.worldFlags.townGuard,
@@ -1460,7 +1161,7 @@ export const establishTownGuard = createEvent.regular({
     as its captain`,
   actions: [
     {
-      condition: _ => _.resources.coin >= 200,
+      condition: _ => _.resources.coin >= 500,
       text: 'It is worth the cost',
       perform: compose(
         setWorldFlag('townGuard', true),
@@ -1471,122 +1172,6 @@ export const establishTownGuard = createEvent.regular({
     },
     {
       text: `Seems too expensive`,
-    },
-  ],
-});
-
-export const settingNoTax = createEvent.triggered({
-  title: 'Abolishing taxes',
-  getText: _ => `You have decided to campaign to abolish taxation in ${_.town.name}. How will you go on about it?`,
-  actions: [
-    {
-      condition: _ => _.resources.coin >= 250,
-      text: 'Bribe the council',
-      perform: compose(
-        setTaxation(Taxation.None),
-        changeResource('coin', -250),
-        setCharacterFlag('bribery', true),
-        notify('You have bribed the town council to abolish taxes'),
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 150,
-      text: 'Petition the council',
-      perform: compose(
-        setTaxation(Taxation.None),
-        changeResource('renown', -150),
-        notify('You have used your influence to convince the council to abolish taxes'),
-      ),
-    },
-    {
-      text: 'Never mind',
-    },
-  ],
-});
-
-export const settingFlatTax = createEvent.triggered({
-  title: 'Abolishing taxes',
-  getText: _ => `You have decided to campaign to set flat taxation in ${_.town.name}. How will you go on about it?`,
-  actions: [
-    {
-      condition: _ => _.resources.coin >= 250,
-      text: 'Bribe the council',
-      perform: compose(
-        setTaxation(Taxation.Flat),
-        changeResource('coin', -250),
-        setCharacterFlag('bribery', true),
-        notify('You have bribed the town council to set flat taxes'),
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 150,
-      text: 'Petition the council',
-      perform: compose(
-        setTaxation(Taxation.Flat),
-        changeResource('renown', -150),
-        notify('You have used your influence to convince the council to set flat taxes'),
-      ),
-    },
-    {
-      text: 'Never mind',
-    },
-  ],
-});
-
-export const settingProgressiveTaxes = createEvent.triggered({
-  title: 'Abolishing taxes',
-  getText: _ => `You have decided to campaign to set progressive taxation in ${_.town.name}. How will you go on about it?`,
-  actions: [
-    {
-      condition: _ => _.resources.coin >= 250,
-      text: 'Bribe the council',
-      perform: compose(
-        setTaxation(Taxation.Percentage),
-        changeResource('coin', -250),
-        setCharacterFlag('bribery', true),
-        notify('You have bribed the town council to set progressive taxes'),
-      ),
-    },
-    {
-      condition: _ => _.resources.renown >= 150,
-      text: 'Petition the council',
-      perform: compose(
-        setTaxation(Taxation.Percentage),
-        changeResource('renown', -150),
-        notify('You have used your influence to convince the council to set progressive taxes'),
-      ),
-    },
-    {
-      text: 'Never mind',
-    },
-  ],
-});
-
-export const influenceTaxes = createEvent.regular({
-  meanTimeToHappen: 2 * 365,
-  condition: _ => _.characterFlags.focusCity! && (_.resources.coin >= 250 || _.resources.renown >= 150),
-  title: 'Taxes debate',
-  getText: _ => `The town council is in heated debate on whether to perform a taxation reform.
-    If you wished to exert your influence or hand out some bribes, this could be a perfect time to
-    direct where their discussion is going`,
-  actions: [
-    {
-      condition: _ => _.town.taxation !== Taxation.None,
-      text: 'Abolish taxation',
-      perform: triggerEvent(settingNoTax).toTransformer(),
-    },
-    {
-      condition: _ => _.town.taxation !== Taxation.Flat,
-      text: 'Flat taxes',
-      perform: triggerEvent(settingFlatTax).toTransformer(),
-    },
-    {
-      condition: _ => _.town.taxation !== Taxation.Percentage,
-      text: 'Progressive taxes',
-      perform: triggerEvent(settingProgressiveTaxes).toTransformer(),
-    },
-    {
-      text: 'Never mind',
     },
   ],
 });
@@ -1675,3 +1260,177 @@ export const learnFromTempleScrolls = createEvent.regular({
     },
   ],
 });
+
+export const decideCityFocus = createEvent.regular({
+  meanTimeToHappen: 30,
+  condition: _ => _.characterFlags.focusCity! && !hasCityFocus(_),
+  title: 'What to change?',
+  getText: _ => `You look around ${_.town.name} and consider what you might want to start changing.`,
+  actions: cityFocusOptions,
+});
+
+export const cityFocusCompleted = createEvent.regular({
+  meanTimeToHappen: 2 * 30,
+  condition: _ => _.characterFlags.focusCity! && hasCityFocus(_) && completedCityFocus(_),
+  title: 'Goal achieved',
+  getText: _ => `You have achieved your goals for the city. It will take some time for you to decide what you would want
+    to change next`,
+  actions: [
+    action('I have done well')
+      .do(resetCityFocus)
+      .and(changeResource('renown', 100))
+      .log('You have achieved your recent goals for the city, and all know it'),
+  ],
+});
+
+export const voteRumoursOnYourCause = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.characterFlags.focusCity! && hasCityFocus(_),
+  title: 'Vote to happen soon',
+  getText: `A contact of yours has informed you that they have heard that the council will soon convene
+    to vote on the matter you care so dearly about`,
+  actions: [
+    action(`I hope they vote for it!`)
+      .do(_ => createRandomVotingDisposition(getCityFocus(_))(_))
+      .and(triggerEvent(votingHappens)),
+  ],
+});
+
+export const backedCandidateElected = createEvent.triggered({
+  title: 'Candidate wins seat',
+  getText: `The candidate you have backed for the town council has been elected! They promise that they
+    will do their best to push the proposal you wish through the town council`,
+  actions: [
+    action('Soon things will change')
+      .do(setBackedCouncillor)
+      .log('A candidate you have backed has made it into the town council'),
+  ],
+});
+
+export const backedCandidateLost = createEvent.triggered({
+  title: 'Candidate loses',
+  getText: `Sadly, the candidate you have backed did not manage to get a seat in the town council.
+    You will have to wait for another likely candidate to appear`,
+  actions: [
+    action('A shame').do(removeBackedCouncillor).log('Your candidate did not manage to join the town council'),
+  ],
+});
+
+export const candidateYouCanBack = createEvent.triggered({
+  title: 'Candidate presented',
+  getText: describeCandidate,
+  actions: [
+    action('Give smaller donation')
+      .when(_ => _.resources.coin >= 250)
+      .do(changeResource('coin', -250))
+      .and(triggerEvent(backedCandidateLost).orTrigger(backedCandidateElected)),
+
+    action('Give large donation')
+      .when(_ => _.resources.coin >= 500)
+      .do(changeResource('coin', -500))
+      .and(triggerEvent(backedCandidateLost).orTrigger(backedCandidateElected).withWeight(3)),
+
+    action('Pull some strings for them')
+      .when(_ => _.resources.renown >= 250)
+      .do(changeResource('renown', -250))
+      .and(triggerEvent(backedCandidateLost).orTrigger(backedCandidateElected)),
+
+    action('Put weight of your influence behind them')
+      .when(_ => _.resources.renown >= 500)
+      .do(changeResource('renown', -500))
+      .and(triggerEvent(backedCandidateLost).orTrigger(backedCandidateElected).withWeight(3)),
+
+    action('Give speech on their behalf')
+      .when(_ => _.character.charm >= 4)
+      .and(
+        triggerEvent(backedCandidateLost)
+        .orTrigger(backedCandidateElected)
+          .multiplyByFactor(2, _ => _.character.charm >= 6)
+          .multiplyByFactor(1.5, _ => _.character.charm >= 8),
+      ),
+
+    action('Do not support them')
+      .do(removeBackedCouncillor)
+      .log('You did not find the proposed candidate to your liking. Influence in the council will have to wait'),
+  ],
+});
+
+export const potentialCandidate = createEvent.regular({
+  meanTimeToHappen: 8 * 365,
+  condition: _ => _.characterFlags.focusCity! && !_.characterFlags.backedCityCouncil,
+  title: 'Potential ally',
+  getText: `A friend of yours approaches you with some good news. They believe they have found a candidate who might make
+    it into the town council, and will be amenable to the cause you support. The two of you will be introduced tomorrow`,
+  actions: [
+    action('Good!').do(generateBackableCandidate).and(triggerEvent(candidateYouCanBack)),
+  ],
+});
+
+export const backedCandidateStartsVote = createEvent.regular({
+  meanTimeToHappen: 18 * 30,
+  condition: _ => _.characterFlags.focusCity! && _.characterFlags.backedCityCouncil!,
+  title: 'Councillor starts vote',
+  getText: `You receive news that the councillor you have backed will be starting a vote tomorrow. The only question is,
+    will it be about the matter you are backing them for, or for their other passion?`,
+  actions: [
+    action('We will see')
+      .do(startVoteByBackedCouncillor(votingHappens)),
+  ],
+});
+
+export const backedCandidateLostSeat = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.characterFlags.focusCity! && _.characterFlags.backedCityCouncil!,
+  title: 'Friendly councillor loses seat',
+  getText: `The councillor whose election you have backed, and who was amenable to your goals, seems to have
+    lost their seat. They will no longer be able to support you in your efforts to change the town`,
+  actions: [
+    action('A shame').do(removeBackedCouncillor).log('You no longer have support in the town council'),
+  ],
+});
+
+export const backedCandidateWantsBribe = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.characterFlags.focusCity! && _.characterFlags.backedCityCouncil!,
+  title: 'Councillor wants bribe',
+  getText: `The councillor whom you have backed wants a hefty bribe to continue favouring your cause.
+    It would seem being political got to them`,
+  actions: [
+    action('Pay them off')
+      .when(_ => _.resources.coin >= 500)
+      .do(changeResource('coin', -500))
+      .log('You pay off a councillor for them to continue favouring your cause'),
+    action('Forget it')
+      .do(removeBackedCouncillor)
+      .log('Without paying a bribe, you no longer have a friend in the council'),
+  ],
+});
+
+export const offeredCampaignDueToTownFocus = createEvent.regular({
+  meanTimeToHappen: 20 * 365,
+  condition: _ => !hasLimitedRights(_, _.character) && _.characterFlags.focusCity!,
+  title: 'Political influence',
+  getText: `You have been building up significant political influence with you efforts to change the town.
+    People have started noticing, and are proposing to back a bid for the town council for you. You will have
+    a significant leg up in the race, as many potential electors already support you`,
+  actions: [
+    action('I will run')
+      .do(setCharacterFlag('campaign', true))
+      .and(_ => changeCampaignScore(getBackedCandidateScore(_))(_))
+      .log('You have started a campaign for the town council, with many already offering you their support'),
+    action('I would rather not')
+      .log('You decided not to take a chance and run for town council'),
+  ],
+});
+
+export const giveUpOnFocus = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.characterFlags.focusCity! && hasCityFocus(_),
+  title: 'Change focus?',
+  getText: _ => `You have spent some time focusing on ${currentFocusDescription(_)} in your political life. The issue is
+    not yet solve, but there might be more important things to focus on`,
+  actions: [
+    action('Stay the course'),
+    action('Find something different').do(resetCityFocus).log('You decide to focus on changing something else around town'),
+  ],
+})

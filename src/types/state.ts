@@ -104,6 +104,7 @@ export type CharacterFlag =
   | 'promisedLowerTaxes'
   | 'promisedBuildTemple'
   | 'promisedTownGuard'
+  | 'backedCityCouncil'
   ;
 
 export type WorldFlag =

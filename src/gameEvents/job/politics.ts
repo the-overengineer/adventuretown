@@ -479,3 +479,24 @@ export const voteStartedByAnother = createEvent.regular({
       .log('Tomorrow, you will vote on the town laws'),
   ],
 });
+
+export const leaderBlamedForProblems = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => isInCouncil(_) && (_.worldFlags.goblins! || _.worldFlags.orcs! || _.worldFlags.bandits! || _.worldFlags.sickness! || _.worldFlags.famine!),
+  title: 'Blamed for problems',
+  getText: `As a member of the town council, you are being blamed for the issues currently plaguing the town!`,
+  actions: [
+    action('What can I do?').do(changeResource('renown', -100)).log('You get your share of the blame for the troubles in town'),
+  ],
+});
+
+export const leaderPraisedForGoodState = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => isInCouncil(_) && !(_.worldFlags.goblins! || _.worldFlags.orcs! || _.worldFlags.bandits! || _.worldFlags.sickness! || _.worldFlags.famine!),
+  title: 'Praised',
+  getText: `Townspeople, or at least those who matter, seem to think that you are doing a splendid job in council, as the town is not being
+    plagued by any serious issues that would concern them`,
+  actions: [
+    action('Clearly my doing').do(changeResource('renown', 100)).log('You get praised for the good state of the town'),
+  ],
+});

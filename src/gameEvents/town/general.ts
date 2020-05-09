@@ -873,7 +873,7 @@ export const civilWarFamine = createEvent.regular({
   meanTimeToHappen: 2 * 365,
   condition: _ => _.worldFlags.civilWar! && !_.worldFlags.famine,
   title: 'Supply lines broken',
-  getText: _ => `With a civil war raging, the supply line shave been broken. Getting good is getting quite difficult`,
+  getText: _ => `With a civil war raging, the supply line shave been broken. Getting goods is getting quite difficult`,
   actions: [
     {
       text: 'I hope I make it',
@@ -888,7 +888,7 @@ export const civilWarFamine = createEvent.regular({
 export const famineDisruptsEconomy = createEvent.regular({
   meanTimeToHappen: 9 * 30,
   condition: _ => _.worldFlags.famine! && _.town.prosperity > Prosperity.Decent,
-  title: 'Hungers chokes economy',
+  title: 'Hunger chokes economy',
   getText: _ => `With the average citizen hungry, the economy has been taking a down turn`,
   actions: [
     {

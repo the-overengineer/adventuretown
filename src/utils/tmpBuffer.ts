@@ -2,10 +2,10 @@ import { IGameState } from 'types/state';
 
 
 export const getTmp = <T>(key: string, defaultValue: T) => (state: IGameState): T =>
-  state.tmp?.get(key) as T ?? defaultValue;
+  (state.tmp?.get(key) as T) ?? defaultValue;
 
 export const hasTmp = (key: string) => (state: IGameState): boolean =>
-  state.tmp?.has(key) ?? false;
+  (state.tmp?.has(key)) ?? false;
 
 export const setTmp = <T>(key: string, value: T) => (state: IGameState): IGameState => {
   const tmp = state.tmp ?? new Map<string, any>();
