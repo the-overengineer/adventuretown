@@ -353,7 +353,7 @@ export const councilVotesNormally = (state: IGameState): IGameState => {
 export const councilVoteInfluenceActions = [
   action('Ensure law passes, bribing if necessary')
     .when(canBribe(VoteDirection.For))
-    .do(doBribe(VoteDirection.Against))
+    .do(doBribe(VoteDirection.For))
     .and(establishVotedLaw)
     .log('The law changes. If there was any doubt, you paid to make it go away'),
   action('Ensure law passes, calling in favours if needed')
