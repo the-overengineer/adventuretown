@@ -696,7 +696,7 @@ export const adventurersKeepGone = createEvent.regular({
 });
 
 export const dragonSpotted = createEvent.regular({
-  meanTimeToHappen: 30 * 354,
+  meanTimeToHappen: 15 * 354,
   condition: _ => !_.worldFlags.dragon && (_.town.size >= Size.Large || _.town.prosperity >= Prosperity.WellOff || _.resources.coin >= 2_000),
   title: 'Dragon spotted',
   getText: `At first you thought it was rumours. Then, too many people were saying it for it to be false. A great

@@ -781,7 +781,7 @@ export const civilWarLostCouncil = createEvent.regular({
 })
 
 export const civilWarStarts = createEvent.regular({
-  meanTimeToHappen: 20 * 365,
+  meanTimeToHappen: 15 * 365,
   condition: _ => _.worldFlags.famine!
     || _.worldFlags.sickness!
     || _.town.prosperity > Prosperity.Average
