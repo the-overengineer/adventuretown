@@ -403,7 +403,7 @@ export const voteProposal = createEvent.regular({
 });
 
 export const voteStartedByAnother = createEvent.regular({
-  meanTimeToHappen: 365,
+  meanTimeToHappen: 2 * 365,
   condition: isInCouncil,
   title: 'Colleague proposes vote',
   getText: `You learn that tomorrow a colleague in the town council will propose a vote. You have no
