@@ -1,6 +1,6 @@
 import { Profession, ProfessionLevel } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
-import { changeStat } from 'utils/person';
+import { changeStat, removeJob } from 'utils/person';
 import { eventCreator, action } from 'utils/events';
 import { setCharacterFlag, setWorldFlag } from 'utils/setFlag';
 import { death } from 'gameEvents/life/general';
@@ -295,5 +295,15 @@ export const goodsFoundInWarehouse = createEvent.regular({
       triggerEvent(trailGoesCold)
         .orTrigger(tracingGoods).multiplyByFactor(2, _ => _.character.intelligence >= 5).multiplyByFactor(3, _ => _.character.intelligence >= 8),
     ),
+  ],
+});
+
+export const loseJob = createEvent.regular({
+  meanTimeToHappen: 0,
+  condition: _ => !_.worldFlags.townGuard! && _.character.profession === Profession.Guard,
+  title: 'Guard was abolished',
+  getText: `With the town guard abolished, you no longer have a job to do`,
+  actions: [
+    action('Shameful').do(removeJob).log('With the town guard abolished, so was your job'),
   ],
 });
