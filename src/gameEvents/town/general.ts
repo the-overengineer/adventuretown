@@ -177,7 +177,7 @@ export const diseaseImprovesMaleRights = createEvent.regular({
 });
 
 export const townGuardEstablished = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: 18 * 30,
   condition: _ => !_.worldFlags.townGuard
     && (_.town.prosperity >= Prosperity.Average || _.town.size >= Size.Modest),
   title: 'Town guard established',
