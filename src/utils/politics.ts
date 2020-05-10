@@ -287,14 +287,14 @@ const voteAgainst: Set<VoteDirection> = new Set([
 ]);
 
 const canBribe = (target: VoteDirection) => (state: IGameState): boolean => {
-  const existingVoteDirection = getTmp(VOTING_DIRECTION_KEY, target)(state);
+  const existingVoteDirection = parseInt(String(getTmp(VOTING_DIRECTION_KEY, target)(state)), 10) as VoteDirection;
   const costCalculator = voteAgainst.has(target) ? getCostSwayAgainst : getCostSwayFor;
   const cost = costCalculator(existingVoteDirection);
   return state.resources.coin >= cost;
 };
 
 const doBribe = (target: VoteDirection) => (state: IGameState): IGameState => {
-  const existingVoteDirection = getTmp(VOTING_DIRECTION_KEY, target)(state);
+  const existingVoteDirection = parseInt(String(getTmp(VOTING_DIRECTION_KEY, target)(state)), 10) as VoteDirection;
   const costCalculator = voteAgainst.has(target) ? getCostSwayAgainst : getCostSwayFor;
   const cost = costCalculator(existingVoteDirection);
   if (cost > 0) {
@@ -308,14 +308,14 @@ const doBribe = (target: VoteDirection) => (state: IGameState): IGameState => {
 };
 
 const canConvince = (target: VoteDirection) => (state: IGameState): boolean => {
-  const existingVoteDirection = getTmp(VOTING_DIRECTION_KEY, target)(state);
+  const existingVoteDirection = parseInt(String(getTmp(VOTING_DIRECTION_KEY, target)(state)), 10) as VoteDirection;
   const costCalculator = voteAgainst.has(target) ? getCostSwayAgainst : getCostSwayFor;
   const cost = costCalculator(existingVoteDirection);
   return state.resources.renown >= cost;
 };
 
 const doConvince = (target: VoteDirection) => (state: IGameState): IGameState => {
-  const existingVoteDirection = getTmp(VOTING_DIRECTION_KEY, target)(state);
+  const existingVoteDirection = parseInt(String(getTmp(VOTING_DIRECTION_KEY, target)(state)), 10) as VoteDirection;
   const costCalculator = voteAgainst.has(target) ? getCostSwayAgainst : getCostSwayFor;
   const cost = costCalculator(existingVoteDirection);
   console.log('[DEBUG] convincing', target, existingVoteDirection, cost);
