@@ -447,8 +447,8 @@ export const tradingPartnerDiscoveredAdventure = createEvent.regular({
   getText: _ => `While ${describeRoute(_)}, you find yourself discovering ${describeTradingPartner(_)}. You make a tidy profit
     there.`,
   actions: [
-    action('Adventure paying off').gainResource('coin', inIntRange(100, 300)).log('You make a tidy profit trading'),
-    action('Let us turn back home').gainResource('coin', inIntRange(100, 300)).and(triggerEvent(endMerchantAdventure)),
+    action('Adventure paying off').gainResource('coin', inIntRange(10, 300)).log('You make a tidy profit trading'),
+    action('Let us turn back home').gainResource('coin', inIntRange(10, 300)).and(triggerEvent(endMerchantAdventure)),
   ],
 });
 
@@ -460,7 +460,7 @@ export const largeFoodStoresDiscovered = createEvent.regular({
     of food from them`,
   actions: [
     action('Adventure paying off').gainResource('food', inIntRange(100, 300)).log('You will eat well, after trading for large amounts of food'),
-    action('Let us turn back home').gainResource('food', inIntRange(100, 300)).and(triggerEvent(endMerchantAdventure)),
+    action('Let us turn back home').gainResource('food', inIntRange(10, 300)).and(triggerEvent(endMerchantAdventure)),
   ],
 });
 
@@ -471,8 +471,8 @@ export const newLandsDiscovered = createEvent.regular({
   getText: _ => `While ${describeRoute(_)}, you discover queer new lands, with unusual customs and knowledge unknown in your
     lands. Telling stories of this will increase your renown`,
   actions: [
-    action('Adventure paying off').gainResource('renown', inIntRange(100, 300)).log('You are gaining fame as an explorer'),
-    action('Let us turn back home').gainResource('renown', inIntRange(100, 300)).and(triggerEvent(endMerchantAdventure)),
+    action('Adventure paying off').gainResource('renown', inIntRange(10, 300)).log('You are gaining fame as an explorer'),
+    action('Let us turn back home').gainResource('renown', inIntRange(10, 300)).and(triggerEvent(endMerchantAdventure)),
   ],
 });
 
@@ -509,6 +509,17 @@ export const deathOnTheTrip = createEvent.regular({
   actions: [
     action('Remember me!').do(clearTripData).and(triggerEvent(death)).log('Death finds you on your merchant adventure'),
   ]
+});
+
+export const expeditionVanishes = createEvent.regular({
+  meanTimeToHappen: 12 * 365,
+  condition: _ => _.characterFlags.onMerchantAdventure!,
+  title: 'Expedition vanishes',
+  getText: _ => `Your expedition was last seen several days ago, ${describeRoute(_)}. After that, you have all vanished
+    without a trace. Nobody knows what happened`,
+  actions: [
+    action('And so my story ends').and(triggerEvent(death)).log('The entire trading expedition vanishes out there'),
+  ],
 });
 
 export const turnsToSea = createEvent.regular({
