@@ -688,6 +688,17 @@ export const fameFades = createEvent.regular({
   ],
 });
 
+export const slandered = createEvent.regular({
+  meanTimeToHappen: 10 * 365,
+  condition: _ => _.resources.renown >= 150,
+  title: 'Slandered!',
+  getText: `You discover that you have been a victim of slander. Though the tales they tell of you are... probably not true, it will affect
+    your standing in society`,
+  actions: [
+    action('Why, if I find them...').gainResource('renown', -100).log('You have been a victim of slander, affecting your standing in the community'),
+  ],
+});
+
 export const buryGold = createEvent.regular({
   meanTimeToHappen: 10 * 365,
   condition: _ => _.resources.coin >= 500 && !_.worldFlags.buriedGold,
