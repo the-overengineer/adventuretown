@@ -138,7 +138,7 @@ export class TownDescription extends React.PureComponent<ITownDescription> {
       townFlags.orcs! ? `Orc tribes have settles nearby` : undefined,
       townFlags.dragon! ? `A fierce dragon made a lair nearby` : undefined,
       townFlags.sickness ? `A plague is going through the town` : undefined,
-      townFlags.townGuard ? `A town guard protects it` : undefined,
+      townFlags.townGuard ? `A town guard protects ${this.props.town.name}` : undefined,
       townFlags.tradeDisrupted ? `Trade and movement in and out of town have been disrupted` : undefined,
       townFlags.vermin ? `The town is suffering an infestation of vermin` : undefined,
       townFlags.temple ? `The town houses a magnificent temple to the gods` : undefined,
