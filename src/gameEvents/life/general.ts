@@ -1144,6 +1144,7 @@ export const meetLover = createEvent.regular({
   actions: [
     action('Gladly!').do(pregnancyChance('pregnantLover')).log('You enjoy a pleasurable day with your lover'),
     action('Pass up on it'),
+    action('Break up').do(setCharacterFlag('lover', false)).log('You break up with your lover'),
   ],
 });
 
