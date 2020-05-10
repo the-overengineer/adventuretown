@@ -628,7 +628,7 @@ export const adventurersInTown = createEvent.regular({
   meanTimeToHappen: 2 * 365,
   condition: _ => !_.worldFlags.adventurers && !_.worldFlags.adventurerKeep,
   title: 'Adventurers in town',
-  getText: _ => `A part of adventurers have taken residence in town for the time being, keeping themselves busy
+  getText: _ => `A party of adventurers have taken residence in town for the time being, keeping themselves busy
     either adventuring or drinking`,
   actions: [
     {
