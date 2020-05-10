@@ -60,7 +60,7 @@ export const orcsWreckDefences = createEvent.triggered({
 
 export const orcsTakeChild = createEvent.triggered({
   title: `Orcs take child`,
-  getText: _ => `The fighting in the town is fierce, but if finally abates. But when you come home, you discover a great tragedy.
+  getText: _ => `The fighting in the area is fierce, but if finally abates. But when you come to your house, you discover a great tragedy.
     It would seem that the orcs have taken one of your children away, probably to serve as their slave`,
   actions: [
     {
@@ -76,7 +76,7 @@ export const orcsTakeChild = createEvent.triggered({
 
 export const orcsKillSpouse = createEvent.triggered({
   title: 'Spouse slain',
-  getText: _ => `The fighting in the town is fierce, but it finally abates. But when you come home, you discover a great tragedy.
+  getText: _ => `The fighting in the area is fierce, but it finally abates. But when you look to those fallen around you, you discover a great tragedy.
     Your spouse lies on the ground in a pool of blood, slain by the orc attackers`,
   actions: [
     {
@@ -91,7 +91,7 @@ export const orcsKillSpouse = createEvent.triggered({
 
 export const orcsWoundYou = createEvent.triggered({
   title: 'Wounded by orcs',
-  getText: _ => `The fighting in the town is fierce, but it finally abates. When it is all over, you are alive, but you have suffered
+  getText: _ => `The fighting in the area is fierce, but it finally abates. When it is all over, you are alive, but you have suffered
     wounds that will stay with you for the rest of your life`,
   actions: [
     {
@@ -106,14 +106,14 @@ export const orcsWoundYou = createEvent.triggered({
 
 export const killedSomeOrcs = createEvent.triggered({
   title: 'Orc slayer',
-  getText: _ => `You make a good show for yourself in the streets. Though your arm hurts and you have suffered many minor
-    wounds by the end of it, you have showed those orcs. The townspeople shower you with praise`,
+  getText: _ => `You make a good show for yourself in the fight. Though your arm hurts and you have suffered many minor
+    wounds by the end of it, you have showed those orcs. The locals shower you with praise`,
   actions: [
     {
       text: 'I am the orcslayer',
       perform: compose(
         changeStat('physical', 1),
-        changeResource('renown', 50),
+        changeResource('renown', 100),
         notify('You have made a name for yourself in the fight against the orcs'),
       ),
     },
@@ -122,7 +122,7 @@ export const killedSomeOrcs = createEvent.triggered({
 
 export const orcsRobYou = createEvent.triggered({
   title: 'Robbed by orcs',
-  getText: _ => `The fighting in the streets is fierce, but finally abates. But when you come home, you discover that the orcs
+  getText: _ => `The fighting is fierce, but finally abates. But when you come to your house, you discover that the orcs
     seem to have been the first. Some of your belongings are missing`,
   actions: [
     {
@@ -150,8 +150,8 @@ export const orcsKillYou = createEvent.triggered({
 
 export const orcsWinRaiding = createEvent.triggered({
   title: `Orcs raid town`,
-  getText: _ => `The orc raiders break through into the village, turning around to stealing what they can, and killing those in
-    their way. They are in the streets, in the houses, without mercy`,
+  getText: _ => `The orc raiders break through into the defended area, turning around to stealing what they can, and killing those in
+    their way. They are everywhere, killing and looting without mercy`,
   actions: [
     {
       text: 'Try to survive',
@@ -210,7 +210,7 @@ export const orcsSettle = createEvent.regular({
 });
 
 export const orcsGiveUpNotWorthIt = createEvent.regular({
-  meanTimeToHappen: 2 * 365,
+  meanTimeToHappen: 3 * 365,
   condition: _ => _.worldFlags.orcs!
     && (_.town.prosperity <= Prosperity.Poor || _.town.fortification >= Fortification.Walls || _.worldFlags.adventurerKeep!),
   title: `Orcs scatter`,
@@ -228,7 +228,7 @@ export const orcsGiveUpNotWorthIt = createEvent.regular({
 });
 
 export const orcsGiveUpRandomly = createEvent.regular({
-  meanTimeToHappen: 5 * 365,
+  meanTimeToHappen: 10 * 365,
   condition: _ => _.worldFlags.orcs!,
   title: `Orcs migrate`,
   getText: _ => `The tribe of orcs that has been plaguing the area decide that there are richer areas to plunder, and move on.
@@ -245,7 +245,7 @@ export const orcsGiveUpRandomly = createEvent.regular({
 });
 
 export const goblinsSettle = createEvent.regular({
-  meanTimeToHappen: 2 * 365,
+  meanTimeToHappen: 3 * 365,
   condition: _ => !_.worldFlags.goblins
     && _.town.prosperity > Prosperity.DirtPoor
     && _.town.fortification < Fortification.Walls
@@ -264,7 +264,7 @@ export const goblinsSettle = createEvent.regular({
 });
 
 export const goblinsGiveUp = createEvent.regular({
-  meanTimeToHappen: 365,
+  meanTimeToHappen: 2 * 365,
   condition: _ => _.worldFlags.goblins!
     && (_.town.prosperity === Prosperity.DirtPoor || _.town.fortification >= Fortification.Palisade || _.worldFlags.adventurerKeep!),
   title: 'Goblins move on',
@@ -281,7 +281,7 @@ export const goblinsGiveUp = createEvent.regular({
 });
 
 export const goblinsMigrate = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
+  meanTimeToHappen: 5 * 365,
   condition: _ => _.worldFlags.goblins!,
   title: 'Goblins move on',
   getText: _ => `The local tribe of goblins migrate away from the area, seeking new and exciting places to plunder`,
@@ -881,5 +881,38 @@ export const dragonDestroysBandits = createEvent.regular({
     killing every last one of them`,
   actions: [
     action('At least some good news').do(setWorldFlag('bandits', false)).log('The dragon kills all the bandits in the area'),
+  ],
+});
+
+export const farmRaidingStartsFamine = createEvent.triggered({
+  title: 'Build more farms',
+  getText: `With so many farms burned down, the supply of food into the town is starting to dwindle. Soon, there will not
+    be enough to eat...`,
+  actions: [
+    action('Uh-oh...').do(setWorldFlag('famine')).log(`With the orc raids eliminating food supply, a famine has started`),
+  ],
+});
+
+export const farmsEndureRaiding = createEvent.triggered({
+  title: 'Farms endure',
+  getText: `Though many farms have been attacked, the farmers seem to endure for the time being. Hopefully, in time they
+    will recover, as long as the orcs do not keep raiding`,
+  actions: [
+    action('Good...').log('The orc raids were fierce, but did not manage to disrupt the farming community'),
+  ],
+});
+
+export const orcsRaidFarms = createEvent.regular({
+  meanTimeToHappen: 18 * 30,
+  condition: _ => _.worldFlags.orcs!,
+  title: 'Orcs raid farms',
+  getText: `The orcs in the area have started attacking the mostly unprotected farms. They seem to show little
+    mercy, killing or burning down everyone and everything in sight`,
+  actions: [
+    action('Not my farm!').when(_ => _.characterFlags.farmland!).do(setCharacterFlag('farmland', false)).log(
+      'The orc raiders burn down the farmlands you have purchased, nothing remains',
+    ),
+    action('Not all those farms!').do(triggerEvent(farmRaidingStartsFamine).onlyWhen(_ => !_.worldFlags.famine).orTrigger(farmsEndureRaiding)),
+    action('Defend the farm I work on!').do(triggerEvent(orcsWinRaiding)),
   ],
 });

@@ -144,7 +144,7 @@ export const mercenariesFoughtOff = createEvent.triggered({
 
 export const escapedFromMercenaries = createEvent.triggered({
   title: 'Escaped!',
-  getText: `You are outnumbered, and certainly outgunned. When all is done, you must make a run for it. The few of your guards that still
+  getText: `You are outnumbered, and certainly outmatched. When all is done, you must make a run for it. The few of your guards that still
     stand are cut down in a valiant effort to cover your escape. You are not left unwounded, but you have escaped with your life. You return
     the next day with a larger group of guards, but the inside of the warehouse now has no trace of what you've seen`,
   actions: [
