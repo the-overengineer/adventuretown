@@ -82,6 +82,7 @@ export const campaignStart = createEvent.regular({
   meanTimeToHappen: 4 * 365,
   condition: _ => !isInCouncil(_)
     && !_.characterFlags.campaign
+    && (_.character.profession === Profession.Politician || _.character.professionLevel === ProfessionLevel.Leadership)
     && !hasLimitedRights(_, _.character),
   title: 'Campaigning',
   getText: _ => `A seat is now open in the ruling council. You are eligible for the spot, but you would have to campaign for it.
