@@ -247,12 +247,32 @@ export const childStarves = createEvent.regular({
 
 export const marryOffChild = createEvent.regular({
   meanTimeToHappen: 2 * 365,
-  condition: state => state.relationships.children.filter((it) => isOppressed(state, it) && getAge(it.dayOfBirth, state.daysPassed) >= 14).length > 0,
+  condition: _ => _.relationships.children.filter((it) => isOppressed(_, it) && getAge(it.dayOfBirth, _.daysPassed) >= 14).length > 0,
   title: 'Marry off a child',
   getText: `You have a child of an age to marry who cannot find work and contribute to the household. They could be married off so somebody else
     has the responsibility of taking care of them`,
   actions: [
     action('Marry them off').do(marryOffRandomChild).log('You marry off one of your children and no longer need to take care of them'),
     action('Keep them with me'),
+  ],
+});
+
+export const childrenAreExpensive = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.relationships.children.filter((it) => getAge(it.dayOfBirth, _.daysPassed) < 14).length > 2,
+  title: 'Child expenses',
+  getText: `Having some many children turns out to be quite expensive at times. Recently they have incurred additional costs`,
+  actions: [
+    action('I still love them').resourceLosePercentage('coin', 5).log('Your children incur additional costs'),
+  ],
+});
+
+export const shamedByChildren = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.relationships.children.filter((it) => getAge(it.dayOfBirth, _.daysPassed) < 14).length > 0,
+  title: 'Shamed by children',
+  getText: `"Why is that man so fat?" your child asks while pointing at one of the town council members`,
+  actions: [
+    action('Shhh!').resourceLosePercentage('renown', 5).log('One of your children shames you in public'),
   ],
 });
