@@ -203,7 +203,7 @@ const routeDescription: Record<Route, string> = {
   [Route.Sea]: 'sailing the seas',
   [Route.Road]: 'on the roads',
   [Route.Desert]: 'in the dry desert',
-  [Route.Jungle]: 'in a thick jungle,'
+  [Route.Jungle]: 'in a thick jungle',
 }
 
 const routeAttacker: Record<Route, string> = {
@@ -413,7 +413,7 @@ export const transportLostAdventure = createEvent.regular({
   meanTimeToHappen: 365,
   condition: _ => _.characterFlags.onMerchantAdventure! && getRetinueSize(_) > RetinueSize.Single,
   title: 'Lost!',
-  getText: _ => `While ${describeRoute(_)}, your party separates. Once you have reunited, you find that you have list ${describeTransport(_)}.
+  getText: _ => `While ${describeRoute(_)}, your party separates. Once you have reunited, you find that you have lost ${describeTransport(_)}.
     Your merry band is no longer ${describeRetinue(_)}`,
   actions: [
     action('Difficult times').and(shrinkRetinueSize).log('Some of your group is lost in the area'),
