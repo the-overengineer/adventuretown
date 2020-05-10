@@ -189,7 +189,6 @@ export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState =>
   state.characterFlags.focusFun ? changeFinance('renownIncome', 1) : undefined,
   state.characterFlags.gardener ? changeFinance('foodIncome', 1) : undefined,
   state.characterFlags.poet ? changeFinance('renownIncome', 1) : undefined,
-  state.characterFlags.slaves ? changeFinance('coinIncome', 1) : undefined,
   state.characterFlags.slaves ? changeFinance('foodExpenses', 1) : undefined,
   state.characterFlags.slaves ? changeFinance('renownIncome', 1) : undefined,
   state.worldFlags.famine ? changeFinance('foodIncome', -2) : undefined,
