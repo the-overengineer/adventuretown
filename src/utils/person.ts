@@ -164,10 +164,12 @@ export const startJob = (profession: Profession, professionLevel: ProfessionLeve
     profession,
     professionLevel,
   },
-  characterFlags: {
+  characterFlags: profession !== state.character.profession ? {
     ...state.characterFlags,
     jobNeglect: undefined,
-  },
+    onMerchantAdventure: undefined,
+    preparingMerchantAdventure: undefined,
+  } : state.characterFlags,
 });
 
 export const removeJob =  (state: IGameState): IGameState => ({
@@ -180,6 +182,8 @@ export const removeJob =  (state: IGameState): IGameState => ({
   characterFlags: {
     ...state.characterFlags,
     jobNeglect: undefined,
+    onMerchantAdventure: undefined,
+    preparingMerchantAdventure: undefined,
   },
 });
 

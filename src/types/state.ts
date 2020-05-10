@@ -107,6 +107,8 @@ export type CharacterFlag =
   | 'backedCityCouncil'
   | 'spouseLove'
   | 'spouseResent'
+  | 'preparingMerchantAdventure'
+  | 'onMerchantAdventure'
   ;
 
 export type WorldFlag =
