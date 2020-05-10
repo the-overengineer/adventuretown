@@ -356,7 +356,7 @@ export const adventurersAccuse = createEvent.regular({
     },
     {
       condition: _ => _.character.charm >= 4,
-      text: 'Charm with them',
+      text: 'Charm them',
       perform: triggerEvent(adventurersAccuseCharmSuccess)
           .multiplyByFactor(1.5, _ => _.character.charm >= 6)
           .multiplyByFactor(2, _ => _.character.charm >= 8)
@@ -435,7 +435,7 @@ export const adventurersWantReward = createEvent.regular({
     },
     {
       condition: _ => _.character.charm >= 4,
-      text: 'Charm with them',
+      text: 'Charm them',
       perform: triggerEvent(adventurersAccuseCharmSuccess)
           .multiplyByFactor(1.5, _ => _.character.charm >= 6)
           .multiplyByFactor(2, _ => _.character.charm >= 8)
