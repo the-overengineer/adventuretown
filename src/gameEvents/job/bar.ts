@@ -58,8 +58,8 @@ export const barFightFightOk = createEvent.triggered({
   title: 'Cracking skulls',
   getText: _ => `You go in with your own bottle in hand, waving around. When the coast clear, the rowdiest of the bunch are on the ground and the rest scatter`,
   actions: [
-    action('I feel stronger!').when(_ => _.character.physical < 8).do(changeStat('physical', 1)).log('You broke up a fight, learning something of fighting in the process'),
-    action('That was easy!').when(_ => _.character.physical >= 8).log('You broke up a fight without breaking a sweat'),
+    action('I feel stronger!').when(_ => _.character.physical < 6).do(changeStat('physical', 1)).log('You broke up a fight, learning something of fighting in the process'),
+    action('That was easy!').when(_ => _.character.physical >= 6).log('You broke up a fight without breaking a sweat'),
   ],
 });
 
@@ -77,10 +77,10 @@ export const barFightTalkOk = createEvent.triggered({
   getText: _ => `You climb the bar and start talking. Just a few sentences are all it takes for the people to calm down and throw out the
     instigator of the fight`,
   actions: [
-    action('I feel like a smoother talker now').when(_ => _.character.charm < 8).do(changeStat('charm', 1)).log(
+    action('I feel like a smoother talker now').when(_ => _.character.charm < 6).do(changeStat('charm', 1)).log(
       'You broke up a bar fight with just words and learned something',
     ),
-    action('That was easy!').when(_ => _.character.charm >= 8).log('You easily talked people out of a bar fight'),
+    action('That was easy!').when(_ => _.character.charm >= 6).log('You easily talked people out of a bar fight'),
   ],
 });
 

@@ -12,7 +12,7 @@ const createEvent = eventCreator(GUARD_JOB_PREFIX);
 export const toughnessImproved = createEvent.regular({
   meanTimeToHappen: 9 * 30,
   condition: _ => _.character.profession === Profession.Guard
-    && _.character.physical < 5,
+    && _.character.physical < 6,
   title: 'Fitness improved',
   getText: _ => `Chasing criminals, patrolling the walls and minor scuffles
     with the encroaching creatures have improved your fitness. You notice your

@@ -15,8 +15,8 @@ export const verminFightSuccess = createEvent.triggered({
   getText: _ => `By the time you are done smashing the vermin with a cudgel, the floor is sprayed with blood and tiny guts.
     It was a lot of running around and smacking, and the result isn't pretty, but they seem to frightened to come back`,
   actions: [
-    action('Good exercise!').when(_ => _.character.physical < 8).log('You scared the vermin away and got some exercise'),
-    action('Easy work').when(_ => _.character.physical >= 8).log('You easily disposed of the vermin'),
+    action('Good exercise!').when(_ => _.character.physical < 6).log('You scared the vermin away and got some exercise'),
+    action('Easy work').when(_ => _.character.physical >= 6).log('You easily disposed of the vermin'),
   ],
 });
 
@@ -35,10 +35,10 @@ export const verminPoisonSuccess = createEvent.triggered({
   getText: _ => `You check the traps the next morning, and you find a mess of dead rodents, lying around. The food is untouched!
     Your brilliant plan seems to have worked.`,
   actions: [
-    action('Good planning!').when(_ => _.character.intelligence < 6).do(changeStat('intelligence', 1)).log(
+    action('Good planning!').when(_ => _.character.intelligence < 5).do(changeStat('intelligence', 1)).log(
       'You defeated the rodents and grew your mind. Who thought poisoning could do that?'
     ),
-    action('What anyone with a brain would do').when(_ => _.character.intelligence >= 6).log(
+    action('What anyone with a brain would do').when(_ => _.character.intelligence >= 5).log(
       'You easily outsmarted and poisoned the rodents',
     ),
   ],
