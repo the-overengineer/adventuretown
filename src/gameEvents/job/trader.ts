@@ -468,7 +468,7 @@ export const newLandsDiscovered = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.characterFlags.onMerchantAdventure!,
   title: 'New Cultures!',
-  getText: _ => `While ${describeRoute(_)}, discover queer new lands, with unusual customs and knowledge unknown in your
+  getText: _ => `While ${describeRoute(_)}, you discover queer new lands, with unusual customs and knowledge unknown in your
     lands. Telling stories of this will increase your renown`,
   actions: [
     action('Adventure paying off').gainResource('renown', inIntRange(100, 300)).log('You are gaining fame as an explorer'),
