@@ -433,3 +433,27 @@ export const cheated = createEvent.regular({
     action('Am I that stupid?').resourceLosePercentage('coin', 1).log('You were naive at work, and you had to pay the price'),
   ],
 });
+
+export const jobWithoutPrestige = createEvent.regular({
+  meanTimeToHappen: 12 * 30,
+  condition: _ => _.resources.renown >= 100
+    && (_.character.professionLevel == null || _.character.professionLevel < ProfessionLevel.Medium),
+  title: 'Position without prestige',
+  getText: `Though you have influence in the town, people are starting to talk that it is odd that somebody
+    with so much influence should not have a meaningful job`,
+  actions: [
+    action('I am still important!').resourceLosePercentage('renown', 10).log('You lose some of your prestige due to not having meaningful employment'),
+  ],
+});
+
+export const jobWithLittlePrestige = createEvent.regular({
+  meanTimeToHappen: 9 * 30,
+  condition: _ => _.resources.renown >= 500
+    && (_.character.professionLevel == null || _.character.professionLevel < ProfessionLevel.Leadership),
+  title: 'Position with little prestige',
+  getText: `For all the influence you have accumulated, it is quickly running out without a meaningful position in society
+    from which you can exert influence. You are just another face in the streets`,
+  actions: [
+    action('I am still important!').resourceLosePercentage('renown', 10).log('You lose some of your prestige due to not having a leading role in society'),
+  ],
+});
