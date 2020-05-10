@@ -10,8 +10,6 @@ import {
   action,
   eventCreator,
 } from 'utils/events';
-import { compose } from 'utils/functional';
-import { notify } from 'utils/message';
 import {
   isInCouncil,
   startJob,
@@ -54,20 +52,13 @@ export const bribeOffered = createEvent.regular({
   getText: _ => `You have been offered a bribe to grease the wheels of bureaucracy. While doing so is
     not exactly legal, it could be beneficial if nobody discovers it`,
   actions: [
-    {
-      text: 'Accept',
-      perform: compose(
-        pickOne([
-          changeResource('coin', 50),
-          changeResourcePercentage('coin', 0.05),
-        ]),
-        setCharacterFlag('bribery', true),
-        notify('You take a bribe to help a fellow citizen resolve their political troubles'),
-      ),
-    },
-    {
-      text: 'Refuse',
-    },
+    action('Accept').do(
+      pickOne([
+        changeResource('coin', 50),
+        changeResourcePercentage('coin', 0.05),
+      ]),
+    ).and(setCharacterFlag('bribery')).log('You take a bribe to help a fellow citizen resolve their political troubles'),
+    action('Refuse'),
   ],
 });
 
@@ -77,25 +68,13 @@ export const taxCollection = createEvent.regular({
   title: 'Tax collection',
   getText: _ => `You have been tasked with collecting taxes in your area. How do you proceed?`,
   actions: [
-    {
-      text: 'I do my duty',
-    },
-    {
-      text: 'I put some into my pockets',
-      perform: compose(
-        changeResource('coin', 100),
-        setCharacterFlag('bribery', true),
-        notify('You use tax collection to increase your own wealth'),
-      ),
-    },
-    {
-      text: 'I collect less than necessary',
-      perform: compose(
-        changeResource('renown', 50),
-        setCharacterFlag('jobNeglect', true),
-        notify('You tax the people less than necessary. They love you, but you are not doing your job very well'),
-      ),
-    },
+    action('I do my duty'),
+    action('I put some into my pockets').gainResource('coin', 100).and(setCharacterFlag('bribery')).log(
+      'You use tax collection to increase your own wealth',
+    ),
+    action('I collect less than necessary').gainResource('renown', 50).and(setCharacterFlag('jobNeglect')).log(
+      'You tax the people less than necessary. They love you more, but you are not doing your job very well'
+    ),
   ],
 });
 
@@ -108,16 +87,8 @@ export const campaignStart = createEvent.regular({
   getText: _ => `A seat is now open in the ruling council. You are eligible for the spot, but you would have to campaign for it.
     Who it is of course depends on the current laws of it city - be it nobles, landowners, or the general population`,
   actions: [
-    {
-      text: 'I will campaign',
-      perform: compose(
-        startNewCampaign,
-        notify('You have started campaigning to join the town council'),
-      ),
-    },
-    {
-      text: 'My time has not yet come',
-    },
+    action('I will campaign').do(startNewCampaign).log('You have started campaigning to join the town council'),
+    action('My time has not yet come'),
   ],
 });
 
@@ -128,17 +99,10 @@ export const campaignFavour = createEvent.regular({
   getText: _ => `Your well-positioned friend who owes you a favour is offering to discharge that favour by helping
     sway the electors to your cause`,
   actions: [
-    {
-      text: 'All the help I can get',
-      perform: compose(
-        changeCampaignScore(200),
-        setCharacterFlag('friendsInHighPlaces', false),
-        notify('You make great strides in your campaign by calling in a favour'),
-      ),
-    },
-    {
-      text: 'Thank you, but no',
-    },
+    action('All the help I can get').do(changeCampaignScore(200)).and(setCharacterFlag('friendsInHighPlaces', false)).log(
+      'You make great strides in your campaign by calling in a favour'
+    ),
+    action('Thank you, but no'),
   ],
 });
 
@@ -149,14 +113,9 @@ export const campaignHindered = createEvent.regular({
   getText: _ => `You have made an influential enemy, and they seem to be doing anything in their power to
     hinder your campaigning efforts`,
   actions: [
-    {
-      text: 'Curses',
-      perform: compose(
-        changeCampaignScore(-200),
-        setCharacterFlag('enemiesInHighPlaces', false),
-        notify('Your campaign is disrupted by an enemy you made in the past'),
-      ),
-    },
+    action('Curses!').do(changeCampaignScore(-200)).and(setCharacterFlag('enemiesInHighPlaces', false)).log(
+      'Your campaign is disrupted by an enemy you made in the past',
+    ),
   ],
 });
 
@@ -166,39 +125,16 @@ export const campaignBribery = createEvent.regular({
   title: 'Bribe electors',
   getText: _ => `You could advance in your campaign by offering bribes to sway the electors`,
   actions: [
-    {
-      condition: _ => _.resources.coin >= 100,
-      text: 'Spread some bribes',
-      perform: compose(
-        changeResource('coin', -100),
-        changeCampaignScore(100),
-        setCharacterFlag('bribery', true),
-        notify('You bribe some key people that could influence your election'),
-      ),
-    },
-    {
-      condition: _ => _.resources.coin >= 250,
-      text: 'Spread a lot of bribes',
-      perform: compose(
-        changeResource('coin', -250),
-        changeCampaignScore(250),
-        setCharacterFlag('bribery', true),
-        notify('You bribe some key people that could influence your election'),
-      ),
-    },
-    {
-      condition: _ => _.resources.coin >= 500,
-      text: `Spend lavishly`,
-      perform: compose(
-        changeResource('coin', -500),
-        changeCampaignScore(500),
-        setCharacterFlag('bribery', true),
-        notify('You bribe some key people that could influence your election'),
-      ),
-    },
-    {
-      text: 'I will not stoop to this',
-    },
+    action('Spread some bribes').spendResource('coin', 100).and(changeCampaignScore(100)).and(setCharacterFlag('bribery')).log(
+      'You bribe some key people that could influence your election'
+    ),
+    action('Spread a lot of bribes').spendResource('coin', 250).and(changeCampaignScore(250)).and(setCharacterFlag('bribery')).log(
+      'You bribe some key people that could influence your election'
+    ),
+    action('Spend lavishly').spendResource('coin', 500).and(changeCampaignScore(500)).and(setCharacterFlag('bribery')).log(
+      'You bribe some key people that could influence your election'
+    ),
+    action('I will not stoop to this'),
   ],
 });
 

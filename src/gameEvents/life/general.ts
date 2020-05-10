@@ -677,6 +677,17 @@ export const costsOfLiving = createEvent.regular({
   ],
 });
 
+export const fameFades = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _=> _.resources.renown >= 200,
+  title: 'Fame fades',
+  getText: `The fame and renown you have acquired over the years is not what it used to be. Some of the old tales are no longer
+    being told, and some have been associated with other people, who had nothing to do with it`,
+  actions: [
+    action(`But I'm still important, right?`).resourceLosePercentage('renown', 15).log('Some of your old fame has faded away with time'),
+  ],
+});
+
 export const buryGold = createEvent.regular({
   meanTimeToHappen: 10 * 365,
   condition: _ => _.resources.coin >= 500 && !_.worldFlags.buriedGold,
