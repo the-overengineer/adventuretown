@@ -71,7 +71,7 @@ export const resurrectedByTemple = createEvent.triggered({
 
 export const dying = createEvent.triggered({
   title: 'The world fades',
-  getText: _ => `The world is fading fast before your eyes, strength draining out of you`,
+  getText: _ => `The world is fading fast before your eyes, Physical draining out of you`,
   actions: [
     action('Is this it?').do(
       triggerEvent(death).withWeight(2)
@@ -1144,5 +1144,85 @@ export const meetLover = createEvent.regular({
   actions: [
     action('Gladly!').do(pregnancyChance('pregnantLover')).log('You enjoy a pleasurable day with your lover'),
     action('Pass up on it'),
+  ],
+});
+
+export const ageLosePhysical = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => getAge(_.character.dayOfBirth, _.daysPassed) >= 40 && !_.characterFlags.focusPhysical && _.character.physical > 4,
+  title: 'Body weakens',
+  getText: `You are no longer as young as you were. With age, you notice that your body is not as fit and strong as it was before`,
+  actions: [
+    action('I feel older').and(changeStat('physical', -1)).log('Your body is slowly starting to go with age'),
+  ],
+});
+
+export const ageLoseIntelligence = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => getAge(_.character.dayOfBirth, _.daysPassed) >= 40 && !_.characterFlags.focusIntelligence && _.character.intelligence > 4,
+  title: 'Mind weakens',
+  getText: `You are no longer as young as you were. With age, you notice that your mind is less nimble`,
+  actions: [
+    action('I feel older').and(changeStat('intelligence', -1)).log('Your mind is slowly starting to slow down with age'),
+  ],
+});
+
+export const ageLoseEducation = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => getAge(_.character.dayOfBirth, _.daysPassed) >= 40 && !_.characterFlags.focusEducation && _.character.education > 4,
+  title: 'Memory weakens',
+  getText: `You are no longer as young as you were. With age, you notice that your memory isn't want it once was`,
+  actions: [
+    action('I feel older').and(changeStat('education', -1)).log('You sometimes forget things'),
+  ],
+});
+
+export const ageLoseCharm = createEvent.regular({
+  meanTimeToHappen: 3 * 365,
+  condition: _ => getAge(_.character.dayOfBirth, _.daysPassed) >= 40 && !_.characterFlags.focusCharm && _.character.charm > 4,
+  title: 'Looks fade',
+  getText: `You are no longer as young as you were. With age, you notice that you are less attractive than in your youth`,
+  actions: [
+    action('I feel older').and(changeStat('charm', -1)).log('Your looks slowly starting to go with age'),
+  ],
+});
+
+export const oldLosePhysical = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => getAge(_.character.dayOfBirth, _.daysPassed) >= 60 && !_.characterFlags.focusPhysical && _.character.physical > 0,
+  title: 'Body weakens',
+  getText: `You are one of the oldest people in town. With advanced age, you notice that your body is not as fit and strong as it was before`,
+  actions: [
+    action('I feel ancient').and(changeStat('physical', -1)).log('Your body is old and rickety'),
+  ],
+});
+
+export const oldLoseIntelligence = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => getAge(_.character.dayOfBirth, _.daysPassed) >= 60 && !_.characterFlags.focusIntelligence && _.character.intelligence > 0,
+  title: 'Mind weakens',
+  getText: `You are one of the oldest people in town. With advanced age, you notice that your mind is less nimble`,
+  actions: [
+    action('I feel ancient').and(changeStat('intelligence', -1)).log('Your mind is going quickly'),
+  ],
+});
+
+export const oldLoseEducation = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => getAge(_.character.dayOfBirth, _.daysPassed) >= 60 && !_.characterFlags.focusEducation && _.character.education > 0,
+  title: 'Memory weakens',
+  getText: `You are one of the oldest people in town. With advanced age, you notice that your memory isn't want it once was`,
+  actions: [
+    action('I feel ancient').and(changeStat('education', -1)).log('You often forget things'),
+  ],
+});
+
+export const oldLoseCharm = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => getAge(_.character.dayOfBirth, _.daysPassed) >= 60 && !_.characterFlags.focusCharm && _.character.charm > 0,
+  title: 'Looks fade',
+  getText: `You are one of the oldest people in town. With advanced age, you notice that you are less attractive than in your youth`,
+  actions: [
+    action('I feel ancient').and(changeStat('charm', -1)).log('Your looks decay rapidly'),
   ],
 });
