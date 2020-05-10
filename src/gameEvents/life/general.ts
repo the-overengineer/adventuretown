@@ -1135,3 +1135,14 @@ export const civilWarRobbed = createEvent.regular({
     },
   ],
 });
+
+export const meetLover = createEvent.regular({
+  meanTimeToHappen: 365,
+  condition: _ => _.characterFlags.lover!,
+  title: 'Meeting a lover',
+  getText: `After some time, you have an opportunity to meet up with your lover again for some enjoyable times`,
+  actions: [
+    action('Gladly!').do(pregnancyChance('pregnantLover')).log('You enjoy a pleasurable day with your lover'),
+    action('Pass up on it'),
+  ],
+});
