@@ -41,25 +41,25 @@ import {
 } from './town';
 
 enum VotingMatter {
-  EstablishGuard,
-  AbolishGuard,
-  FinanceTemple,
-  AbolishTax,
-  SetFlatTax,
-  SetProgressiveTax,
-  BuildFortifications,
-  TearDownFortifications,
-  IncreaseMenRights,
-  IncreaseWomenRights,
-  IncreasePoorRights,
-  DecreasePoorRights,
+  EstablishGuard = 'EstablishGuard',
+  AbolishGuard = 'AbolishGuard',
+  FinanceTemple = 'FinanceTemple',
+  AbolishTax = 'AbolishTax',
+  SetFlatTax = 'SetFlatTax',
+  SetProgressiveTax = 'SetProgressiveTax',
+  BuildFortifications = 'BuildFortifications',
+  TearDownFortifications = 'TearDownFortifications',
+  IncreaseMenRights = 'IncreaseMenRights',
+  IncreaseWomenRights = 'IncreaseWomenRights',
+  IncreasePoorRights = 'IncreasePoorRights',
+  DecreasePoorRights = 'DecreasePoorRights',
 }
 
 enum VoteDirection {
-  StronglyAgainst,
-  Against,
-  For,
-  StronglyFor
+  StronglyAgainst = 'StronglyAgainst',
+  Against = 'Against',
+  For = 'For',
+  StronglyFor = 'StronglyFor',
 }
 
 const VOTING_MATTER_KEY = 'votingMatter';
@@ -389,7 +389,7 @@ export const removeBackedCouncillor = compose(
 export const generateBackableCandidate = (state: IGameState) => {
   const focus = getCityFocus(state);
   const otherFocus = pickOne(
-    enumValues<VotingMatter>(VotingMatter).filter((matter) => matter !== focus && !voteOpposedType[matter].has(matter)),
+    enumValues<VotingMatter>(VotingMatter).filter((matter) => matter !== focus && voteCondition[matter](state) && !voteOpposedType[matter].has(matter)),
   );
 
   // Generate candidate that agrees with you, plus has one other goal
