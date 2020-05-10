@@ -457,7 +457,7 @@ export const decreaseSizeDueToEconomy = createEvent.regular({
     {
       text: 'Interesting',
       perform: compose(
-        increaseSize,
+        decreaseSize,
         notify('People move out in search of better opportunities'),
       ),
     },
