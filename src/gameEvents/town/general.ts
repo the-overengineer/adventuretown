@@ -632,7 +632,7 @@ export const startAgriculturalRevolution = createEvent.regular({
 });
 
 export const agricultureOutdated = createEvent.regular({
-  meanTimeToHappen: 30 * 365,
+  meanTimeToHappen: 15 * 365,
   condition: _ => _.worldFlags.agriculturalRevolution!,
   title: 'Agriculture normalises',
   getText: `The improvements performed to the agriculture in times past are no longer relevant,
