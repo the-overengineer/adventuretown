@@ -707,7 +707,7 @@ export const dragonSpotted = createEvent.regular({
 });
 
 export const dragonLeaves = createEvent.regular({
-  meanTimeToHappen: 365,
+  meanTimeToHappen: 2 * 365,
   condition: _ => _.worldFlags.dragon! && ((_.town.size < Size.Large && _.town.prosperity < Prosperity.WellOff) || _.town.fortification === Fortification.MoatAndCastle),
   title: 'Dragon leaves',
   getText: `It would appear that the dragon has left the area, finding nothing of interest that would make it remain here`,
