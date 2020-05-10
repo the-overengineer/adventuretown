@@ -318,7 +318,6 @@ const doConvince = (target: VoteDirection) => (state: IGameState): IGameState =>
   const existingVoteDirection = parseInt(String(getTmp(VOTING_DIRECTION_KEY, target)(state)), 10) as VoteDirection;
   const costCalculator = voteAgainst.has(target) ? getCostSwayAgainst : getCostSwayFor;
   const cost = costCalculator(existingVoteDirection);
-  console.log('[DEBUG] convincing', target, existingVoteDirection, cost);
   return changeResource('renown', -cost)(state);
 };
 
