@@ -293,7 +293,7 @@ export const promiseWallsOk = createEvent.regular({
   meanTimeToHappen: 30,
   condition: _ => isInCouncil(_)
     && _.characterFlags.promisedWalls!
-    && getTmp(FORTIFICATIONS_AT_PROMISE_KEY, _.town.fortification)(_) > _.town.fortification,
+    && getTmp(FORTIFICATIONS_AT_PROMISE_KEY, _.town.fortification)(_) < _.town.fortification,
   title: 'Delivered on promise',
   getText: `You have promised to improve fortifications, and that has happened. The people are happy`,
   actions: [
@@ -309,7 +309,7 @@ export const promiseWallsBad = createEvent.regular({
   meanTimeToHappen: 30,
   condition: _ => isInCouncil(_)
     && _.characterFlags.promisedWalls!
-    && getTmp(FORTIFICATIONS_AT_PROMISE_KEY, _.town.fortification)(_) < _.town.fortification,
+    && getTmp(FORTIFICATIONS_AT_PROMISE_KEY, _.town.fortification)(_) > _.town.fortification,
   title: 'Went back on promise',
   getText: `You have promised to improve fortifications, and the exact opposite has happened. People are not very happy with you`,
   actions: [
@@ -373,7 +373,7 @@ export const promiseSetTownGuard = createEvent.regular({
   meanTimeToHappen: 30,
   condition: _ => isInCouncil(_)
     && _.characterFlags.promisedTownGuard!
-    && _.worldFlags.temple!,
+    && _.worldFlags.townGuard!,
   title: 'Delivered on promise',
   getText: `You have promised to make sure a town guard is established to defend the town, and that is now so`,
   actions: [
