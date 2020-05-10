@@ -184,7 +184,7 @@ export const updateWealth = (state: IGameState): IGameState => ({
 });
 
 export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState => compose(...[
-  state.characterFlags.criminalActivity ? changeFinance('coinIncome', 1) : undefined,
+  state.characterFlags.criminalActivity ? changeFinance('coinIncome', 2) : undefined,
   state.characterFlags.focusFun ? changeFinance('coinExpenses', 1) : undefined,
   state.characterFlags.focusFun ? changeFinance('renownIncome', 1) : undefined,
   state.characterFlags.gardener ? changeFinance('foodIncome', 1) : undefined,
@@ -196,7 +196,6 @@ export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState =>
   state.worldFlags.tradeDisrupted! && !hasFixedIncome(state.character) ? changeFinance('coinIncome', -1) : undefined,
   state.worldFlags.agriculturalRevolution ? changeFinance('foodIncome', 2) : undefined,
   state.characterFlags.farmland! ? changeFinance('foodIncome', 1) : undefined,
-  state.characterFlags.criminalActivity ? changeFinance('coinIncome', 1) : undefined,
   state.characterFlags.focusWealth ? changeFinance('coinIncome', 1) : undefined,
   state.characterFlags.focusFood ? changeFinance('foodIncome', 1) : undefined,
   state.characterFlags.focusRenown ? changeFinance('renownIncome', 1) : undefined,
