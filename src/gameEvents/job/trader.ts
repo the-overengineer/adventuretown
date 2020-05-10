@@ -247,6 +247,8 @@ const shrinkRetinueSize = (_: IGameState) => setTmp(RETINUE_SIZE_KEY, Math.max(R
 const clearTripData = compose(
   removeTmp(RETINUE_SIZE_KEY),
   removeTmp(ROUTE_KEY),
+  setCharacterFlag('onMerchantAdventure', false),
+  setCharacterFlag('preparingMerchantAdventure', false),
 );
 const concludeMerchantAdventure = (_: IGameState) => {
   const factor = getRetinueSize(_) + 1;
