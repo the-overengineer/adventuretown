@@ -302,7 +302,7 @@ export const startMerchantAdventure = createEvent.regular({
 });
 
 export const canGrowRetinueSize = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: 4 * 30,
   condition: _ => _.characterFlags.preparingMerchantAdventure!,
   title: 'Merchant adventure recruitment',
   getText: _ => `You have a chance to grow your retinue of followers, as to round up the skills that might be needed for this quest,
@@ -320,7 +320,7 @@ export const canGrowRetinueSize = createEvent.regular({
 });
 
 export const retinueSizeShrinks = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: 9 * 30,
   condition: _ => _.characterFlags.preparingMerchantAdventure!
     && (_.town.size < Size.Average || _.worldFlags.sickness! || _.worldFlags.famine! || _.resources.renown < 500),
   title: 'Recruits dry up',
@@ -331,7 +331,7 @@ export const retinueSizeShrinks = createEvent.regular({
 });
 
 export const adventurersJoinMerchantAdventure = createEvent.regular({
-  meanTimeToHappen: 18 * 30,
+  meanTimeToHappen: 6 * 30,
   condition: _ => _.characterFlags.preparingMerchantAdventure! && _.worldFlags.adventurers!,
   title: 'Adventurers offer aid',
   getText: _ => `A group of adventurer who find themselves in the area have taken an interest in your merchant adventure, hearing of it in
