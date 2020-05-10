@@ -838,3 +838,36 @@ export const famineDisruptsEconomy = createEvent.regular({
     action('Troubling').do(decreaseProsperity).log('With famine ravaging the workforce, the economy is crumbling'),
   ],
 });
+
+export const blackMarketGrowsTown = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.worldFlags.blackMarket! && _.town.size < Size.Average,
+  title: 'Black market helps town grow',
+  getText: `With the black market in town, there was always untaxed business to do, and more people going in and out
+    of town. More and more choose to stay and conduct their business here`,
+  actions: [
+    action('Fascinating').do(increaseSize).log('The town grows as the black market draws more people'),
+  ],
+});
+
+export const blackMarketDrawsBandits = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.worldFlags.blackMarket! && !_.worldFlags.bandits,
+  title: 'Black market draws bandits',
+  getText: `Some of their unsavoury sort must have seen the black market and the business it draws into the town.
+    A group of them soon establish themselves in the area`,
+  actions: [
+    action('Criminals, all').do(setWorldFlag('bandits')).log('Drawn by the black market, bandits establish themselves'),
+  ],
+});
+
+export const blackMarketDrawsAdventurers = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: _ => _.worldFlags.blackMarket! && !_.worldFlags.adventurers && !_.worldFlags.adventurerKeep,
+  title: `Black market draws adventurers`,
+  getText: `Though they present themselves as heroes more often than not, adventurers have much of interest to find
+    in the town's black market`,
+  actions: [
+    action('Some heroes').do(setWorldFlag('adventurers')).log('Adventurers arrive to do business in the black market'),
+  ],
+});

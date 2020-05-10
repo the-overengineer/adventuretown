@@ -266,7 +266,7 @@ export const spouseBecomesPregnant = createEvent.regular({
 });
 
 export const becomePregnantWithSpouseLove = createEvent.regular({
-  meanTimeToHappen: 3 * 30,
+  meanTimeToHappen: 6 * 30,
   condition: _ => _.character.gender === Gender.Female
     && _.relationships.spouse != null
     && !_.characterFlags.pregnant
@@ -283,7 +283,7 @@ export const becomePregnantWithSpouseLove = createEvent.regular({
 });
 
 export const spouseBecomesPregnantLove = createEvent.regular({
-  meanTimeToHappen: 3 * 30,
+  meanTimeToHappen: 6 * 30,
   condition: _ => _.character.gender === Gender.Male
     && _.relationships.spouse != null
     && !_.worldFlags.spousePregnantDiscovered
@@ -508,6 +508,6 @@ export const leadershipSpouseBoost = createEvent.regular({
   getText: `Your spouse's relationship with you seems to be better now that you are in a position of leadership. Do they find you more attractive?
     Or is it just that they can stroke their ego by talking about you to the neighbours?`,
   actions: [
-    action(`Either way, I won't complains`).do(improveSpouseRelationship),
+    action(`Either way, I won't complain`).do(improveSpouseRelationship),
   ],
 });

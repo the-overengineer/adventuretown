@@ -617,21 +617,8 @@ export const gardenEaten = createEvent.regular({
   getText: _ => `For some time now, pests have been attacking your garden and eating your plants.
     You have tried everything but you are now close to admitting defeat`,
   actions: [
-    {
-      condition: _ => _.resources.coin >= 50,
-      text: 'Hire expensive expert',
-      perform: compose(
-        changeResource('coin', -50),
-        notify('You hire an expensive expert to take care of pests in your garden'),
-      ),
-    },
-    {
-      text: 'Damnation!',
-      perform: compose(
-        setCharacterFlag('gardener', false),
-        notify('Your garden is no more'),
-      ),
-    },
+    action('Hire expert').spendResource('coin', 100).log('You hire an expert to take care of the pests'),
+    action('Damnation!').do(setCharacterFlag('gardener', false)).log('Your garden is no more'),
   ],
 });
 
@@ -642,13 +629,7 @@ export const gardenDestroyedByWeather = createEvent.regular({
   getText: _ => `An early and harsh winter has destroyed your garden. There is nothing to be done against
     the merciless elements.`,
   actions: [
-    {
-      text: 'Damnation!',
-      perform: compose(
-        setCharacterFlag('gardener', false),
-        notify('Your garden is no more'),
-      ),
-    },
+    action('Damnation!').do(setCharacterFlag('gardener', false)).log('Your garden is no more'),
   ],
 });
 
@@ -659,26 +640,9 @@ export const gardenMaintenance = createEvent.regular({
   getText: _ => `Like everything else, your garden requires maintenance. Unless you want
     to see it fail, you will need to invest some money in it`,
   actions: [
-    {
-      condition: _ => _.resources.coin >= 10,
-      text: 'Maintain the garden',
-      perform: compose(
-        changeResource('coin', -10),
-        notify('You invest some coin into maintaining your garden'),
-      ),
-    },
-    {
-      condition: _ => _.characterFlags.slaves!,
-      text: 'That is what I have slaves for',
-      perform: notify('Your slaves maintain your garden'),
-    },
-    {
-      text: 'Let it fail',
-      perform: compose(
-        setCharacterFlag('gardener', false),
-        notify('Your garden fails due to lack of maintenance'),
-      ),
-    },
+    action('Maintain the garden').spendResource('coin', 50).log('You invest some coin into maintaining your garden'),
+    action('That is what I have slaves for').when(_ => _.characterFlags.slaves!).log('You command your slaves to take care of your garden'),
+    action('Let it fail').do(setCharacterFlag('gardener', false)).log('Your garden fails due to lack of maintenance'),
   ],
 });
 

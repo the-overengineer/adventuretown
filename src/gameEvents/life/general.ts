@@ -111,7 +111,7 @@ export const noMoney = createEvent.regular({
     action('Beg for coin').spendResource('renown', 50).gainResource('coin', 15).log(
       'You shame yourself begging for coin in the town square',
     ),
-    action('Sell your youngest into slavery').gainResource('coin', 50).and(removeLastChild).log(
+    action('Sell your youngest into slavery').when(_ => _.relationships.children.length > 0).gainResource('coin', 50).and(removeLastChild).log(
       'You have sold your youngest child into slavery. Their life will not be pleasant, but you can survive another day',
     ),
   ],
@@ -128,7 +128,7 @@ export const noFood = createEvent.regular({
     action('Give up on life').do(triggerEvent(death)),
     action('Buy food urgently').spendResource('coin', 20).gainResource('food', 15).log('You buy food, at a high price'),
     action('Beg for food').spendResource('renown', 30).gainResource('food', 15).log('You shame yourself by begging for food in the town square'),
-    action('Sell your youngest into slavery').gainResource('food', 50).and(removeLastChild).log(
+    action('Sell your youngest into slavery').when(_ => _.relationships.children.length > 0).gainResource('food', 50).and(removeLastChild).log(
       'You have sold your youngest child into slavery. Their life will not be pleasant, but you can survive another day',
     ),
   ],
