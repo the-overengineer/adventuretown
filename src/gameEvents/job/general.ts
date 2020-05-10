@@ -457,3 +457,14 @@ export const jobWithLittlePrestige = createEvent.regular({
     action('I am still important!').resourceLosePercentage('renown', 10).log('You lose some of your prestige due to not having a leading role in society'),
   ],
 });
+
+export const pushedOut = createEvent.regular({
+  meanTimeToHappen: 4 * 365,
+  condition: _ => _.character.professionLevel === ProfessionLevel.Leadership && _.resources.renown >= 500,
+  title: 'Pushed out',
+  getText: `You are being pressured by others in your business to leave your prestigious position. You will need to pull some strings
+    to make sure you keep it`,
+  actions: [
+    action('I have contacts...').resourceLosePercentage('renown', 20).log('You pull some strings to stave away vultures trying to take away your business'),
+  ],
+});
