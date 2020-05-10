@@ -593,18 +593,10 @@ export const plantingAGarden = createEvent.regular({
     behind your house. It would take a little bit of money, but you could start a garden there, which would
     provide additional food`,
   actions: [
-    {
-      condition: _ => _.resources.coin >= 10,
-      text: 'Invest in a garden',
-      perform: compose(
-        setCharacterFlag('gardener', true),
-        changeResource('coin', -10),
-        notify('You pay for some seeds and tools, and start a garden in your yard'),
-      ),
-    },
-    {
-      text: `Rather not`,
-    },
+    action('Invest in a garden').spendResource('coin', 50).and(setCharacterFlag('gardener')).log(
+      'You pay for some seeds and tools, and start a garden in your yard',
+    ),
+    action('Rather not'),
   ],
 });
 
