@@ -381,21 +381,21 @@ export const adventurersSeekAdvice = createEvent.regular({
     {
       text: 'If you pay me',
       perform: compose(
-        changeResource('coin', 100),
+        changeResource('coin', 50),
         notify('The adventurers pay you for you sage advice, and leave satisfied'),
       ),
     },
     {
       text: 'If you feed me',
       perform: compose(
-        changeResource('food', 150),
+        changeResource('food', 75),
         notify('The adventurers give you large stores of food you for you sage advice, and leave satisfied'),
       ),
     },
     {
       text: 'If you tell everybody',
       perform: compose(
-        changeResource('renown', 75),
+        changeResource('renown', 40),
         notify('The adventurers agree to tell everybody that you gave them sage advice'),
       ),
     },
