@@ -80,7 +80,7 @@ export const taxCollection = createEvent.regular({
 
 export const campaignStart = createEvent.regular({
   meanTimeToHappen: 4 * 365,
-  condition: _ => isInCouncil(_)
+  condition: _ => !isInCouncil(_)
     && !_.characterFlags.campaign
     && !hasLimitedRights(_, _.character),
   title: 'Campaigning',
