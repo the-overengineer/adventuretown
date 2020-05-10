@@ -335,7 +335,7 @@ export const establishVotedLaw = (state: IGameState): IGameState => {
 };
 
 export const councilVotesNormally = (state: IGameState): IGameState => {
-  const direction = getTmp<VoteDirection>(VOTING_DIRECTION_KEY, VoteDirection.For)(state);
+  const direction = parseInt(String(getTmp(VOTING_DIRECTION_KEY, VoteDirection.For)(state)), 10) as VoteDirection;
 
   if (voteAgainst.has(direction)) {
     return compose(
