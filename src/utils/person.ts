@@ -102,6 +102,18 @@ export const removeRandomChild = (state: IGameState): IGameState => {
 };
 
 
+export const marryOffRandomChild = (state: IGameState): IGameState => {
+  const child = pickOne(state.relationships.children.filter((it) => isOppressed(state, it) && getAge(it.dayOfBirth, state.daysPassed) >= 14));
+  return {
+    ...state,
+    relationships: {
+      ...state.relationships,
+      children: state.relationships.children.filter((it) => it !== child),
+    },
+  };
+};
+
+
 export const newCharacter = (state: IGameState): IGameState => ({
   ...state,
   character: undefined as any,

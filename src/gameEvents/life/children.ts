@@ -1,14 +1,15 @@
 import { GenderEquality } from 'types/state';
-import { eventCreator } from 'utils/events';
+import { eventCreator, action } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
-import { createChild, findEmployableChild, hireEmployableChild, findFireableChild, fireFireableChild, removeRandomChild, isEmployable, worsenSpouseRelationship } from 'utils/person';
+import { createChild, findEmployableChild, hireEmployableChild, findFireableChild, fireFireableChild, removeRandomChild, isEmployable, worsenSpouseRelationship, marryOffRandomChild } from 'utils/person';
 import { changeResource } from 'utils/resources';
 import { isOppressed } from 'utils/town';
 import {
   setCharacterFlag,
   setWorldFlag,
 } from 'utils/setFlag';
+import { getAge } from 'utils/time';
 
 export const CHILDREN_PREFIX = 5_000;
 
@@ -241,5 +242,17 @@ export const childStarves = createEvent.regular({
         notify('Being without food for so long, your child has starved to death'),
       ),
     },
+  ],
+});
+
+export const marryOffChild = createEvent.regular({
+  meanTimeToHappen: 2 * 365,
+  condition: state => state.relationships.children.filter((it) => isOppressed(state, it) && getAge(it.dayOfBirth, state.daysPassed) >= 14).length > 0,
+  title: 'Marry off a child',
+  getText: `You have a child of an age to marry who cannot find work and contribute to the household. They could be married off so somebody else
+    has the responsibility of taking care of them`,
+  actions: [
+    action('Marry them off').do(marryOffRandomChild).log('You marry off one of your children and no longer need to take care of them'),
+    action('Keep them with me'),
   ],
 });

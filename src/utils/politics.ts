@@ -287,14 +287,14 @@ const voteAgainst: Set<VoteDirection> = new Set([
 ]);
 
 const canBribe = (target: VoteDirection) => (state: IGameState): boolean => {
-  const existingVoteDirection = parseInt(String(getTmp(VOTING_DIRECTION_KEY, target)(state)), 10) as VoteDirection;
+  const existingVoteDirection = getTmp(VOTING_DIRECTION_KEY, target)(state);
   const costCalculator = voteAgainst.has(target) ? getCostSwayAgainst : getCostSwayFor;
   const cost = costCalculator(existingVoteDirection);
   return state.resources.coin >= cost;
 };
 
 const doBribe = (target: VoteDirection) => (state: IGameState): IGameState => {
-  const existingVoteDirection = parseInt(String(getTmp(VOTING_DIRECTION_KEY, target)(state)), 10) as VoteDirection;
+  const existingVoteDirection = getTmp(VOTING_DIRECTION_KEY, target)(state);
   const costCalculator = voteAgainst.has(target) ? getCostSwayAgainst : getCostSwayFor;
   const cost = costCalculator(existingVoteDirection);
   if (cost > 0) {
@@ -308,14 +308,14 @@ const doBribe = (target: VoteDirection) => (state: IGameState): IGameState => {
 };
 
 const canConvince = (target: VoteDirection) => (state: IGameState): boolean => {
-  const existingVoteDirection = parseInt(String(getTmp(VOTING_DIRECTION_KEY, target)(state)), 10) as VoteDirection;
+  const existingVoteDirection = getTmp(VOTING_DIRECTION_KEY, target)(state);
   const costCalculator = voteAgainst.has(target) ? getCostSwayAgainst : getCostSwayFor;
   const cost = costCalculator(existingVoteDirection);
   return state.resources.renown >= cost;
 };
 
 const doConvince = (target: VoteDirection) => (state: IGameState): IGameState => {
-  const existingVoteDirection = parseInt(String(getTmp(VOTING_DIRECTION_KEY, target)(state)), 10) as VoteDirection;
+  const existingVoteDirection = getTmp(VOTING_DIRECTION_KEY, target)(state);
   const costCalculator = voteAgainst.has(target) ? getCostSwayAgainst : getCostSwayFor;
   const cost = costCalculator(existingVoteDirection);
   return changeResource('renown', -cost)(state);
@@ -335,7 +335,7 @@ export const establishVotedLaw = (state: IGameState): IGameState => {
 };
 
 export const councilVotesNormally = (state: IGameState): IGameState => {
-  const direction = parseInt(String(getTmp(VOTING_DIRECTION_KEY, VoteDirection.For)(state)), 10) as VoteDirection;
+  const direction = getTmp(VOTING_DIRECTION_KEY, VoteDirection.For)(state);
 
   if (voteAgainst.has(direction)) {
     return compose(
