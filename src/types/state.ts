@@ -136,19 +136,25 @@ export type WorldFlag =
   ;
 
 export enum GameSpeed {
+  VerySlow,
   Slow,
   Medium,
   Fast,
+  VeryFast,
 }
 
 export const getTickDuration = (gameSpeed: GameSpeed = GameSpeed.Medium) => {
   switch (gameSpeed) {
+    case GameSpeed.VeryFast:
+      return 500;
     case GameSpeed.Fast:
       return 1000;
     case GameSpeed.Medium:
       return 3 * 1000;
     case GameSpeed.Slow:
       return 5 * 1000;
+    case GameSpeed.VerySlow:
+      return 10 * 1000;
     default:
       return 3 * 1000;
   }

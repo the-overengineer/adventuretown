@@ -52,7 +52,7 @@ export class Header extends React.PureComponent<IHeader> {
         <div className={styles.Content}>
           <div className={styles.Controls}>
             <i
-              className={classNames(styles.Control, 'fas fa-backward', { [styles.Disabled]: gameSpeed === GameSpeed.Slow })}
+              className={classNames(styles.Control, 'fas fa-backward', { [styles.Disabled]: gameSpeed === GameSpeed.VerySlow })}
               onClick={this.onSlowDown}
             />
             <i
@@ -60,7 +60,7 @@ export class Header extends React.PureComponent<IHeader> {
               onClick={onPauseOrUnpause}
             />
             <i
-              className={classNames(styles.Control, 'fas fa-forward', { [styles.Disabled]: gameSpeed === GameSpeed.Fast })}
+              className={classNames(styles.Control, 'fas fa-forward', { [styles.Disabled]: gameSpeed === GameSpeed.VeryFast })}
               onClick={this.onSpeedUp}
             />
             <div className={styles.Day}>
@@ -86,14 +86,14 @@ export class Header extends React.PureComponent<IHeader> {
 
   private onSlowDown = () => {
     const { gameSpeed , onSetSpeed } = this.props;
-    if (gameSpeed == null || gameSpeed > GameSpeed.Slow) {
+    if (gameSpeed == null || gameSpeed > GameSpeed.VerySlow) {
       onSetSpeed((gameSpeed ?? GameSpeed.Medium) - 1);
     }
   }
 
   private onSpeedUp = () => {
     const { gameSpeed , onSetSpeed } = this.props;
-    if (gameSpeed == null || gameSpeed < GameSpeed.Fast) {
+    if (gameSpeed == null || gameSpeed < GameSpeed.VeryFast) {
       onSetSpeed((gameSpeed ?? GameSpeed.Medium) + 1);
     }
   }
