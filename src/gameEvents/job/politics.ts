@@ -13,6 +13,7 @@ import {
 import {
   isInCouncil,
   startJob,
+  setLevel,
 } from 'utils/person';
 import {
   changeCampaignScore,
@@ -276,7 +277,7 @@ export const reElectionCampaignStarts = createEvent.regular({
   getText: `Due to the town laws, you cannot keep your position without re-election every so often. The quality of the work
     you have done in office will reflect your chances`,
   actions: [
-    action('I will will again')
+    action('I will win again')
       .when(_ => getReElectionScore(_) >= 0)
       .do(setCharacterFlag('campaign', true))
       .and(_ => changeCampaignScore(getReElectionScore(_))(_))
@@ -286,7 +287,11 @@ export const reElectionCampaignStarts = createEvent.regular({
       .when(_ => getReElectionScore(_) < 0)
       .do(setCharacterFlag('campaign', true))
       .and(_ => changeCampaignScore(getReElectionScore(_))(_))
-      .log('The race begins, and you do not like your chances')
+      .log('The race begins, and you do not like your chances'),
+
+    action('I have served my term')
+      .do(setLevel(ProfessionLevel.Medium))
+      .log('You have chosen not to run for office again')
   ],
 });
 
