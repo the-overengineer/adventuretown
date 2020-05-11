@@ -7,7 +7,7 @@ import { removeRandomChild, removeSpouse, changeStat, hasSmallChild, removeLastC
 import { triggerEvent } from 'utils/eventChain';
 import { death } from 'gameEvents/life/general';
 import { changeResource, changeResourcePercentage } from 'utils/resources';
-import { Fortification, Prosperity, Size } from 'types/state';
+import { Fortification, Prosperity, Size, Profession } from 'types/state';
 
 
 
@@ -913,6 +913,6 @@ export const orcsRaidFarms = createEvent.regular({
       'The orc raiders burn down the farmlands you have purchased, nothing remains',
     ),
     action('Not all those farms!').do(triggerEvent(farmRaidingStartsFamine).onlyWhen(_ => !_.worldFlags.famine).orTrigger(farmsEndureRaiding)),
-    action('Defend the farm I work on!').do(triggerEvent(orcsWinRaiding)),
+    action('Defend the farm I work on!').when(_ => _.character.profession === Profession.Farmer).do(triggerEvent(orcsWinRaiding)),
   ],
 });

@@ -35,7 +35,7 @@ export const isOppressed = (state: IGameState, character: ICharacter): boolean =
     return true;
   }
 
-  if (classInequal.includes(town.equality) && resources.coin < 100 && (finances.coinIncome - finances.coinExpenses < 1)) {
+  if (classInequal.includes(town.equality) && resources.coin < 100 && resources.renown < 100 && (finances.coinIncome - finances.coinExpenses < 1) && (finances.renownIncome - finances.renownExpenses < 1)) {
     return true;
   }
 
@@ -57,7 +57,7 @@ export const hasLimitedRights = (state: IGameState, character: ICharacter): bool
     }
   }
 
-  if (resources.coin < 250 && classInequal.includes(town.equality) && (finances.coinIncome - finances.coinExpenses < 2)) {
+  if (resources.coin < 250 && resources.renown < 250 && classInequal.includes(town.equality) && (finances.coinIncome - finances.coinExpenses < 2) && (finances.renownIncome - finances.renownExpenses < 2)) {
     return true;
   }
 

@@ -99,7 +99,7 @@ export const barFight = createEvent.regular({
   getText: _ => `This night in the bar, a lot of drinking is happening and the guests are getting rowdy. Before you know what's going on,
     people start sounding, tables are overturned, and teeth start flying around.`,
   actions: [
-    action('Hide and wait it out').do(triggerEvent(barFightFightBad).withWeight(2).orTrigger(barFightHideOk).withWeight(3)),
+    action('Hide and wait it out').do(triggerEvent(barFightHideBad).withWeight(2).orTrigger(barFightHideOk).withWeight(3)),
     action('Join the fight').do(
       triggerEvent(barFightFightBad).withWeight(2)
         .orTrigger(barFightFightOk).withWeight(3).multiplyByFactor(2, _ => _.character.physical >= 5),
@@ -154,6 +154,7 @@ export const potentialAdventurerLover = createEvent.regular({
     `;
   },
   actions: [
+    action(`I'm married!`).when(_ => _.relationships.spouse != null),
     action('Reject the advances').log(`You chose not to entangle yourself with a visiting adventurer`),
     action('Welcome the advances').do(
       triggerEvent(aNightOfFun).orTrigger(adventurerLover).multiplyByFactor(3, _ => _.character.charm >= 5),

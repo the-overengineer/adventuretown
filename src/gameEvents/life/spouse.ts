@@ -176,7 +176,7 @@ export const spouseWantsGift = createEvent.regular({
   condition: _ => _.relationships.spouse != null,
   title: 'Spouse desires gift',
   getText: `As you go through the marketplace with your spouse, you notice that they are fascinated by an object they see there. They clearly
-    desire it, but do not express it plainly? It does seem a bit expensive, so that might explain it. Maybe they would be glad if you purchased
+    desire it, but do not express it plainly. It does seem a bit expensive, so that might explain it. Maybe they would be glad if you purchased
     it for them?`,
   actions: [
     action('Purchase it').spendResource('coin', 50).and(improveSpouseRelationship).log('You buy your spouse a nice gift, making them happier'),

@@ -80,7 +80,7 @@ export const changeCurrentJob = createEvent.regular({
 });
 
 export const promotedFromEntry = createEvent.regular({
-  meanTimeToHappen: 5 * 30,
+  meanTimeToHappen: 9 * 30,
   condition: (state) => state.character.professionLevel === ProfessionLevel.Entry
     && !isOppressed(state, state.character),
   title: 'Moving up in the world',

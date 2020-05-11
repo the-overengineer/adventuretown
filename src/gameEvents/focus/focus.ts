@@ -642,7 +642,7 @@ export const foodSale = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.characterFlags.focusFood!,
   title: 'Food sale',
-  getText: _ => `You were keeping an eye out on ways to get more food, and you hear about a local form selling their
+  getText: _ => `You were keeping an eye out on ways to get more food, and you hear about a local farm selling their
     produce at much lower prices than usually. You are suspicious at first, but you discover that the food is good.`,
   actions: [
     {
@@ -1275,12 +1275,11 @@ export const candidateYouCanBack = createEvent.triggered({
       .and(triggerEvent(backedCandidateLost).orTrigger(backedCandidateElected).withWeight(3)),
 
     action('Give speech on their behalf')
-      .when(_ => _.character.charm >= 4)
+      .when(_ => _.character.charm > 6)
       .and(
         triggerEvent(backedCandidateLost)
         .orTrigger(backedCandidateElected)
-          .multiplyByFactor(2, _ => _.character.charm >= 6)
-          .multiplyByFactor(1.5, _ => _.character.charm >= 8),
+          .multiplyByFactor(2, _ => _.character.charm >= 8),
       ),
 
     action('Do not support them')

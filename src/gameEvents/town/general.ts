@@ -73,7 +73,7 @@ export const diseaseEnds = createEvent.regular({
   meanTimeToHappen: 4 * 30,
   condition: _ => _.worldFlags.sickness!,
   title: 'Disease ends',
-  getText: _ => `The disease that has been going around slowly comes to an end. Please start exiting their homes,
+  getText: _ => `The disease that has been going around slowly comes to an end. People start exiting their homes,
     and things are slowly starting to return to normal`,
   actions: [
     {
