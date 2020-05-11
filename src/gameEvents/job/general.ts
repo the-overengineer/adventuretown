@@ -10,10 +10,10 @@ import {
 } from 'types/state';
 import { isOppressed, hasLimitedRights } from 'utils/town';
 import { changeResource } from 'utils/resources';
-import { pregnancyChance } from 'utils/setFlag';
+import { pregnancyChance, setCharacterFlag } from 'utils/setFlag';
 import { triggerEvent } from 'utils/eventChain';
 import { startJob, setLevel, removeJob } from 'utils/person';
-import { eventCreator, action, ActionBuilder } from 'utils/events';
+import { eventCreator, action, ActionBuilder, time } from 'utils/events';
 
 export const JOB_PREFIX = 1_000;
 
@@ -51,7 +51,7 @@ const jobActions: Array<ActionBuilder | IGameAction> = [
 ];
 
 export const seekJob = createEvent.regular({
-  meanTimeToHappen: 1,
+  meanTimeToHappen: time(1, 'day'),
   condition: (state: IGameState) => state.character.profession == null,
   title: 'Looking for a job',
   getText: () => `
@@ -65,7 +65,7 @@ export const seekJob = createEvent.regular({
 });
 
 export const changeCurrentJob = createEvent.regular({
-  meanTimeToHappen: 9 * 30,
+  meanTimeToHappen: time(9, 'months'),
   condition: (state: IGameState) => state.character.professionLevel === ProfessionLevel.Entry,
   title: 'Find a better job',
   getText: (state) => state.character.professionLevel === ProfessionLevel.Entry
@@ -80,7 +80,7 @@ export const changeCurrentJob = createEvent.regular({
 });
 
 export const promotedFromEntry = createEvent.regular({
-  meanTimeToHappen: 9 * 30,
+  meanTimeToHappen: time(9, 'months'),
   condition: (state) => state.character.professionLevel === ProfessionLevel.Entry
     && !isOppressed(state, state.character),
   title: 'Moving up in the world',
@@ -94,7 +94,7 @@ export const promotedFromEntry = createEvent.regular({
 });
 
 export const promotedToLeading = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
+  meanTimeToHappen: time(3, 'years'),
   condition: _ => _.character.professionLevel === ProfessionLevel.Medium
     && _.character.profession !== Profession.Politician
     && !hasLimitedRights(_, _.character)
@@ -145,7 +145,7 @@ export const doYouKnowWhoIAmSuccess = createEvent.triggered({
 });
 
 export const firedEntry = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: time(8, 'months'),
   condition: _ => _.character.professionLevel === ProfessionLevel.Entry
     && (isOppressed(_, _.character) || _.character.intelligence < 3 || _.character.education < 3 || _.character.charm < 3),
   title: 'A firing offence',
@@ -175,32 +175,253 @@ export const firedEntry = createEvent.regular({
   ],
 });
 
-export const difficultTrainee = createEvent.regular({
-  meanTimeToHappen: 18 * 30,
-  condition: _ => _.character.profession! && _.character.professionLevel === ProfessionLevel.Medium,
+export const difficultTrainee = createEvent.triggered({
   title: 'Difficult trainee',
   getText: _ => `You've been assigned with training a new employee at your business. They have shown themselves
     to be incompetent to the extreme, even causing material damage. You'll have to fire them, but it is considered
     a personal failure of yours`,
   actions: [
-    action('How can they be so stupid').gainResource('renown', -20).log(
+    action('How can they be so stupid').gainResource('renown', -40).log(
       'You had to fire a trainee and it reflects poorly on you',
     ),
   ],
 });
 
-export const goodTrainee = createEvent.regular({
-  meanTimeToHappen: 24 * 30,
-  condition: _ => _.character.profession! && _.character.professionLevel === ProfessionLevel.Medium,
-  title: 'Good trainee',
+export const averageTrainee = createEvent.triggered({
+  title: 'Average trainee',
+  getText: `The trainee you have been assigned has shown themselves to be an entirely average worker, despite some ups and downs. In all probability,
+    they will keep their menial job for many years to come`,
+  actions: [
+    action('Leadership is not for everyone').gainResource('renown', 5).log('The trainee you have been assigned turned out entirely average'),
+  ],
+});
+
+export const goodTrainee = createEvent.triggered({
+  title: 'Trainee advances',
   getText: _ => `You've been assigned with training a new employee at your business. They have shown themselves
     to be amazingly competent, and this will reflect well on you`,
   actions: [
-    action('Good job!').gainResource('renown', 20).log(
+    action('Good job!').gainResource('renown', 30).log(
       'You trained a competent worker, and this reflects well on you',
     ),
   ],
 });
+
+export const traineeGone = createEvent.triggered({
+  title: 'Trainee vanishes',
+  getText: `You have not seen your trainee in days. When you ask around, you find out that neither has anybody else. What could they have done? In any
+    case, your employer is not happy`,
+  actions: [
+    action('I hope they are fine...').gainResource('renown', -40).log('The trainee you have been assigned is just gone'),
+    action('Who cares?').gainResource('renown', -40).log('The trainee you have been assigned is just gone'),
+  ],
+});
+
+export const traineeFallsInLove = createEvent.triggered({
+  title: 'Infatuation',
+  getText: `The trainee finds you in a quiet corner one day and admits that they have fallen in love with you. It seems that your kindness has struck
+    a certain chord with this impressionable youth`,
+  actions: [
+    action('"But I am married"').when(_ => _.relationships.spouse != null).and(triggerEvent(averageTrainee).orTrigger(traineeGone)),
+    action('Refuse').and(triggerEvent(goodTrainee).orTrigger(averageTrainee).withWeight(3).orTrigger(difficultTrainee).delayAll(7)),
+    action('Accept').do(setCharacterFlag('lover')).and(triggerEvent(goodTrainee).orTrigger(averageTrainee).withWeight(3).orTrigger(difficultTrainee).delayAll(7)).log(
+      'You start an affair with an underling at work',
+    ),
+  ],
+});
+
+export const traineeFoundStealing = createEvent.triggered({
+  title: 'Thief!',
+  getText: `You stay late at work one day, only to discover that your trainee is stealing from the business`,
+  actions: [
+    action('Have them fired').resourceLosePercentage('renown', 5).log('You had to fire a trainee after you caught them stealing, and it reflects poorly on you, too'),
+    action('Ask for a cut').and(setCharacterFlag('jobNeglect')).gainResource('coin', 25).and(
+      triggerEvent(difficultTrainee).withWeight(3)
+        .orTrigger(averageTrainee).withWeight(2)
+        .orTrigger(goodTrainee)
+        .delayAll(18),
+    ).log('You let the trainee continue working with you even after you caught them stealing, for a cut...')
+  ],
+});
+
+export const traineeFoundDepressed = createEvent.triggered({
+  title: 'Too much stress',
+  getText: `You find your trainee in tears, hiding behind the building. They tearfully admit to you that this job is just too much
+    for them. They are not sure they can keep it up`,
+  actions: [
+    action('Comfort them').and(
+      triggerEvent(traineeGone)
+        .orTrigger(averageTrainee)
+        .orTrigger(difficultTrainee)
+        .orTrigger(goodTrainee)
+        .orTrigger(traineeFallsInLove).multiplyByFactor(2, _ => _.character.charm >= 4).multiplyByFactor(2, _ => _.character.charm >= 6)
+        .delayAll(7),
+    ),
+    action('Let them handle it alone').and(
+      triggerEvent(traineeGone).withWeight(2)
+        .orTrigger(averageTrainee)
+        .orTrigger(difficultTrainee)
+        .orTrigger(goodTrainee).withWeight(0.5)
+        .delayAll(7),
+    ),
+    action('Mock them').and(
+      triggerEvent(traineeGone).withWeight(3)
+        .orTrigger(averageTrainee)
+        .orTrigger(difficultTrainee).withWeight(2)
+        .orTrigger(goodTrainee).withWeight(0.25)
+        .delayAll(7),
+    ),
+  ],
+});
+
+export const traineeConsistentlyGood = createEvent.triggered({
+  title: 'Trainee incredible',
+  getText: `This trainee is pure gold. Everything they do, they seem to do amazingly well. You should be proud! Or, they are just naturally
+    talented. One of those`,
+  actions: [
+    action('Praise them loudly').and(
+      triggerEvent(averageTrainee)
+        .orTrigger(goodTrainee).withWeight(4).multiplyByFactor(2, _ => _.character.charm >= 4)
+        .orTrigger(traineeFallsInLove)
+        .orTrigger(traineeFoundDepressed)
+        .delayAll(18),
+    ),
+    action('Quietly congratulate them').and(
+      triggerEvent(averageTrainee)
+        .orTrigger(goodTrainee).withWeight(4).multiplyByFactor(2, _ => _.character.charm >= 4)
+        .orTrigger(traineeFallsInLove)
+        .delayAll(18),
+    ),
+    action('Leave them to it').and(
+      triggerEvent(averageTrainee)
+        .orTrigger(goodTrainee).withWeight(4)
+        .delayAll(18),
+    ),
+  ]
+});
+
+export const traineeDoesGoodJob = createEvent.triggered({
+  title: 'Trainee does well',
+  getText: `You observe the trainee over a hour of work and they seem to be doing a solid job!`,
+  actions: [
+    action('Praise them loudly').and(
+      triggerEvent(traineeConsistentlyGood).withWeight(2).multiplyByFactor(2, _ => _.character.charm >= 4)
+        .orTrigger(averageTrainee)
+        .orTrigger(goodTrainee).withWeight(2).multiplyByFactor(2, _ => _.character.charm >= 4)
+        .orTrigger(traineeFallsInLove)
+        .orTrigger(traineeFoundDepressed)
+        .delayAll(18),
+    ),
+    action('Quietly congratulate them').and(
+      triggerEvent(traineeConsistentlyGood).withWeight(2).multiplyByFactor(2, _ => _.character.charm >= 4)
+        .orTrigger(averageTrainee)
+        .orTrigger(goodTrainee).withWeight(2).multiplyByFactor(2, _ => _.character.charm >= 4)
+        .orTrigger(traineeFallsInLove).withWeight(0.5)
+        .delayAll(18),
+    ),
+    action('Leave them to it').and(
+      triggerEvent(traineeConsistentlyGood).withWeight(2)
+        .orTrigger(averageTrainee)
+        .orTrigger(goodTrainee).withWeight(2)
+        .delayAll(18),
+    ),
+  ],
+});
+
+export const traineeKeepsMakingMistakes = createEvent.triggered({
+  title: 'Mistake after mistake',
+  getText: `Your trainee must be either lazy or incompetent, because they keep making mistake after mistake!
+    No matter what you tell them, they keep fumbling things`,
+  actions: [
+    action('Let it go').and(
+      triggerEvent(traineeFoundStealing)
+        .orTrigger(averageTrainee)
+        .orTrigger(difficultTrainee).withWeight(8)
+        .delayAll(18),
+    ),
+    action('Try... extreme kindness?').and(
+      triggerEvent(averageTrainee)
+        .orTrigger(difficultTrainee).withWeight(4)
+        .orTrigger(traineeDoesGoodJob)
+        .orTrigger(traineeFallsInLove)
+        .delayAll(18),
+    ),
+    action('Yell at them in front of everybody').and(
+      triggerEvent(averageTrainee).multiplyByFactor(2, _ => _.character.physical >= 6)
+        .orTrigger(difficultTrainee).withWeight(4)
+        .orTrigger(traineeFoundDepressed).withWeight(2)
+        .orTrigger(traineeFoundStealing).onlyWhen(_ => _.character.physical < 4)
+        .delayAll(18),
+    ),
+  ],
+});
+
+export const traineeMakesOneMistake = createEvent.triggered({
+  title: 'Trainee makes mistake',
+  getText: `You catch the trainee making a mistake. It is not horrible, but it will cost others time and effort`,
+  actions: [
+    action('Admonish them sharply').and(
+      triggerEvent(traineeKeepsMakingMistakes).withWeight(2)
+        .orTrigger(traineeDoesGoodJob).multiplyByFactor(2, _ => _.character.physical >= 4).multiplyByFactor(2, _ => _.character.physical >= 6)
+        .orTrigger(traineeFoundStealing)
+        .orTrigger(traineeFoundDepressed).withWeight(2)
+        .orTrigger(difficultTrainee).withWeight(2)
+        .orTrigger(averageTrainee)
+        .delayAll(18),
+    ),
+    action('Kindly explain their error').and(
+      triggerEvent(traineeKeepsMakingMistakes)
+        .orTrigger(traineeDoesGoodJob).withWeight(2).multiplyByFactor(2, _ => _.character.charm >= 4).multiplyByFactor(2, _ => _.character.charm >= 6)
+        .orTrigger(traineeFoundStealing)
+        .orTrigger(difficultTrainee)
+        .orTrigger(averageTrainee).withWeight(2)
+        .orTrigger(goodTrainee)
+        .orTrigger(traineeFallsInLove)
+        .delayAll(18)
+    ),
+    action('Ignore it').and(
+      triggerEvent(traineeKeepsMakingMistakes).withWeight(2)
+        .orTrigger(traineeDoesGoodJob)
+        .orTrigger(traineeFoundStealing)
+        .orTrigger(traineeFoundDepressed).withWeight(2)
+        .orTrigger(difficultTrainee).withWeight(2)
+        .orTrigger(averageTrainee)
+        .delayAll(18),
+    ),
+  ],
+});
+
+export const givenTrainee = createEvent.regular({
+  meanTimeToHappen: time(2, 'years'),
+  condition: _ => _.character.profession != null,
+  title: 'Trainee assigned',
+  getText: `A new employee has joined the business, and you have been tasked with making sure that they learn the ropes
+    of doing the work.`,
+  actions: [
+    action('Guide them').and(
+      triggerEvent(traineeMakesOneMistake).withWeight(2)
+        .orTrigger(traineeKeepsMakingMistakes)
+        .orTrigger(traineeDoesGoodJob)
+          .withWeight(2)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 4 || _.character.charm >= 4)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 6 || _.character.charm >= 6)
+        .orTrigger(traineeConsistentlyGood)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 6 || _.character.charm >= 6)
+        .orTrigger(traineeFoundDepressed)
+        .orTrigger(traineeFoundStealing)
+        .delayAll(18),
+    ),
+    action('Ignore them').and(
+      triggerEvent(traineeMakesOneMistake).withWeight(3)
+        .orTrigger(traineeKeepsMakingMistakes).withWeight(2)
+        .orTrigger(traineeDoesGoodJob)
+        .orTrigger(traineeConsistentlyGood)
+        .orTrigger(traineeFoundDepressed).withWeight(2)
+        .orTrigger(traineeFoundStealing).withWeight(2)
+        .delayAll(18),
+    ).and(setCharacterFlag('jobNeglect')),
+  ]
+})
 
 export const difficultJobSuccess = createEvent.triggered({
   title: 'Well-done',
@@ -221,7 +442,7 @@ export const difficultJobFailure = createEvent.triggered({
 });
 
 export const difficultJob = createEvent.regular({
-  meanTimeToHappen: 24 * 30,
+  meanTimeToHappen: time(2, 'years'),
   condition: _ => _.character.profession != null && _.character.professionLevel === ProfessionLevel.Medium,
   title: 'A difficult job',
   getText: _ => `You have been assigned a particularly difficult task. You are not even certain that you are up
@@ -239,7 +460,7 @@ export const difficultJob = createEvent.regular({
 });
 
 export const businessThrives = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
+  meanTimeToHappen: time(3, 'years'),
   condition: _ => _.character.profession != null
   && _.character.professionLevel === ProfessionLevel.Leadership
   && _.character.profession !== Profession.Guard
@@ -254,7 +475,7 @@ export const businessThrives = createEvent.regular({
 });
 
 export const businessDoesPoorly = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
+  meanTimeToHappen: time(3, 'years'),
   condition: _ => _.character.profession != null
     && _.character.professionLevel === ProfessionLevel.Leadership
     && _.character.profession !== Profession.Guard
@@ -269,7 +490,7 @@ export const businessDoesPoorly = createEvent.regular({
 });
 
 export const businessFails = createEvent.regular({
-  meanTimeToHappen: 40 * 365,
+  meanTimeToHappen: time(40, 'years'),
   condition: _ => _.character.profession != null
     && _.character.professionLevel === ProfessionLevel.Leadership
     && _.character.profession !== Profession.Guard
@@ -303,7 +524,7 @@ export const expandBusinessSuccess = createEvent.triggered({
 });
 
 export const expandBusiness = createEvent.regular({
-  meanTimeToHappen: 10 * 365,
+  meanTimeToHappen: time(10, 'years'),
   condition: _ => _.character.profession != null
     && _.character.professionLevel === ProfessionLevel.Leadership
     && _.character.profession !== Profession.Guard
@@ -323,7 +544,7 @@ export const expandBusiness = createEvent.regular({
 });
 
 export const massFiring = createEvent.regular({
-  meanTimeToHappen: 10 * 365,
+  meanTimeToHappen: time(10, 'years'),
   condition: _ => _.character.profession != null
     && _.character.professionLevel === ProfessionLevel.Leadership,
   title: 'Mass firings',
@@ -341,7 +562,7 @@ export const massFiring = createEvent.regular({
 });
 
 export const fromBusinessToPolitics = createEvent.regular({
-  meanTimeToHappen: 40 * 365,
+  meanTimeToHappen: time(40, 'years'),
   condition: _ => _.character.profession != null
     && _.character.profession !== Profession.Politician
     && _.character.professionLevel === ProfessionLevel.Leadership
@@ -359,7 +580,7 @@ export const fromBusinessToPolitics = createEvent.regular({
 });
 
 export const demotedFromLeadershipDueToRights = createEvent.regular({
-  meanTimeToHappen: 5 * 365,
+  meanTimeToHappen: time(5, 'years'),
   condition: _ => _.character.profession != null
     && _.character.professionLevel === ProfessionLevel.Leadership
     && hasLimitedRights(_, _.character),
@@ -374,7 +595,7 @@ export const demotedFromLeadershipDueToRights = createEvent.regular({
 });
 
 export const demotedToEntryDueToRights = createEvent.regular({
-  meanTimeToHappen: 5 * 365,
+  meanTimeToHappen: time(5, 'years'),
   condition: _ => _.character.profession != null
     && _.character.professionLevel === ProfessionLevel.Medium
     && isOppressed(_, _.character),
@@ -389,9 +610,8 @@ export const demotedToEntryDueToRights = createEvent.regular({
 });
 
 export const promotedForGenderQuota = createEvent.regular({
-  meanTimeToHappen: 5 * 365,
+  meanTimeToHappen: time(5, 'years'),
   condition: _ => _.character.profession != null
-    && _.character.profession !== Profession.Politician
     && _.character.professionLevel === ProfessionLevel.Medium
     && _.town.genderEquality === GenderEquality.Equal
     && _.town.equality === ClassEquality.Equal,
@@ -407,9 +627,8 @@ export const promotedForGenderQuota = createEvent.regular({
 });
 
 export const demotedForGenderQuota = createEvent.regular({
-  meanTimeToHappen: 5 * 365,
+  meanTimeToHappen: time(5, 'years'),
   condition: _ => _.character.profession != null
-    && _.character.profession !== Profession.Politician
     && _.character.professionLevel === ProfessionLevel.Leadership
     && _.town.genderEquality === GenderEquality.Equal
     && _.town.equality === ClassEquality.Equal,
@@ -424,18 +643,18 @@ export const demotedForGenderQuota = createEvent.regular({
 });
 
 export const cheated = createEvent.regular({
-  meanTimeToHappen: 365,
+  meanTimeToHappen: time(1, 'year'),
   condition: _ => _.character.profession != null && (_.character.intelligence < 2 || _.character.education < 2),
   title: 'Cheated',
   getText: _ => `Shamefully, it took you over a day to realise it, but you have been cheated by a customer, and the difference
     comes out of your own pocket`,
   actions: [
-    action('Am I that stupid?').resourceLosePercentage('coin', 1).log('You were naive at work, and you had to pay the price'),
+    action('Am I that stupid?').resourceLosePercentage('coin', 2).log('You were naive at work, and you had to pay the price'),
   ],
 });
 
 export const jobWithoutPrestige = createEvent.regular({
-  meanTimeToHappen: 12 * 30,
+  meanTimeToHappen: time(12, 'months'),
   condition: _ => _.resources.renown >= 100
     && (_.character.professionLevel == null || _.character.professionLevel < ProfessionLevel.Medium),
   title: 'Position without prestige',
@@ -447,7 +666,7 @@ export const jobWithoutPrestige = createEvent.regular({
 });
 
 export const jobWithLittlePrestige = createEvent.regular({
-  meanTimeToHappen: 9 * 30,
+  meanTimeToHappen: time(9, 'months'),
   condition: _ => _.resources.renown >= 500
     && (_.character.professionLevel == null || _.character.professionLevel < ProfessionLevel.Leadership),
   title: 'Position with little prestige',
@@ -459,12 +678,13 @@ export const jobWithLittlePrestige = createEvent.regular({
 });
 
 export const pushedOut = createEvent.regular({
-  meanTimeToHappen: 4 * 365,
-  condition: _ => _.character.professionLevel === ProfessionLevel.Leadership && _.resources.renown >= 500,
+  meanTimeToHappen: time(4, 'years'),
+  condition: _ => _.character.professionLevel === ProfessionLevel.Leadership,
   title: 'Pushed out',
   getText: `You are being pressured by others in your business to leave your prestigious position. You will need to pull some strings
     to make sure you keep it`,
   actions: [
-    action('I have contacts...').resourceLosePercentage('renown', 20).log('You pull some strings to stave away vultures trying to take away your business'),
+    action('I have contacts...').when(_ => _.resources.renown >= 500).resourceLosePercentage('renown', 20).log('You pull some strings to stave away vultures trying to take away your business'),
+    action('I have no choice but to yield').and(setLevel(ProfessionLevel.Medium)).log('Your enemies have forced you away from your prestigious position'),
   ],
 });

@@ -146,6 +146,11 @@ export class EventChainBuilder {
     return this;
   }
 
+  public delayAll(delay: number): this {
+    this.events.forEach(_ => _.after(delay));
+    return this;
+  }
+
   public toTransformer() {
     return (state: IGameState): IGameState => eventChain(this.events.map(_ => _.transform(state)))(state)
   }

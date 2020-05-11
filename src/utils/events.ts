@@ -21,7 +21,7 @@ export const collectEvents = (it: { [key: string]: any }): IEvent[] =>
   Object.values(it).filter(isEvent);
 
 interface IRegularEvent extends Omit<IEvent, 'id' | 'actions' | 'getText' | 'fixedTimeToHappen' | 'meanTimeToHappen'> {
-  meanTimeToHappen: number | TimeFromState;
+  meanTimeToHappen: number | TimeFromState | TimeBuilder;
   actions: Array<IGameAction | ActionBuilder>;
   getText: string | TextFromState;
 }
@@ -32,7 +32,7 @@ interface ITriggeredEvent extends Omit<IEvent, 'meanTimeToHappen' | 'fixedTimeTo
 }
 
 interface IFixedEvent extends Omit<IEvent, 'meanTimeToHappen' | 'fixedTimeToHappen' | 'id' | 'actions' | 'getText'> {
-  fixedTimeToHappen: number | TimeFromState;
+  fixedTimeToHappen: number | TimeFromState | TimeBuilder;
   actions: Array<IGameAction | ActionBuilder>;
   getText: string | TextFromState;
 }
@@ -42,6 +42,13 @@ const getActions = (actions: Array<IGameAction | ActionBuilder>): IGameAction[] 
 
 const text = (getText: string | TextFromState): TextFromState =>
   typeof getText === 'string' ? _ => getText : getText;
+
+const getTime = (time: number | TimeFromState | TimeBuilder): TimeFromState =>
+  typeof time === 'number'
+    ?  (_ => time) as TimeFromState
+    : time instanceof TimeBuilder
+      ? time.calculate()
+      : time;
 
 export const eventCreator = (prefix: number) => {
   let id = prefix + 1;
@@ -59,13 +66,13 @@ export const eventCreator = (prefix: number) => {
       id: id++ as ID,
       actions: getActions(base.actions),
       getText: text(base.getText),
-      meanTimeToHappen: typeof base.meanTimeToHappen === 'number' ? (_ => base.meanTimeToHappen) as TimeFromState : base.meanTimeToHappen as TimeFromState,
+      meanTimeToHappen: getTime(base.meanTimeToHappen),
     }),
     fixed: (base: IFixedEvent): IEvent => ({
       ...base,
       id: id++ as ID,
       actions: getActions(base.actions),
-      fixedTimeToHappen: typeof base.fixedTimeToHappen === 'number' ? (_ => base.fixedTimeToHappen) as TimeFromState : base.fixedTimeToHappen as TimeFromState,
+      fixedTimeToHappen: getTime(base.fixedTimeToHappen),
       getText: text(base.getText),
     })
   };
