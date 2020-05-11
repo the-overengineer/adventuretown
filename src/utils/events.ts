@@ -12,6 +12,7 @@ import { EventChainBuilder } from './eventChain';
 import { changeResource, changeResourcePercentage } from './resources';
 
 type TextFromState = (state: IGameState) => string;
+type TimeFromState = (state: IGameState) => number;
 
 export const isEvent = (it: any): it is IEvent =>
   it != null && (it as IEvent).id != null && (it as IEvent).condition != null;
@@ -19,12 +20,19 @@ export const isEvent = (it: any): it is IEvent =>
 export const collectEvents = (it: { [key: string]: any }): IEvent[] =>
   Object.values(it).filter(isEvent);
 
-interface IRegularEvent extends Omit<IEvent, 'id' | 'actions' | 'getText'> {
+interface IRegularEvent extends Omit<IEvent, 'id' | 'actions' | 'getText' | 'fixedTimeToHappen' | 'meanTimeToHappen'> {
+  meanTimeToHappen: number | TimeFromState;
   actions: Array<IGameAction | ActionBuilder>;
   getText: string | TextFromState;
 }
 
-interface ITriggeredEvent extends Omit<IEvent, 'meanTimeToHappen' | 'condition' | 'id' | 'actions' | 'getText'> {
+interface ITriggeredEvent extends Omit<IEvent, 'meanTimeToHappen' | 'fixedTimeToHappen' | 'condition' | 'id' | 'actions' | 'getText'> {
+  actions: Array<IGameAction | ActionBuilder>;
+  getText: string | TextFromState;
+}
+
+interface IFixedEvent extends Omit<IEvent, 'meanTimeToHappen' | 'fixedTimeToHappen' | 'id' | 'actions' | 'getText'> {
+  fixedTimeToHappen: number | TimeFromState;
   actions: Array<IGameAction | ActionBuilder>;
   getText: string | TextFromState;
 }
@@ -42,7 +50,6 @@ export const eventCreator = (prefix: number) => {
     triggered: (base: ITriggeredEvent): IEvent => ({
       ...base,
       id: id++ as ID,
-      meanTimeToHappen: 0,
       condition: _ => false,
       actions: getActions(base.actions),
       getText: text(base.getText),
@@ -52,7 +59,15 @@ export const eventCreator = (prefix: number) => {
       id: id++ as ID,
       actions: getActions(base.actions),
       getText: text(base.getText),
+      meanTimeToHappen: typeof base.meanTimeToHappen === 'number' ? (_ => base.meanTimeToHappen) as TimeFromState : base.meanTimeToHappen as TimeFromState,
     }),
+    fixed: (base: IFixedEvent): IEvent => ({
+      ...base,
+      id: id++ as ID,
+      actions: getActions(base.actions),
+      fixedTimeToHappen: typeof base.fixedTimeToHappen === 'number' ? (_ => base.fixedTimeToHappen) as TimeFromState : base.fixedTimeToHappen as TimeFromState,
+      getText: text(base.getText),
+    })
   };
 }
 
@@ -116,3 +131,48 @@ export class ActionBuilder {
 }
 
 export const action = (text: string) => new ActionBuilder(text);
+
+type TimeSpan = 'day' | 'days' | 'week' | 'weeks' | 'month' | 'months' | 'year' | 'years';
+
+interface IFactor {
+  weight: number;
+  condition: (state: IGameState) => boolean;
+}
+
+class TimeBuilder {
+  private factors: IFactor[] = [];
+
+  public constructor(
+    private count: number,
+    private timeSpan: TimeSpan,
+  ) {}
+
+  public modify(weight: number, condition: (state: IGameState) => boolean): this {
+    this.factors.push({ weight, condition });
+    return this;
+  }
+
+  public calculate(): TimeFromState {
+    const base = this.count * this.calculateSpanFactor();
+
+    return (state: IGameState) => this.factors.reduce((num, factor) => factor.condition(state) ? factor.weight * num : num, base);
+  }
+
+  private calculateSpanFactor(): number {
+    switch (this.timeSpan) {
+      case 'year':
+      case 'years':
+        return 365;
+      case 'month':
+      case 'months':
+        return 30;
+      case 'week':
+      case 'weeks':
+        return 7;
+      default:
+        return 1;
+    }
+  }
+}
+
+export const time = (count: number, timeSpan: TimeSpan = 'days') => new TimeBuilder(count, timeSpan);

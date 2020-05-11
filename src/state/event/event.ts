@@ -13,7 +13,7 @@ export const fuzzyUpMtth = (mtth: number): number => {
     return 0;
   }
 
-  const fuzzUp = Math.min(1, Math.round(mtth / 10));
+  const fuzzUp = Math.min(1, Math.round(mtth / 25));
 
   return Math.max(1, mtth + inIntRange(-fuzzUp, fuzzUp));
 };
@@ -23,7 +23,7 @@ const CHECK_HOW_OFTEN_FACTOR: number = 0.1;
 
 export const updateEventQueue = (state: IGameState): IGameState => {
   const validEvents = state.eventQueue.filter((eq) => {
-    if (eq.meanTimeToHappen === 0) {
+    if (eq.meanTimeToHappen == null) {
       return true; // This event is inserted in and not processed manually
     }
 
@@ -41,7 +41,8 @@ export const updateEventQueue = (state: IGameState): IGameState => {
   .filter((event) => !existingIDs.has(event.id) && event.condition(state))
   .map((event): IQueuedEvent => ({
     id: event.id,
-    meanTimeToHappen: fuzzyUpMtth(event.meanTimeToHappen),
+    meanTimeToHappen: event.meanTimeToHappen != null ? fuzzyUpMtth(event.meanTimeToHappen!(state)) : undefined,
+    fixedTimeToHappen: event.fixedTimeToHappen != null ? event.fixedTimeToHappen(state) : undefined,
     queuedAtDay: state.daysPassed,
   }));
 
@@ -58,20 +59,35 @@ export const updateActiveEvent = (state: IGameState): IGameState => {
 
   for (const event of state.eventQueue) {
     const daysSince = state.daysPassed - event.queuedAtDay;
-    const chanceToHappen = event.meanTimeToHappen === 0
-      ? 1
-      : (1 - Math.pow(2, -1 * (state.daysPassed - event.queuedAtDay) / event.meanTimeToHappen));
 
-    const checkHowOften = event.meanTimeToHappen <= 30
-      ? Math.max(1, Math.floor(event.meanTimeToHappen / 2))
-      : Math.max(1, Math.round(CHECK_HOW_OFTEN_FACTOR * event.meanTimeToHappen));
-
-    if (event.meanTimeToHappen === 0 || (daysSince % checkHowOften === 0 && Math.random() <= chanceToHappen)) {
-      return {
-        ...state,
+    const getUpdatedQueue = () => ({
+      ...state,
         eventQueue: state.eventQueue.filter((it) => it.id !== event.id),
         activeEvent: event.id,
-      };
+    });
+
+    if (event.meanTimeToHappen == null && event.fixedTimeToHappen == null) {
+      return getUpdatedQueue();
+    }
+
+    if (event.fixedTimeToHappen != null) {
+      if (event.fixedTimeToHappen <= daysSince) {
+        return getUpdatedQueue();
+      }
+    }
+
+    if (event.meanTimeToHappen != null) {
+      const chanceToHappen = event.meanTimeToHappen === 0
+        ? 1
+        : (1 - Math.pow(2, -1 * (state.daysPassed - event.queuedAtDay) / event.meanTimeToHappen!));
+
+      const checkHowOften = event.meanTimeToHappen! <= 30
+        ? Math.max(1, Math.floor(event.meanTimeToHappen! / 2))
+        : Math.max(1, Math.round(CHECK_HOW_OFTEN_FACTOR * event.meanTimeToHappen!));
+
+      if (event.meanTimeToHappen === 0 || (daysSince % checkHowOften === 0 && Math.random() <= chanceToHappen)) {
+        return getUpdatedQueue();
+      }
     }
   }
 

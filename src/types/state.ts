@@ -210,7 +210,8 @@ export interface IEvent {
   /**
    * Mean amount of ticks that need to pass for an event to happen
    */
-  meanTimeToHappen: number;
+  meanTimeToHappen?: (state: IGameState) => number;
+  fixedTimeToHappen?: (state: IGameState) => number;
   condition: (state: IGameState) => boolean;
   title: string;
   getText: (state: IGameState) => string;
@@ -219,7 +220,9 @@ export interface IEvent {
 
 export interface IQueuedEvent {
   id: ID;
-  meanTimeToHappen: number; // Duplicated for easier lookup
+  // Duplicated for easier lookup
+  meanTimeToHappen?: number;
+  fixedTimeToHappen?: number;
   queuedAtDay: number;
 }
 

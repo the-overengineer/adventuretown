@@ -8,13 +8,14 @@ import {
 interface IEventWithWeight {
   id: ID;
   weight: number;
+  delay?: number;
   condition?: (state: IGameState) => boolean;
 }
 
-const enqueue = (state: IGameState, eventID: ID): IGameState => {
+const enqueue = (state: IGameState, eventID: ID, delay?: number): IGameState => {
   const queuedEvent: IQueuedEvent = {
     id: eventID,
-    meanTimeToHappen: 0,
+    meanTimeToHappen: delay ?? 0,
     queuedAtDay: state.daysPassed,
   };
 
@@ -36,7 +37,8 @@ const eventChain = (events: IEventWithWeight[] | ID) => (state: IGameState): IGa
   }
 
   if (possibleEvents.length === 1) {
-    return enqueue(state, (events as IEventWithWeight[])[0].id);
+    const event = (events as IEventWithWeight[])[0]
+    return enqueue(state, event.id, event.delay);
   }
 
   const maxWeight = possibleEvents.map(_ => _.weight).reduce((a, b) => a + b, 0);
@@ -46,14 +48,14 @@ const eventChain = (events: IEventWithWeight[] | ID) => (state: IGameState): IGa
 
   for (const possibleEvent of possibleEvents) {
     if (previous + possibleEvent.weight >= chance) {
-      return enqueue(state, possibleEvent.id);
+      return enqueue(state, possibleEvent.id, possibleEvent.delay);
     } else {
       previous += possibleEvent.weight;
     }
   }
 
   const event = possibleEvents[possibleEvents.length - 1];
-  return enqueue(state, event.id);
+  return enqueue(state, event.id, event.delay);
 };
 
 interface IFactor {
@@ -67,6 +69,7 @@ class EventActionBuilder {
   private condition?: (state: IGameState) => boolean;
   private weightOverriden: boolean = false;
   private factors: IFactor[] = []
+  private delay?: number;
 
   public constructor(event: IEvent) {
     this.eventID = event.id;
@@ -89,6 +92,11 @@ class EventActionBuilder {
 
   public multiplyByFactor(weight: number, when: (state: IGameState) => boolean): this {
     this.factors.push({ weight, condition: when });
+    return this;
+  }
+
+  public after(delay: number): this {
+    this.delay = delay;
     return this;
   }
 
@@ -130,6 +138,11 @@ export class EventChainBuilder {
 
   public orTrigger(event: IEvent): this {
     this.events.push(new EventActionBuilder(event));
+    return this;
+  }
+
+  public after(delay: number): this {
+    this.activeEvent().after(delay);
     return this;
   }
 
