@@ -151,6 +151,6 @@ export const harshSeason = createEvent.regular({
   getText: `The last season has been harsh, and you did not manage to do much on the farm. You will have to work as a mere farm hand
     again until your land recovers`,
   actions: [
-    action('Damned weather').do(setLevel(ProfessionLevel.Medium)).log('Due to poor weather, you are a farm hand again'),
+    action('Damned weather').do(setLevel(ProfessionLevel.Entry)).log('Due to poor weather, you are a farm hand again'),
   ],
 });

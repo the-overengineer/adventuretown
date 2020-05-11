@@ -239,7 +239,7 @@ export const traineeFoundStealing = createEvent.triggered({
       triggerEvent(difficultTrainee).withWeight(3)
         .orTrigger(averageTrainee).withWeight(2)
         .orTrigger(goodTrainee)
-        .delayAll(18),
+        .delayAll(7),
     ).log('You let the trainee continue working with you even after you caught them stealing, for a cut...')
   ],
 });
@@ -284,18 +284,18 @@ export const traineeConsistentlyGood = createEvent.triggered({
         .orTrigger(goodTrainee).withWeight(4).multiplyByFactor(2, _ => _.character.charm >= 4)
         .orTrigger(traineeFallsInLove)
         .orTrigger(traineeFoundDepressed)
-        .delayAll(18),
+        .delayAll(7),
     ),
     action('Quietly congratulate them').and(
       triggerEvent(averageTrainee)
         .orTrigger(goodTrainee).withWeight(4).multiplyByFactor(2, _ => _.character.charm >= 4)
         .orTrigger(traineeFallsInLove)
-        .delayAll(18),
+        .delayAll(7),
     ),
     action('Leave them to it').and(
       triggerEvent(averageTrainee)
         .orTrigger(goodTrainee).withWeight(4)
-        .delayAll(18),
+        .delayAll(7),
     ),
   ]
 });
@@ -310,20 +310,20 @@ export const traineeDoesGoodJob = createEvent.triggered({
         .orTrigger(goodTrainee).withWeight(2).multiplyByFactor(2, _ => _.character.charm >= 4)
         .orTrigger(traineeFallsInLove)
         .orTrigger(traineeFoundDepressed)
-        .delayAll(18),
+        .delayAll(7),
     ),
     action('Quietly congratulate them').and(
       triggerEvent(traineeConsistentlyGood).withWeight(2).multiplyByFactor(2, _ => _.character.charm >= 4)
         .orTrigger(averageTrainee)
         .orTrigger(goodTrainee).withWeight(2).multiplyByFactor(2, _ => _.character.charm >= 4)
         .orTrigger(traineeFallsInLove).withWeight(0.5)
-        .delayAll(18),
+        .delayAll(7),
     ),
     action('Leave them to it').and(
       triggerEvent(traineeConsistentlyGood).withWeight(2)
         .orTrigger(averageTrainee)
         .orTrigger(goodTrainee).withWeight(2)
-        .delayAll(18),
+        .delayAll(7),
     ),
   ],
 });
@@ -337,21 +337,21 @@ export const traineeKeepsMakingMistakes = createEvent.triggered({
       triggerEvent(traineeFoundStealing)
         .orTrigger(averageTrainee)
         .orTrigger(difficultTrainee).withWeight(8)
-        .delayAll(18),
+        .delayAll(7),
     ),
     action('Try... extreme kindness?').and(
       triggerEvent(averageTrainee)
         .orTrigger(difficultTrainee).withWeight(4)
         .orTrigger(traineeDoesGoodJob)
         .orTrigger(traineeFallsInLove)
-        .delayAll(18),
+        .delayAll(7),
     ),
     action('Yell at them in front of everybody').and(
       triggerEvent(averageTrainee).multiplyByFactor(2, _ => _.character.physical >= 6)
         .orTrigger(difficultTrainee).withWeight(4)
         .orTrigger(traineeFoundDepressed).withWeight(2)
         .orTrigger(traineeFoundStealing).onlyWhen(_ => _.character.physical < 4)
-        .delayAll(18),
+        .delayAll(7),
     ),
   ],
 });
@@ -367,7 +367,7 @@ export const traineeMakesOneMistake = createEvent.triggered({
         .orTrigger(traineeFoundDepressed).withWeight(2)
         .orTrigger(difficultTrainee).withWeight(2)
         .orTrigger(averageTrainee)
-        .delayAll(18),
+        .delayAll(7),
     ),
     action('Kindly explain their error').and(
       triggerEvent(traineeKeepsMakingMistakes)
@@ -377,7 +377,7 @@ export const traineeMakesOneMistake = createEvent.triggered({
         .orTrigger(averageTrainee).withWeight(2)
         .orTrigger(goodTrainee)
         .orTrigger(traineeFallsInLove)
-        .delayAll(18)
+        .delayAll(7)
     ),
     action('Ignore it').and(
       triggerEvent(traineeKeepsMakingMistakes).withWeight(2)
@@ -386,7 +386,7 @@ export const traineeMakesOneMistake = createEvent.triggered({
         .orTrigger(traineeFoundDepressed).withWeight(2)
         .orTrigger(difficultTrainee).withWeight(2)
         .orTrigger(averageTrainee)
-        .delayAll(18),
+        .delayAll(7),
     ),
   ],
 });
@@ -409,7 +409,7 @@ export const givenTrainee = createEvent.regular({
           .multiplyByFactor(2, _ => _.character.intelligence >= 6 || _.character.charm >= 6)
         .orTrigger(traineeFoundDepressed)
         .orTrigger(traineeFoundStealing)
-        .delayAll(18),
+        .delayAll(7),
     ),
     action('Ignore them').and(
       triggerEvent(traineeMakesOneMistake).withWeight(3)
@@ -418,7 +418,7 @@ export const givenTrainee = createEvent.regular({
         .orTrigger(traineeConsistentlyGood)
         .orTrigger(traineeFoundDepressed).withWeight(2)
         .orTrigger(traineeFoundStealing).withWeight(2)
-        .delayAll(18),
+        .delayAll(7),
     ).and(setCharacterFlag('jobNeglect')),
   ]
 })

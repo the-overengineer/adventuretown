@@ -213,6 +213,7 @@ export interface IEvent {
   meanTimeToHappen?: (state: IGameState) => number;
   fixedTimeToHappen?: (state: IGameState) => number;
   condition: (state: IGameState) => boolean;
+  background?: boolean; // If true, just happens in the background without a popup
   title: string;
   getText: (state: IGameState) => string;
   actions: IGameAction[];
@@ -223,6 +224,8 @@ export interface IQueuedEvent {
   // Duplicated for easier lookup
   meanTimeToHappen?: number;
   fixedTimeToHappen?: number;
+  background?: boolean; // If true, just happens in the background without a popup
+  triggered?: boolean; // If true, manually inserted
   queuedAtDay: number;
 }
 

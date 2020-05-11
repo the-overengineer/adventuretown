@@ -15,7 +15,8 @@ interface IEventWithWeight {
 const enqueue = (state: IGameState, eventID: ID, delay?: number): IGameState => {
   const queuedEvent: IQueuedEvent = {
     id: eventID,
-    meanTimeToHappen: delay ?? 0,
+    meanTimeToHappen: delay,
+    triggered: true,
     queuedAtDay: state.daysPassed,
   };
 
@@ -108,6 +109,7 @@ class EventActionBuilder {
 
     return {
       condition: this.condition,
+      delay: this.delay,
       id: this.eventID,
       weight,
     }

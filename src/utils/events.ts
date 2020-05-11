@@ -20,6 +20,11 @@ export const isEvent = (it: any): it is IEvent =>
 export const collectEvents = (it: { [key: string]: any }): IEvent[] =>
   Object.values(it).filter(isEvent);
 
+interface IBackgroundEvent extends Omit<IEvent, 'id' | 'actions' | 'getText' | 'fixedTimeToHappen' | 'meanTimeToHappen' | 'title'> {
+  meanTimeToHappen: number | TimeFromState | TimeBuilder;
+  action: IGameAction | ActionBuilder;
+}
+
 interface IRegularEvent extends Omit<IEvent, 'id' | 'actions' | 'getText' | 'fixedTimeToHappen' | 'meanTimeToHappen'> {
   meanTimeToHappen: number | TimeFromState | TimeBuilder;
   actions: Array<IGameAction | ActionBuilder>;
@@ -74,7 +79,16 @@ export const eventCreator = (prefix: number) => {
       actions: getActions(base.actions),
       fixedTimeToHappen: getTime(base.fixedTimeToHappen),
       getText: text(base.getText),
-    })
+    }),
+    background: (base: IBackgroundEvent): IEvent => ({
+      condition: base.condition,
+      id: id++ as ID,
+      title: '',
+      background: true,
+      getText: _ => '',
+      meanTimeToHappen: getTime(base.meanTimeToHappen),
+      actions: getActions([base.action]),
+    }),
   };
 }
 

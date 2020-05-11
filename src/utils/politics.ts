@@ -254,7 +254,6 @@ export const getVoteProposalOptions = (endAction: StateTransformer | EventChainB
       .when(voteCondition[matter])
       .do(createRandomVotingDisposition(matter))
       .and(endAction)
-      .done()
   ));
 
 export const cityFocusOptions = enumValues<VotingMatter>(VotingMatter)
@@ -262,7 +261,6 @@ export const cityFocusOptions = enumValues<VotingMatter>(VotingMatter)
     action(voteLabel[matter])
       .when(voteCondition[matter])
       .do(setCityFocus(matter))
-      .done()
   ));
 
 export const getCostSwayFor = (direction: VoteDirection) => {

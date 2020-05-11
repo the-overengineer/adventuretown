@@ -88,6 +88,8 @@ export class App extends React.PureComponent<{}, IAppState> {
     this.ticker = window.setInterval(this.handleTick, getTickDuration(this.state.settings.speed));
 
     // (window as any)._events = events;
+    // (window as any)._getQueue = () => this.state.eventQueue;
+    // (window as any)._eventMap = eventMap;
     // (window as any)._trigger = this.triggerEvent;
   }
 

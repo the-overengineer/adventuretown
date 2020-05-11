@@ -23,7 +23,10 @@ const CHECK_HOW_OFTEN_FACTOR: number = 0.1;
 
 export const updateEventQueue = (state: IGameState): IGameState => {
   const validEvents = state.eventQueue.filter((eq) => {
-    if (eq.meanTimeToHappen == null) {
+    if (eq.meanTimeToHappen == null && eq.fixedTimeToHappen == null) {
+      return true; // This event is inserted in and not processed manually
+    }
+    if (eq.triggered!) {
       return true; // This event is inserted in and not processed manually
     }
 
@@ -38,13 +41,14 @@ export const updateEventQueue = (state: IGameState): IGameState => {
   const existingIDs = new Set(validEvents.map((it) => it.id));
 
   const eventCandidates = events
-  .filter((event) => !existingIDs.has(event.id) && event.condition(state))
-  .map((event): IQueuedEvent => ({
-    id: event.id,
-    meanTimeToHappen: event.meanTimeToHappen != null ? fuzzyUpMtth(event.meanTimeToHappen!(state)) : undefined,
-    fixedTimeToHappen: event.fixedTimeToHappen != null ? event.fixedTimeToHappen(state) : undefined,
-    queuedAtDay: state.daysPassed,
-  }));
+    .filter((event) => !existingIDs.has(event.id) && event.condition(state))
+    .map((event): IQueuedEvent => ({
+      id: event.id,
+      meanTimeToHappen: event.meanTimeToHappen != null ? fuzzyUpMtth(event.meanTimeToHappen!(state)) : undefined,
+      fixedTimeToHappen: event.fixedTimeToHappen != null ? event.fixedTimeToHappen(state) : undefined,
+      queuedAtDay: state.daysPassed,
+      background: event.background,
+    }));
 
   return {
     ...state,
@@ -60,11 +64,29 @@ export const updateActiveEvent = (state: IGameState): IGameState => {
   for (const event of state.eventQueue) {
     const daysSince = state.daysPassed - event.queuedAtDay;
 
-    const getUpdatedQueue = () => ({
-      ...state,
+    const getUpdatedQueue = () => {
+      if (event.background!) {
+        const actualEvent = eventMap[event.id];
+        const action = actualEvent.actions[0];
+        if (action && (action.condition == null || action.condition(state))) {
+          return action.perform!({
+            ...state,
+            eventQueue: state.eventQueue.filter((it) => it.id !== event.id),
+          });
+        } else {
+          return {
+            ...state,
+            eventQueue: state.eventQueue.filter((it) => it.id !== event.id),
+          };
+        }
+      }
+
+      return {
+        ...state,
         eventQueue: state.eventQueue.filter((it) => it.id !== event.id),
-        activeEvent: event.id,
-    });
+        activeEvent: event.id
+      }
+    };
 
     if (event.meanTimeToHappen == null && event.fixedTimeToHappen == null) {
       return getUpdatedQueue();

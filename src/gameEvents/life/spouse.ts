@@ -3,6 +3,7 @@ import { triggerEvent } from 'utils/eventChain';
 import {
   action,
   eventCreator,
+  time,
 } from 'utils/events';
 import {
   employSpouse,
@@ -403,9 +404,7 @@ export const resentmentDivorceSpouse = createEvent.regular({
   ],
 });
 
-export const spouseStrengthIncreases = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
-  condition: _ => _.relationships.spouse != null && _.relationships.spouse.physical < 5,
+export const spouseStrengthIncreases = createEvent.triggered({
   title: 'Spouse becomes fitter',
   getText: `You notice that your spouse has become fitter and stronger recently`,
   actions: [
@@ -413,9 +412,7 @@ export const spouseStrengthIncreases = createEvent.regular({
   ],
 });
 
-export const spouseStrengthDecreases = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
-  condition: _ => _.relationships.spouse != null && _.relationships.spouse.physical > 0,
+export const spouseStrengthDecreases = createEvent.triggered({
   title: 'Spouse lets themselves go',
   getText: `You notice that your spouse is becoming fatter and less fit recently`,
   actions: [
@@ -423,9 +420,7 @@ export const spouseStrengthDecreases = createEvent.regular({
   ],
 });
 
-export const spouseIntelligenceIncreases = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
-  condition: _ => _.relationships.spouse != null && _.relationships.spouse.intelligence < 5,
+export const spouseIntelligenceIncreases = createEvent.triggered({
   title: 'Spouse becomes smarter',
   getText: `You notice that your spouse has quite a wit recently. Have they gotten smarter?`,
   actions: [
@@ -433,9 +428,7 @@ export const spouseIntelligenceIncreases = createEvent.regular({
   ],
 });
 
-export const spouseIntelligenceDecreases = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
-  condition: _ => _.relationships.spouse != null && _.relationships.spouse.intelligence > 0,
+export const spouseIntelligenceDecreases = createEvent.triggered({
   title: 'Spouse getting dull',
   getText: `It's as if your spouse is getting duller by the day.`,
   actions: [
@@ -443,9 +436,7 @@ export const spouseIntelligenceDecreases = createEvent.regular({
   ],
 });
 
-export const spouseEducationIncreases = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
-  condition: _ => _.relationships.spouse != null && _.relationships.spouse.education < 5,
+export const spouseEducationIncreases = createEvent.triggered({
   title: 'Erudite spouse',
   getText: `Your spouse has been reading a lot more lately, and it's starting to show`,
   actions: [
@@ -453,9 +444,7 @@ export const spouseEducationIncreases = createEvent.regular({
   ],
 });
 
-export const spouseEducationDecreases = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
-  condition: _ => _.relationships.spouse != null && _.relationships.spouse.education > 0,
+export const spouseEducationDecreases = createEvent.triggered({
   title: 'Uneducated spouse',
   getText: `The state of your spouse's education is decaying. Recently you found them struggling with some words on a poster`,
   actions: [
@@ -463,9 +452,7 @@ export const spouseEducationDecreases = createEvent.regular({
   ],
 });
 
-export const spouseCharmIncreases = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
-  condition: _ => _.relationships.spouse != null && _.relationships.spouse.charm < 5,
+export const spouseCharmIncreases = createEvent.triggered({
   title: 'Spouse even more beautiful',
   getText: `You notice that your spouse has been taking more care of themselves recently, and they look more attractive`,
   actions: [
@@ -473,14 +460,27 @@ export const spouseCharmIncreases = createEvent.regular({
   ],
 });
 
-export const spouseCharmDecreases = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
-  condition: _ => _.relationships.spouse != null && _.relationships.spouse.charm > 0,
+export const spouseCharmDecreases = createEvent.triggered({
   title: 'Spouse uglier',
   getText: `Your spouse is taking less and less care of themselves, and you don't find them as charming and attractive as you used to`,
   actions: [
     action('Ugh. I noticed.').do(changeSpouseStat('charm', - 1)),
   ],
+});
+
+export const spouseStatChangesBackground = createEvent.background({
+  meanTimeToHappen: time(1, 'year'),
+  condition: _ => _.relationships.spouse != null,
+  action: action('').and(
+    triggerEvent(spouseStrengthIncreases).onlyWhen(_ => _.relationships.spouse!.physical < 5)
+      .orTrigger(spouseStrengthDecreases).onlyWhen(_ => _.relationships.spouse!.physical > 0)
+      .orTrigger(spouseIntelligenceIncreases).onlyWhen(_ => _.relationships.spouse!.intelligence < 5)
+      .orTrigger(spouseIntelligenceDecreases).onlyWhen(_ => _.relationships.spouse!.intelligence > 0)
+      .orTrigger(spouseEducationIncreases).onlyWhen(_ => _.relationships.spouse!.education < 5)
+      .orTrigger(spouseEducationDecreases).onlyWhen(_ => _.relationships.spouse!.education > 0)
+      .orTrigger(spouseCharmIncreases).onlyWhen(_ => _.relationships.spouse!.charm < 5)
+      .orTrigger(spouseCharmDecreases).onlyWhen(_ => _.relationships.spouse!.charm > 0),
+  ),
 });
 
 const statDifference = (first: ICharacter, second: ICharacter): number => {
