@@ -125,7 +125,7 @@ export const customerComplains = createEvent.regular({
   meanTimeToHappen: 2 * 365,
   condition: _ => _.character.profession === Profession.Trader,
   title: 'Angry customer',
-  getText: _ => `Your job is not exactly to make people happy, but very often you do seem to make people made.
+  getText: _ => `Your job is not exactly to make people happy, but very often you do seem to make people mad.
     An angered customer goes into your place of business and shouts about an item you sold them`,
   actions: [
     action('Try to handle them').do(

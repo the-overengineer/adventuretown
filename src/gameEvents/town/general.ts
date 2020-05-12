@@ -7,7 +7,7 @@ import {
   Size,
   Taxation,
 } from 'types/state';
-import { eventCreator, action } from 'utils/events';
+import { eventCreator, action, time } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
 import { removeJob, isInCouncil } from 'utils/person';
@@ -347,7 +347,7 @@ export const defendAgainstAttackers = createEvent.regular({
     && _.town.prosperity >= Prosperity.Decent
     && (_.worldFlags.orcs! || _.worldFlags.goblins! || _.worldFlags.bandits! || _.worldFlags.dragon!),
   title: 'Defenses improved',
-  getText: _ => `With a looming threat not for from the town, the ruling council has invested
+  getText: _ => `With a looming threat not far from the town, the ruling council has invested
     some money into raising its defences, hoping to keep the attackers out`,
   actions: [
     {
@@ -534,7 +534,7 @@ export const verminCausePlague = createEvent.regular({
 });
 
 export const famineDueToWeather = createEvent.regular({
-  meanTimeToHappen: 30 * 365,
+  meanTimeToHappen: time(30, 'years').modify(5, _ => _.worldFlags.granary!),
   condition: _ => !_.worldFlags.famine,
   title: 'Famine!',
   getText: _ => `Last winter was long and harsh, and spring came late. The supplies are dwindling,
@@ -688,7 +688,7 @@ export const templeDemandsTax = createEvent.regular({
   condition: _ => _.worldFlags.temple! && _.town.equality >= ClassEquality.Stratified,
   title: 'Temple demands taxes',
   getText: _ =>`The local temple is grand indeed, but now it has been authorised to demand funds from the populace.
-    It would appear that it cannot live on prayer alone. ALl people in ${_.town.name} are required to pay a hefty
+    It would appear that it cannot live on prayer alone. All people in ${_.town.name} are required to pay a hefty
     percentage of their worth to the temple`,
   actions: [
     action('Why do the gods not help?').do(changeResourcePercentage('coin', -0.1)).log('The temple levies a great tax'),
@@ -797,7 +797,7 @@ export const civilWarStarts = createEvent.regular({
 });
 
 export const civilWarWon = createEvent.regular({
-  meanTimeToHappen: 1.25 * 365,
+  meanTimeToHappen: time(14, 'months'),
   condition: _ => _.worldFlags.civilWar! && !isInCouncil(_),
   title: 'Civil war ended',
   getText: `The rulers of the city have managed to quash the rebellion and end the unrest on the streets`,
@@ -807,7 +807,7 @@ export const civilWarWon = createEvent.regular({
 });
 
 export const civilWarWonCouncil = createEvent.regular({
-  meanTimeToHappen: 1.25 * 365, // TODO: Modifiy depending on whether the is a guard
+  meanTimeToHappen: time(14, 'months').modify(0.7, _ => _.worldFlags.townGuard!),
   condition: _ => _.worldFlags.civilWar! && isInCouncil(_),
   title: 'Civil war won',
   getText: `You, the rest and the council, and your forces have finally quashed the rebellion. Your enemies are gone, and you
@@ -821,7 +821,7 @@ export const civilWarWonCouncil = createEvent.regular({
 });
 
 export const civilWarFamine = createEvent.regular({
-  meanTimeToHappen: 2 * 365,
+  meanTimeToHappen: time(2, 'years').modify(2, _ => _.worldFlags.granary!),
   condition: _ => _.worldFlags.civilWar! && !_.worldFlags.famine,
   title: 'Supply lines broken',
   getText: _ => `With a civil war raging, the supply lines have been broken. Getting goods is now quite difficult`,
@@ -870,5 +870,72 @@ export const blackMarketDrawsAdventurers = createEvent.regular({
     in the town's black market`,
   actions: [
     action('Some heroes').do(setWorldFlag('adventurers')).log('Adventurers arrive to do business in the black market'),
+  ],
+});
+
+export const granaryBuilt = createEvent.regular({
+  meanTimeToHappen: time(20, 'years')
+    .modify(0.5, _ => _.town.size > Size.Average)
+    .modify(0.5, _ => _.town.prosperity > Prosperity.Average)
+    .modify(2, _ => _.town.taxation === Taxation.None),
+  condition: _ => !_.worldFlags.granary,
+  title: 'Granary built!',
+  getText: `The rich and influential people in town have decided to invest in a granary to store a surplus of food. This might come in useful
+    in times of hunger`,
+  actions: [
+    action('Splendid!').and(setWorldFlag('granary')).log('A large granary has been built in town'),
+  ],
+});
+
+export const youBuiltGranary = createEvent.triggered({
+  title: 'Granary built!',
+  getText: `Due to your influence and investment, a granary has been built in town to store a surplus of food. This might come in useful
+    in times of hunger`,
+  actions: [
+    action('Splendid!').and(setWorldFlag('granary')).log('A large granary has been built in town'),
+  ],
+});
+
+export const buildGranaryYourself = createEvent.regular({
+  meanTimeToHappen: time(10, 'years'),
+  condition: _ => !_.worldFlags.granary && (_.resources.coin >= 1_000 || _.resources.renown >= 1_000),
+  title: 'Investing in a granary',
+  getText: `It occurred to you that the town might stand better chance of enduring hard times if it were to have a large
+    granary it could use for storing good. It would take a lot of coin or pulling a lot of strings to do it, however`,
+  actions: [
+    action('Finance it yourself').spendResource('coin', 1_000).and(triggerEvent(youBuiltGranary)),
+    action('Persuade others to invest').spendResource('renown', 1_000).and(triggerEvent(youBuiltGranary)),
+    action('This is not my business'),
+  ],
+});
+
+export const granaryDestroyedInWar = createEvent.regular({
+  meanTimeToHappen: time(14, 'months'),
+  condition: _ => _.worldFlags.civilWar! && _.worldFlags.granary!,
+  title: 'Granary raided',
+  getText: `With the civil war raging, the granary has been emptied and burned down!`,
+  actions: [
+    action('What will we eat?').and(setWorldFlag('granary', false)).log('The granary was destroyed during the conflicts on the civil war'),
+  ],
+});
+
+export const granaryAbandoned = createEvent.regular({
+  meanTimeToHappen: time(30, 'years').modify(0.5, _ => _.town.size < Size.Average).modify(0.5, _ => _.town.prosperity < Prosperity.Average),
+  condition: _ => _.worldFlags.granary!,
+  title: 'Granary abandoned',
+  getText: `The granary has been storing less and less surplus food, if there was even any, and with time it was left to rot`,
+  actions: [
+    action('What will we eat?').and(setWorldFlag('granary', false)).log('The granary was abandoned by the town'),
+  ],
+});
+
+export const granaryExhausted = createEvent.regular({
+  meanTimeToHappen: time(9, 'months'),
+  condition: _ => _.worldFlags.famine! && _.worldFlags.granary!,
+  title: 'Granary exhausted',
+  getText: `With famine going around town, people were fed as much as possible from the granary, but it was finally completely exhausted
+    and left to rot`,
+  actions: [
+    action('What will we eat?').and(setWorldFlag('granary', false)).log('The granary was exhausted with so many hungry months, and in the end abandoned'),
   ],
 });

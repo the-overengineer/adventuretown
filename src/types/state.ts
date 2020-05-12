@@ -133,6 +133,7 @@ export type WorldFlag =
   | 'temple'
   | 'civilWar'
   | 'dragon'
+  | 'granary'
   ;
 
 export enum GameSpeed {

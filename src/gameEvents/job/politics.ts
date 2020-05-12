@@ -87,7 +87,7 @@ export const campaignStart = createEvent.regular({
     && !hasLimitedRights(_, _.character),
   title: 'Campaigning',
   getText: _ => `A seat is now open in the ruling council. You are eligible for the spot, but you would have to campaign for it.
-    Who it is of course depends on the current laws of it city - be it nobles, landowners, or the general population`,
+    Who gets to vote on it is of course depends on the current laws of it city - be it nobles, landowners, or the general population`,
   actions: [
     action('I will campaign').do(startNewCampaign).log('You have started campaigning to join the town council'),
     action('My time has not yet come'),
@@ -244,7 +244,7 @@ export const campaignElected = createEvent.triggered({
 
 export const campaignFails = createEvent.triggered({
   title: 'Campaign fails',
-  getText: `Though you have it your best, you did not manage to win a seat in the council, being beaten by other candidates`,
+  getText: `Though you gave it your best, you did not manage to win a seat in the council, being beaten by other candidates`,
   actions: [
     action('Maybe next time')
       .do(clearCampaignScore)

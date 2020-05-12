@@ -90,7 +90,7 @@ export const adventurersHandleVermin = createEvent.triggered({
 export const adventurersHandleGoblins = createEvent.triggered({
   title: 'Goblins defeated',
   getText: _ => `The adventurers have returned from their quest victorious, having scattered the goblin
-    tribe that has plageud the town`,
+    tribe that has plagued the town`,
   actions: [
     {
       text: 'Thank you, brave adventurers',

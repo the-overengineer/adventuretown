@@ -113,6 +113,17 @@ export const marryOffRandomChild = (state: IGameState): IGameState => {
   };
 };
 
+export const changeRandomChildStat = (state: IGameState, stat: 'physical' | 'intelligence' | 'education' | 'charm', by: number): IGameState => {
+  const child = pickOne(state.relationships.children.filter((it) => isOppressed(state, it) && getAge(it.dayOfBirth, state.daysPassed) >= 14));
+  return {
+    ...state,
+    relationships: {
+      ...state.relationships,
+      children: state.relationships.children.map((it) => it === child ? ({ ...it, [stat]: Math.max(0, Math.min(10, it[stat] + by)) }) : it),
+    },
+  };
+};
+
 
 export const newCharacter = (state: IGameState): IGameState => ({
   ...state,

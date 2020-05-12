@@ -300,13 +300,13 @@ export const goblinsRaidFood = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.worldFlags.goblins! && _.town.fortification < Fortification.Palisade,
   title: 'Goblins steal food',
-  getText: _ => `The goblin tribe raid the town during the night and steal food from the granary. You are affected`,
+  getText: _ => `The goblin tribe raid the town during the night and steal food from the stores. You are affected`,
   actions: [
     {
       text: 'Pests!',
       perform: compose(
         changeResourcePercentage('food', -0.1),
-        notify('Goblins raid the local granary, taking some of your food'),
+        notify('Goblins raid the local stores, taking some of your food'),
       ),
     },
   ],
@@ -912,7 +912,11 @@ export const orcsRaidFarms = createEvent.regular({
     action('Not my farm!').when(_ => _.characterFlags.farmland!).do(setCharacterFlag('farmland', false)).log(
       'The orc raiders burn down the farmlands you have purchased, nothing remains',
     ),
-    action('Not all those farms!').do(triggerEvent(farmRaidingStartsFamine).onlyWhen(_ => !_.worldFlags.famine).orTrigger(farmsEndureRaiding)),
+    action('Not all those farms!').do(
+      triggerEvent(farmRaidingStartsFamine)
+        .onlyWhen(_ => !_.worldFlags.famine).multiplyByFactor(0.3, _ => _.worldFlags.granary!)
+        .orTrigger(farmsEndureRaiding),
+    ),
     action('Defend the farm I work on!').when(_ => _.character.profession === Profession.Farmer).do(triggerEvent(orcsWinRaiding)),
   ],
 });

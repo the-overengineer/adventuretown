@@ -2,7 +2,7 @@ import { GenderEquality } from 'types/state';
 import { eventCreator, action } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
-import { createChild, findEmployableChild, hireEmployableChild, findFireableChild, fireFireableChild, removeRandomChild, isEmployable, worsenSpouseRelationship, marryOffRandomChild } from 'utils/person';
+import { createChild, findEmployableChild, hireEmployableChild, findFireableChild, fireFireableChild, removeRandomChild, isEmployable, worsenSpouseRelationship, marryOffRandomChild, changeRandomChildStat } from 'utils/person';
 import { changeResource } from 'utils/resources';
 import { isOppressed } from 'utils/town';
 import {
@@ -10,6 +10,7 @@ import {
   setWorldFlag,
 } from 'utils/setFlag';
 import { getAge } from 'utils/time';
+import { triggerEvent } from 'utils/eventChain';
 
 export const CHILDREN_PREFIX = 5_000;
 
@@ -274,5 +275,94 @@ export const shamedByChildren = createEvent.regular({
   getText: `"Why is that man so fat?" your child asks while pointing at one of the town council members`,
   actions: [
     action('Shhh!').resourceLosePercentage('renown', 5).log('One of your children shames you in public'),
+  ],
+});
+
+export const childDiesDueToNeglect = createEvent.regular({
+  meanTimeToHappen: 5 * 365,
+  condition: _ => _.relationships.children.filter((it) => getAge(it.dayOfBirth, _.daysPassed) < 14).length >= 3 // small kids
+    && _.relationships.children.filter((it) => getAge(it.dayOfBirth, _.daysPassed) >= 14).length === 0
+    && _.relationships.spouse == null
+    && !_.characterFlags.slaves
+    && _.character.profession != null,
+  title: 'Child dies due to neglect',
+  getText: `With you at work most of the day, and with no spouse or help at home, you would often neglect the children, assuming that they
+    would take care of themselves. This time, it ended in tragedy, as you find that one of your children has perished in an easily
+    preventable accident`,
+  actions: [
+    action('Oh, no!').and(removeRandomChild).log('One of your children has died due to neglect'),
+  ],
+});
+
+export const childOkay = createEvent.triggered({
+  title: 'Full recovery',
+  getText: `Though it seemed bad at first, your child seems to have fully recovered from their injury in a few days, and will
+    surely be proudly showing their scar to the other kids in weeks to come`,
+  actions: [
+    action('It ended well...').log('Your child suffered no serious harm due to their accident'),
+  ],
+});
+
+export const childDies = createEvent.triggered({
+  title: 'Child dies',
+  getText: `A few days after their injury, your child was getting worse and worse. Finally, as you hold them in your arms,
+    they perish.`,
+  actions: [
+    action('No!').and(removeRandomChild).log('Your child has died as a result of an accident'),
+  ],
+});
+
+export const childBrokeBone = createEvent.triggered({
+  title: 'Bone heals poorly',
+  getText: `Your child suffered a broken limb. At first, you hoped that they would recover, but the bone seems to be settling poorly. Your
+    child might be crippled for life`,
+  actions: [
+    action('Pay for a priest').when(_ => _.worldFlags.temple!).spendResource('coin', 100).and(triggerEvent(childOkay).delayAll(2)),
+    action('Upsetting...').and(_ => changeRandomChildStat(_, 'physical', -2)).log('Your child broke a bone, and it is not setting right'),
+  ],
+});
+
+export const childHeadWound = createEvent.triggered({
+  title: 'Child suffers head wound',
+  getText: `Your child suffered a head wound, and though at first you thought they would recover, it would seem that they are
+    much duller than they used to be`,
+  actions: [
+    action('Pay for a priest').when(_ => _.worldFlags.temple!).spendResource('coin', 100).and(triggerEvent(childOkay)),
+    action('Upsetting...').and(_ => changeRandomChildStat(_, 'intelligence', -2)).log('Your child injured their head and seemingly their wits'),
+  ],
+});
+
+export const seeWhatHappens = createEvent.triggered({
+  title: 'Child in pain',
+  getText: `You see your child curled up on the floor, sobbing in agony. It would appear that they suffered an injury. Even more horrifyingly, after the
+    initial shock they go pale and are mostly quiet, just occasionally sobbing`,
+  actions: [
+    action('Pay for a priest').when(_ => _.worldFlags.temple!).spendResource('coin', 100).and(triggerEvent(childOkay)),
+    action('Try to help yourself').do(triggerEvent(childDies)
+      .orTrigger(childOkay).multiplyByFactor(2, _ => _.character.education >= 6)
+      .orTrigger(childBrokeBone)
+      .orTrigger(childHeadWound)
+      .delayAll(5),
+    ),
+  ],
+});
+
+export const childPlaying = createEvent.triggered({
+  title: `Child's play`,
+  getText: `It would appear that your child was engaged in some sort of a game where they playing they were captured
+    by other children. Absolutely nothing was wrong`,
+  actions: [
+    action('Let it go').log('Your child was overly dramatic, but you let it go'),
+    action('Cane them').log('Your child was overly dramatic, and got caned for it'),
+  ],
+});
+
+export const childAccidentOrPlay = createEvent.regular({
+  meanTimeToHappen: 6 * 365,
+  condition: _ => _.relationships.children.length > 0,
+  title: 'An accident?',
+  getText: `You are in your home when you hear a horrible scream from outside! It is your child screaming, you realise with dread`,
+  actions: [
+    action('Run out').and(triggerEvent(seeWhatHappens)),
   ],
 });
