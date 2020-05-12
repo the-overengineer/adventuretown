@@ -71,6 +71,7 @@ class EventActionBuilder {
   private weightOverriden: boolean = false;
   private factors: IFactor[] = []
   private delay?: number;
+  private chance?: number;
 
   public constructor(event: IEvent) {
     this.eventID = event.id;
@@ -96,9 +97,22 @@ class EventActionBuilder {
     return this;
   }
 
+  public maybe(chance: number): this {
+    this.chance = chance;
+    return this;
+  }
+
   public after(delay: number): this {
     this.delay = delay;
     return this;
+  }
+
+  public doesHappen(): boolean {
+    if (this.chance == null) {
+      return true;
+    }
+
+    return Math.random() <= this.chance;
   }
 
   public transform(state: IGameState): IEventWithWeight {
@@ -143,6 +157,11 @@ export class EventChainBuilder {
     return this;
   }
 
+  public maybe(chance: number): this {
+    this.activeEvent().maybe(chance);
+    return this;
+  }
+
   public after(delay: number): this {
     this.activeEvent().after(delay);
     return this;
@@ -154,7 +173,9 @@ export class EventChainBuilder {
   }
 
   public toTransformer() {
-    return (state: IGameState): IGameState => eventChain(this.events.map(_ => _.transform(state)))(state)
+    return (state: IGameState): IGameState => eventChain(
+      this.events.filter(_ => _.doesHappen()).map(_ => _.transform(state)),
+    )(state)
   }
 
   private activeEvent() {
