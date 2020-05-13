@@ -196,7 +196,12 @@ export const townGuardEstablished = createEvent.regular({
 });
 
 export const townGuardAbolished = createEvent.regular({
-  meanTimeToHappen: 2 * 365,
+  meanTimeToHappen: time(14, 'years')
+    .modify(0.5, _  => _.town.prosperity < Prosperity.Average)
+    .modify(0.5, _  => _.town.prosperity < Prosperity.Poor)
+    .modify(0.5, _  => _.town.size < Size.Average)
+    .modify(0.5, _  => _.town.size < Size.Small)
+    .modify(4, _ => _.worldFlags.bandits! || _.worldFlags.dragon! || _.worldFlags.orcs! || _.worldFlags.goblins!),
   condition: _ => _.worldFlags.townGuard!
     && _.town.prosperity < Prosperity.Average
     && _.town.size < Size.Modest,
@@ -216,7 +221,7 @@ export const townGuardAbolished = createEvent.regular({
 });
 
 export const flatTaxIntroduced = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
+  meanTimeToHappen: time(3, 'years').modify(2, _ => _.town.size < Size.Average).modify(2, _ => _.town.prosperity < Prosperity.Average),
   condition: _ => _.town.taxation === Taxation.None && !isInCouncil(_),
   title: 'Flat taxation introduced',
   getText: _ => `The council of nobles has decided to introduce a flat tax to be able to finance
@@ -228,7 +233,7 @@ export const flatTaxIntroduced = createEvent.regular({
 });
 
 export const progressiveTaxIntroduced = createEvent.regular({
-  meanTimeToHappen: 20 * 365,
+  meanTimeToHappen: time(20, 'years'),
   condition: _ => _.town.taxation !== Taxation.Percentage
     && _.town.equality === ClassEquality.Equal
     && !isInCouncil(_),
@@ -257,7 +262,7 @@ export const taxAbolished = createEvent.regular({
 });
 
 export const notEnoughTaxesForGuard = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
+  meanTimeToHappen: time(3, 'years').modify(4, _ => _.worldFlags.bandits! || _.worldFlags.dragon! || _.worldFlags.orcs! || _.worldFlags.goblins!),
   condition: _ => _.worldFlags.townGuard! && _.town.taxation === Taxation.None && !isInCouncil(_),
   title: 'Town guard closing down',
   getText: `Without any taxes to keep them going, the town guard is about to close down. Only a large donation could
