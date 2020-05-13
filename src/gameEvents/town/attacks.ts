@@ -790,7 +790,9 @@ export const dragonsTakesYourGold = createEvent.triggered({
   getText: `The greedy dragon must have heard of your gold, because by the time you reach your home you find that most of your wealth has been
     stolen by the dragon`,
   actions: [
-    action('Better than my life!').resourceLosePercentage('coin', 80).log('The dragon stole most of your coin'),
+    action('Better than my life!')
+      .resourceLosePercentage('coin', 80)
+      .log('The dragon stole most of your coin'),
   ],
 });
 
@@ -833,7 +835,7 @@ export const dragonAttacks = createEvent.regular({
       triggerEvent(dragonSlain)
         .orTrigger(dragonChasedOff)
         .orTrigger(dragonKillsAdventurers).onlyWhen(_ => _.worldFlags.adventurerKeep! || _.worldFlags.adventurers!).withWeight(3)
-        .orTrigger(dragonsTakesYourGold).withWeight(2)
+        .orTrigger(dragonsTakesYourGold).withWeight(2).onlyWhen(_ => _.resources.coin >= 1_000)
         .orTrigger(dragonBurnsArea).withWeight(2)
         .orTrigger(dragonEatsPeople),
     ),
