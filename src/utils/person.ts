@@ -159,13 +159,16 @@ export const eldestInherits = (keepResources: boolean = true) => (state: IGameSt
   };
 };
 
-export const addSpouse = (state: IGameState): IGameState => ({
-  ...state,
-  relationships: {
-    ...state.relationships,
-    spouse: generateCharacter(state.daysPassed - 18 * 365, state.character.gender === Gender.Male ? Gender.Female : Gender.Male),
-  },
-});
+export const addSpouse = (state: IGameState): IGameState => {
+  const bornOn = Math.max(state.daysPassed - 14 * 365, state.character.dayOfBirth + 365 + inIntRange(-15, 15));
+  return {
+    ...state,
+    relationships: {
+      ...state.relationships,
+      spouse: generateCharacter(bornOn, state.character.gender === Gender.Male ? Gender.Female : Gender.Male),
+    },
+  };
+}
 
 export const removeSpouse = (state: IGameState): IGameState => ({
   ...state,
