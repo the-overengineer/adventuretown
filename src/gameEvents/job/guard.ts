@@ -1,7 +1,7 @@
 import { Profession, ProfessionLevel } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
 import { changeStat, removeJob } from 'utils/person';
-import { eventCreator, action } from 'utils/events';
+import { eventCreator, action, time } from 'utils/events';
 import { setCharacterFlag, setWorldFlag } from 'utils/setFlag';
 import { death } from 'gameEvents/life/general';
 
@@ -96,7 +96,7 @@ export const theftInvestigationThiefCaught = createEvent.triggered({
 
 export const theftInvestigation = createEvent.regular({
   meanTimeToHappen: 18 * 30,
-  condition: _ => _.character.profession === Profession.Guard,
+  condition: _ => _.character.profession === Profession.Guard && _.character.professionLevel! > ProfessionLevel.Entry,
   title: 'Theft!',
   getText: _ => `A local warehouse has been robbed. Not only was a great amount of wealth lost,
     but the warehouse belongs to the son of a local nobleman. The successful resolution of this
@@ -278,7 +278,7 @@ export const askAroundSuccess = createEvent.triggered({
 
 export const goodsFoundInWarehouse = createEvent.regular({
   meanTimeToHappen: 3 * 365,
-  condition: _ => _.worldFlags.blackMarket! && _.character.profession === Profession.Guard && _.character.professionLevel! > ProfessionLevel.Entry,
+  condition: _ => _.worldFlags.blackMarket! && _.character.profession === Profession.Guard && _.character.professionLevel! === ProfessionLevel.Leadership,
   title: 'Black market found',
   getText: `One of your underlings urgently leads you to a warehouse they have raided, hoping to find a gambling ring. What he shows you instead
     is worrying. The crates in there contain poisons, illegal drugs, and even specialised weapons. This could be related to the black market
@@ -305,5 +305,42 @@ export const loseJob = createEvent.regular({
   getText: `With the town guard abolished, you no longer have a job to do`,
   actions: [
     action('Shameful').do(removeJob).log('With the town guard abolished, so was your job'),
+  ],
+});
+
+export const neighbourDisputeSettled = createEvent.triggered({
+  title: 'Dispute settled',
+  getText: `With your assistance, the dispute has been settled. Your superiors take notice`,
+  actions: [
+    action('Good!').gainResource('renown', 30).log('You settled a dispute'),
+  ],
+});
+
+export const neighbourDisputeEscalated = createEvent.triggered({
+  title: 'Dispute escalates',
+  getText: `The dispute escalates into violence, and you had to get physically involved. Your superiors are not overly happy`,
+  actions: [
+    action('I tried!').gainResource('renown', -20).log('You failed to resolve a dispute'),
+  ],
+});
+
+export const neighbourDispute = createEvent.regular({
+  meanTimeToHappen: time(1, 'year'),
+  condition: _ => _.character.profession === Profession.Guard && _.character.professionLevel! < ProfessionLevel.Leadership,
+  title: 'Called into dispute',
+  getText: `Two citizens in the town have been having a heated dispute over some matter of importance to them, and you have
+    been called in to prevent it before it escalates into violence`,
+  actions: [
+    action('Try to calm them down').and(
+      triggerEvent(neighbourDisputeEscalated).withWeight(2)
+        .orTrigger(neighbourDisputeSettled)
+          .multiplyByFactor(2, _ => _.character.charm >= 4)
+          .multiplyByFactor(2, _ => _.character.charm >= 6)
+          .multiplyByFactor(2, _ => _.character.charm >= 8)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 4)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 6)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 8)
+    ),
+    action('Take a bribe to take a side').and(setCharacterFlag('bribery')).gainResource('coin', 25).and(triggerEvent(neighbourDisputeSettled)),
   ],
 });

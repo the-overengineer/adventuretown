@@ -9,8 +9,6 @@ import { death } from 'gameEvents/life/general';
 import { changeResource, changeResourcePercentage } from 'utils/resources';
 import { Fortification, Prosperity, Size, Profession } from 'types/state';
 
-
-
 const ATTACKS_EVENT_PREFIX: number = 72_000;
 
 const createEvent = eventCreator(ATTACKS_EVENT_PREFIX);
@@ -171,22 +169,28 @@ export const orcsAttack = createEvent.regular({
   condition: _ => _.worldFlags.orcs! && _.town.fortification < Fortification.Walls,
   title: 'Orcs attack!',
   getText: _ => `The tribe of orcs that has settled the area has come in great numbers to attack and pillage the
-    settlement. There are... many, more than you thought was possible`,
+    settlement. There are... many, more than you thought was possible
+    ${_.character.profession === Profession.Guard ? `. You and the rest of the guard stand ready to fight` : ''}`,
   actions: [
-    {
-      condition: _ => _.worldFlags.adventurerKeep! || _.worldFlags.townGuard!,
-      text: 'This town has defenders',
-      perform: triggerEvent(orcsPushedBack).withWeight(2).multiplyByFactor(2, _ => _.worldFlags.adventurerKeep!)
+    action('This town has defenders')
+      .when(_ => (_.worldFlags.adventurerKeep! || _.worldFlags.townGuard!) && _.character.profession !== Profession.Guard)
+      .and(
+        triggerEvent(orcsPushedBack).withWeight(2).multiplyByFactor(2, _ => _.worldFlags.adventurerKeep!)
         .orTrigger(orcsDefeated).withWeight(1).multiplyByFactor(2, _ => _.worldFlags.adventurerKeep!)
         .orTrigger(orcsWreckDefences).withWeight(1).onlyWhen(_ => _.town.fortification > Fortification.None)
         .orTrigger(orcsWinRaiding).withWeight(1).multiplyByFactor(2, _ => _.town.fortification < Fortification.Walls)
-        .toTransformer(),
-    },
-    {
-      condition: _ => !_.worldFlags.adventurerKeep && !_.worldFlags.townGuard,
-      text: 'We are doomed!',
-      perform: triggerEvent(orcsWinRaiding).toTransformer(),
-    },
+      ),
+    action('We defend the town')
+    .when(_ => _.character.profession === Profession.Guard)
+    .and(
+      triggerEvent(orcsPushedBack).withWeight(2).multiplyByFactor(2, _ => _.worldFlags.adventurerKeep!)
+      .orTrigger(orcsDefeated).withWeight(1).multiplyByFactor(2, _ => _.worldFlags.adventurerKeep!)
+      .orTrigger(orcsWreckDefences).withWeight(1).onlyWhen(_ => _.town.fortification > Fortification.None)
+      .orTrigger(orcsWinRaiding).withWeight(1).multiplyByFactor(2, _ => _.town.fortification < Fortification.Walls)
+    ),
+    action('We are doomed!')
+        .when(_ => !_.worldFlags.adventurerKeep && !_.worldFlags.townGuard)
+        .and(triggerEvent(orcsWinRaiding)),
   ],
 });
 
@@ -828,8 +832,8 @@ export const dragonAttacks = createEvent.regular({
   meanTimeToHappen: 9 * 30,
   condition: _ => _.worldFlags.dragon!,
   title: 'Dragon attacks',
-  getText: `First you hear the heavy wings beat. Then, you see the breath of fire in the evening sky. Moment later, the dragon soars down towards
-    the town, starting to attack it`,
+  getText: _ => `First you hear the heavy wings beat. Then, you see the breath of fire in the evening sky. Moment later, the dragon soars down towards
+    the town, starting to attack it${_.character.profession === Profession.Guard ? `. You and the rest of the guard stand ready to fight` : ''}`,
   actions: [
     action('Gods help us!').do(
       triggerEvent(dragonSlain)
