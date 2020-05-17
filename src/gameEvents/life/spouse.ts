@@ -246,7 +246,7 @@ export const becomePregnantWithSpouse = createEvent.regular({
     to spend time, it might leave you with child as well!`,
   actions: [
     action('Who knows?').do(pregnancyChance('spousePregnant')).log('Beds are not just for sleeping'),
-
+    action('Invent a headache'),
   ],
 });
 
@@ -263,6 +263,7 @@ export const spouseBecomesPregnant = createEvent.regular({
     to spend time, it might leave her with child as well!`,
   actions: [
     action('Who knows?').do(pregnancyChance('spousePregnant')).log('Beds are not just for sleeping'),
+    action('Invent a headache'),
   ],
 });
 
@@ -279,6 +280,7 @@ export const becomePregnantWithSpouseLove = createEvent.regular({
     hands off of each other, sometimes even in company of others. With any luck, it might result in a pregnancy`,
   actions: [
     action('Who knows?').do(pregnancyChance('spousePregnant')).log('Beds are not just for sleeping'),
+    action('Invent a headache').and(worsenSpouseRelationship),
 
   ],
 });
@@ -296,6 +298,7 @@ export const spouseBecomesPregnantLove = createEvent.regular({
     hands off of each other, sometimes even in company of others. With any luck, it might result in a pregnancy`,
   actions: [
     action('Who knows?').do(pregnancyChance('spousePregnant')).log('Beds are not just for sleeping'),
+    action('Invent a headache').and(worsenSpouseRelationship),
   ],
 });
 
