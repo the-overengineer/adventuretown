@@ -167,7 +167,8 @@ export const adventurersFarawayQuest = createEvent.triggered({
 export const adventurersSeekQuest = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => (_.worldFlags.adventurerKeep! || _.worldFlags.adventurers!)
-    && !_.worldFlags.adventurersQuestCompleted,
+    && !_.worldFlags.adventurersQuestCompleted
+    && _.resources.renown >= 100,
   title: 'Adventurers seek quest',
   getText: _ => `The adventuring party has learned that you have a name, and that has excited them very much for some
     reason. They come to you and ask if you have a quest for them`,
