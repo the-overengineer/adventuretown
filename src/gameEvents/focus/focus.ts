@@ -1094,19 +1094,10 @@ export const establishTownGuard = createEvent.regular({
     If you were willing to invest some money, you could start a town guard, with you
     as its captain`,
   actions: [
-    {
-      condition: _ => _.resources.coin >= 500,
-      text: 'It is worth the cost',
-      perform: compose(
-        setWorldFlag('townGuard', true),
-        startJob(Profession.Guard),
-        setLevel(ProfessionLevel.Leadership),
-        notify('You have established a town guard, with you as its leader and captain'),
-      ),
-    },
-    {
-      text: `Seems too expensive`,
-    },
+    action('It is worth the cost').spendResource('coin', 500).and(setWorldFlag('townGuard')).and(startJob(Profession.Guard, ProfessionLevel.Leadership)).log(
+      'You have established a town guard, with you as its leader and captain',
+    ),
+    action('Seems too expensive'),
   ],
 });
 
