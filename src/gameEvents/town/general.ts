@@ -120,10 +120,7 @@ export const diseaseShrinksPopulation = createEvent.regular({
   ],
 });
 
-export const diseaseImprovesGenderEquality = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
-  condition: _ => _.worldFlags.sickness!
-    && _.town.genderEquality !== GenderEquality.Equal,
+export const diseaseImprovesGenderEquality = createEvent.triggered({
   title: 'Disease increases gender equality',
   getText: _ => `While disease ravages the city, the workforce dwindles. This has brought the discriminated against sex
     deeper into the workforce and they are slowly gaining more rights`,
@@ -138,11 +135,7 @@ export const diseaseImprovesGenderEquality = createEvent.regular({
   ],
 });
 
-export const diseaseImprovesFemaleRights = createEvent.regular({
-  meanTimeToHappen: 7 * 30,
-  condition: _ => _.worldFlags.sickness!
-    && _.town.genderEquality >= GenderEquality.MaleDominance
-    && _.town.genderEquality < GenderEquality.MaleOppression,
+export const diseaseImprovesFemaleRights = createEvent.triggered({
   title: 'Men blamed for disease',
   getText: _ => `Men and their ways have been blamed for this disease. It started as whispers, and grew
     into riots. Soon, men have found themselves with their rights significantly reduced, and women with more rights`,
@@ -157,11 +150,7 @@ export const diseaseImprovesFemaleRights = createEvent.regular({
   ],
 });
 
-export const diseaseImprovesMaleRights = createEvent.regular({
-  meanTimeToHappen: 7 * 30,
-  condition: _ => _.worldFlags.sickness!
-    && _.town.genderEquality > GenderEquality.FemaleOppression
-    && _.town.genderEquality <= GenderEquality.FemaleDominance,
+export const diseaseImprovesMaleRights = createEvent.triggered({
   title: 'Women blamed for disease',
   getText: _ => `Women and their ways have been blamed for this disease. It started as whispers, and grew
     into riots. Soon, women have found themselves with their rights significantly reduced, and men with more rights`,
@@ -174,6 +163,19 @@ export const diseaseImprovesMaleRights = createEvent.regular({
       ),
     },
   ],
+});
+
+export const background = createEvent.background({
+  meanTimeToHappen: time(7, 'months'),
+  condition: _ => _.worldFlags.sickness!,
+  action: action('').and(
+    triggerEvent(diseaseImprovesMaleRights)
+      .onlyWhen(_ => _.town.genderEquality > GenderEquality.FemaleOppression && _.town.genderEquality <= GenderEquality.FemaleDominance)
+    .orTrigger(diseaseImprovesFemaleRights)
+      .onlyWhen(_ => _.town.genderEquality >= GenderEquality.MaleDominance && _.town.genderEquality < GenderEquality.MaleOppression)
+    .orTrigger(diseaseImprovesGenderEquality)
+      .onlyWhen(_ => _.town.genderEquality !== GenderEquality.Equal),
+  ),
 });
 
 export const townGuardEstablished = createEvent.regular({
