@@ -47,7 +47,7 @@ const initialState: IAppState = {
   eventQueue: [],
   resources: {
     coin: 10,
-    food: 10,
+    food: 25,
     renown: 0,
   },
   finances: {
