@@ -1,10 +1,21 @@
-import { Profession, Gender, ProfessionLevel } from 'types/state';
-import { changeResource } from 'utils/resources';
+import {
+  Gender,
+  Profession,
+  ProfessionLevel,
+} from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
+import {
+  action,
+  eventCreator,
+  time,
+} from 'utils/events';
 import { changeStat } from 'utils/person';
-import { setCharacterFlag, pregnancyChance } from 'utils/setFlag';
-import { eventCreator, action } from 'utils/events';
 import { pickOne } from 'utils/random';
+import { changeResource } from 'utils/resources';
+import {
+  pregnancyChance,
+  setCharacterFlag,
+} from 'utils/setFlag';
 
 const BAR_JOB_PREFIX: number = 31_000;
 
@@ -93,7 +104,7 @@ export const barFightFightBad = createEvent.triggered({
 });
 
 export const barFight = createEvent.regular({
-  meanTimeToHappen: 9 * 30,
+  meanTimeToHappen: time(1, 'year'),
   condition: _ => _.character.profession === Profession.BarWorker,
   title: 'Bar fight!',
   getText: _ => `This night in the bar, a lot of drinking is happening and the guests are getting rowdy. Before you know what's going on,
