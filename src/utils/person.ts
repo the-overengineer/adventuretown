@@ -6,7 +6,7 @@ import {
   Profession,
   ProfessionLevel,
 } from 'types/state';
-import { compose } from './functional';
+import { compose, stableSort } from './functional';
 import {
   inIntRange,
   pickOne,
@@ -55,14 +55,31 @@ export const createNonBabyChild = (state: IGameState): IGameState => {
   };
 };
 
+export const insertChild = (child: ICharacter) => (state: IGameState): IGameState => {
+  return {
+    ...state,
+    relationships: {
+      ...state.relationships,
+      children: stableSort(
+        [...state.relationships.children, child],
+        (first, second) => first.dayOfBirth - second.dayOfBirth,
+      )
+    },
+  };
+};
+
+
 type Stat = 'physical' | 'intelligence' | 'education' | 'charm';
+
+
+export const changeCharacterState = (stat: Stat, by: number) => (character: ICharacter): ICharacter => ({
+  ...character,
+  [stat]: Math.max(0, Math.min(10, character[stat] + by)),
+})
 
 export const changeStat = (stat: Stat, by: number) => (state: IGameState): IGameState => ({
   ...state,
-  character: {
-    ...state.character,
-    [stat]: Math.max(0, Math.min(10, state.character[stat] + by)),
-  },
+  character: changeCharacterState(stat, by)(state.character)
 });
 
 export const changeSpouseStat = (stat: Stat, by: number) => (state: IGameState): IGameState => {
@@ -97,6 +114,16 @@ export const removeRandomChild = (state: IGameState): IGameState => {
     relationships: {
       ...state.relationships,
       children: state.relationships.children.filter((it) => it !== child),
+    },
+  };
+};
+
+export const removeChild = (child: ICharacter) => (state: IGameState): IGameState => {
+  return {
+    ...state,
+    relationships: {
+      ...state.relationships,
+      children: state.relationships.children.filter((it) => it.name !== child.name && it.dayOfBirth !== child.dayOfBirth),
     },
   };
 };
@@ -137,6 +164,7 @@ export const newCharacter = (state: IGameState): IGameState => ({
   relationships: {
     children: [],
   },
+  tmp: new Map(),
 });
 
 export const eldestInherits = (keepResources: boolean = true) => (state: IGameState): IGameState => {
@@ -156,6 +184,7 @@ export const eldestInherits = (keepResources: boolean = true) => (state: IGameSt
       children: [],
     },
     resources,
+    tmp: new Map(),
   };
 };
 
@@ -339,3 +368,5 @@ export const worsenSpouseRelationship = (state: IGameState) => {
     return state;
   }
 };
+
+export const isAdult = (state: IGameState, character: ICharacter) => getAge(character.dayOfBirth, state.daysPassed) >= 14;

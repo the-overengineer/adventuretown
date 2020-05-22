@@ -155,6 +155,8 @@ export class ActionBuilder {
 
 export const action = (text: string) => new ActionBuilder(text);
 
+export const bgAction = () => new ActionBuilder('');
+
 type TimeSpan = 'day' | 'days' | 'week' | 'weeks' | 'month' | 'months' | 'year' | 'years';
 
 interface IFactor {

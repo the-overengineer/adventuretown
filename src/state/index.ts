@@ -26,4 +26,4 @@ const handlers: StateTransformer[] = [
   saveGame,
 ];
 
-export const processTick = compose<IGameState>(...handlers);
+export const processTick = compose<IGameState, IGameState>(...handlers);

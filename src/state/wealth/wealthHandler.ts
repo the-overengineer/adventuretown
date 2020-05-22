@@ -183,7 +183,7 @@ export const updateWealth = (state: IGameState): IGameState => ({
   },
 });
 
-export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState => compose(...[
+export const modifyIncomeExpensesFromTraits = (state: IGameState): IGameState => compose<IGameState, IGameState>(...[
   state.characterFlags.criminalActivity ? changeFinance('coinIncome', 2) : undefined,
   state.characterFlags.focusFun ? changeFinance('coinExpenses', 1) : undefined,
   state.characterFlags.focusFun ? changeFinance('renownIncome', 1) : undefined,

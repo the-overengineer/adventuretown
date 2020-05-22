@@ -6,6 +6,7 @@ import {
   Profession,
   ProfessionLevel,
   Prosperity,
+  IGameState,
 } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
 import { eventCreator, action } from 'utils/events';
@@ -16,7 +17,6 @@ import {
   changeStat,
   removeLastChild,
   removeSpouse,
-  setLevel,
   startJob,
   improveSpouseRelationship,
 } from 'utils/person';
@@ -66,7 +66,7 @@ const focusFlags: CharacterFlag[] = [
   'focusCity',
 ]
 
-export const lowerFocusFlags = compose(
+export const lowerFocusFlags = compose<IGameState, IGameState>(
   ...focusFlags.map(flag => setCharacterFlag(flag, false)),
 );
 
