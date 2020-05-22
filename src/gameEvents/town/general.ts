@@ -946,3 +946,23 @@ export const granaryExhausted = createEvent.regular({
     action('What will we eat?').and(setWorldFlag('granary', false)).log('The granary was exhausted with so many hungry months, and in the end abandoned'),
   ],
 });
+
+export const settlersArrive = createEvent.triggered({
+  title: 'Settlers arrive',
+  getText: _ => `Drawn by the rumours you spread about ${_.town.name} and the sheer weight of your name, new familiar arrive into town and its size grows`,
+  actions: [
+    action('I have done well').and(increaseSize).log('You have managed to grow the town through your reputation'),
+  ],
+});
+
+export const inviteSettlers = createEvent.regular({
+  meanTimeToHappen: time(10, 'years').modify(0.25, _ => _.characterFlags.focusCity!),
+  condition: _ => _.resources.renown >= 500 && _.town.size < Size.Large,
+  title: 'Invite settlers',
+  getText: _ => `Due to the influence and renown you have in the area, you believe you could use your legend
+    to spread the word about ${_.town.name} and get more people to settle the area, growing the town`,
+  actions: [
+    action('Spread the word').changeResource('renown', 500).and(triggerEvent(settlersArrive).after(30)).log('You spread the word of your town and wait for people to arrive'),
+    action('This is no concern of mine'),
+  ],
+});
