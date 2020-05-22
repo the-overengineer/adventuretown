@@ -253,13 +253,13 @@ export const setLevel = (professionLevel: ProfessionLevel) => (state: IGameState
   },
 });
 
-export const employSpouse = (state: IGameState): IGameState => ({
+export const employSpouse = (profession?: Profession) => (state: IGameState): IGameState => ({
   ...state,
   relationships: {
     ...state.relationships,
     spouse: {
       ...state.relationships.spouse!,
-      profession: pickOne([Profession.BarWorker, Profession.Farmer, Profession.Trader]),
+      profession: profession ?? pickOne([Profession.BarWorker, Profession.Farmer, Profession.Trader]),
       professionLevel: ProfessionLevel.Entry,
     },
   },

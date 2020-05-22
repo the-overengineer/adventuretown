@@ -1,4 +1,4 @@
-import { ProfessionLevel, Gender, GenderEquality, ICharacter } from 'types/state';
+import { ProfessionLevel, Gender, GenderEquality, ICharacter, Profession } from 'types/state';
 import { triggerEvent } from 'utils/eventChain';
 import {
   action,
@@ -31,15 +31,28 @@ const SPOUSE_EVENTS_PREFIX: number = 42_000;
 const createEvent = eventCreator(SPOUSE_EVENTS_PREFIX);
 
 export const spouseEmployed = createEvent.regular({
-  meanTimeToHappen: 4 * 30,
-  condition: _ => _.relationships.spouse != null && isEmployable(_, _.relationships.spouse!),
+  meanTimeToHappen: time(6, 'months'),
+  condition: _ => _.relationships.spouse != null && isEmployable(_, _.relationships.spouse!) && !_.characterFlags.focusFamily,
   title: 'Spouse finds work',
   getText: `In an effort to help finance the household, your spouse has found work. It is not
     a prestigious position, but it will bring some resources into your home`,
   actions: [
-    action('Splendid').do(employSpouse).log('Your spouse has found work'),
+    action('Splendid').do(employSpouse()).log('Your spouse has found work'),
   ],
-})
+});
+
+export const spouseEmployedAsk = createEvent.regular({
+  meanTimeToHappen: time(6, 'months'),
+  condition: _ => _.relationships.spouse != null && isEmployable(_, _.relationships.spouse!) && _.characterFlags.focusFamily!,
+  title: 'Spouse looking for work',
+  getText: `As you have been taking a greater interest in your family recently, your spouse asks you where they should
+    seek employment to best help your household`,
+  actions: [
+    action('At the farm').do(employSpouse(Profession.Farmer)).log('Your spouse has taken your advice and found work at the farm'),
+    action('At the bar').do(employSpouse(Profession.BarWorker)).log('Your spouse has taken your advice and found work at the bar'),
+    action('At the market').do(employSpouse(Profession.Trader)).log('Your spouse has taken your advice and found work at the market'),
+  ],
+});
 
 export const spouseFired = createEvent.regular({
   meanTimeToHappen: 8 * 30,
