@@ -181,7 +181,7 @@ export const difficultTrainee = createEvent.triggered({
     to be incompetent to the extreme, even causing material damage. You'll have to fire them, but it is considered
     a personal failure of yours`,
   actions: [
-    action('How can they be so stupid').gainResource('renown', -40).log(
+    action('How can they be so stupid').changeResource('renown', -40).log(
       'You had to fire a trainee and it reflects poorly on you',
     ),
   ],
@@ -192,7 +192,7 @@ export const averageTrainee = createEvent.triggered({
   getText: `The trainee you have been assigned has shown themselves to be an entirely average worker, despite some ups and downs. In all probability,
     they will keep their menial job for many years to come`,
   actions: [
-    action('Leadership is not for everyone').gainResource('renown', 5).log('The trainee you have been assigned turned out entirely average'),
+    action('Leadership is not for everyone').changeResource('renown', 5).log('The trainee you have been assigned turned out entirely average'),
   ],
 });
 
@@ -201,7 +201,7 @@ export const goodTrainee = createEvent.triggered({
   getText: _ => `You've been assigned with training a new employee at your business. They have shown themselves
     to be amazingly competent, and this will reflect well on you`,
   actions: [
-    action('Good job!').gainResource('renown', 30).log(
+    action('Good job!').changeResource('renown', 30).log(
       'You trained a competent worker, and this reflects well on you',
     ),
   ],
@@ -212,8 +212,8 @@ export const traineeGone = createEvent.triggered({
   getText: `You have not seen your trainee in days. When you ask around, you find out that neither has anybody else. What could they have done? In any
     case, your employer is not happy`,
   actions: [
-    action('I hope they are fine...').gainResource('renown', -40).log('The trainee you have been assigned is just gone'),
-    action('Who cares?').gainResource('renown', -40).log('The trainee you have been assigned is just gone'),
+    action('I hope they are fine...').changeResource('renown', -40).log('The trainee you have been assigned is just gone'),
+    action('Who cares?').changeResource('renown', -40).log('The trainee you have been assigned is just gone'),
   ],
 });
 
@@ -235,7 +235,7 @@ export const traineeFoundStealing = createEvent.triggered({
   getText: `You stay late at work one day, only to discover that your trainee is stealing from the business`,
   actions: [
     action('Have them fired').resourceLosePercentage('renown', 5).log('You had to fire a trainee after you caught them stealing, and it reflects poorly on you, too'),
-    action('Ask for a cut').and(setCharacterFlag('jobNeglect')).gainResource('coin', 25).and(
+    action('Ask for a cut').and(setCharacterFlag('jobNeglect')).changeResource('coin', 25).and(
       triggerEvent(difficultTrainee).withWeight(3)
         .orTrigger(averageTrainee).withWeight(2)
         .orTrigger(goodTrainee)
@@ -428,7 +428,7 @@ export const difficultJobSuccess = createEvent.triggered({
   getText: _ => `You have done your work in a way that hardly anyone can criticise. Your employer is very
     satisfied with your performance`,
   actions: [
-    action('I knew I could do it').gainResource('coin', 10).gainResource('renown', 15).log('You were praised for your good work'),
+    action('I knew I could do it').changeResource('coin', 10).changeResource('renown', 15).log('You were praised for your good work'),
   ],
 });
 
@@ -437,7 +437,7 @@ export const difficultJobFailure = createEvent.triggered({
   getText: _ => `You have made a complete hash out of your assigned, and shamed yourself. Worst of all,
     some of the loss is coming out of your pocket`,
   actions: [
-    action('A honest mistake').gainResource('coin', -10).gainResource('renown', -15).log('You were praised for your good work'),
+    action('A honest mistake').changeResource('coin', -10).changeResource('renown', -15).log('You were praised for your good work'),
   ],
 });
 
@@ -468,7 +468,7 @@ export const businessThrives = createEvent.regular({
   title: 'Business thrives',
   getText: _ => `Your business has been doing very well recently, and you reap the benefits`,
   actions: [
-    action('I am good at this!').resourceGainPercentage('coin', 5).gainResource('renown', 25).log(
+    action('I am good at this!').resourceGainPercentage('coin', 5).changeResource('renown', 25).log(
       'You reap the benefits of successfully leading a business',
     ),
   ],
@@ -519,7 +519,7 @@ export const expandBusinessSuccess = createEvent.triggered({
   title: 'Business expanded',
   getText: _ => `Your idea worked, and your business has made an expansion, all thanks to your brilliance`,
   actions: [
-    action('I knew it!').resourceGainPercentage('renown', 5).gainResource('coin', 125).log('You had a wonderful business idea which succeeded'),
+    action('I knew it!').resourceGainPercentage('renown', 5).changeResource('coin', 125).log('You had a wonderful business idea which succeeded'),
   ],
 });
 

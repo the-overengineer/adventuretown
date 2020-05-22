@@ -70,10 +70,10 @@ export const taxCollection = createEvent.regular({
   getText: _ => `You have been tasked with collecting taxes in your area. How do you proceed?`,
   actions: [
     action('I do my duty'),
-    action('I put some into my pockets').gainResource('coin', 100).and(setCharacterFlag('bribery')).log(
+    action('I put some into my pockets').changeResource('coin', 100).and(setCharacterFlag('bribery')).log(
       'You use tax collection to increase your own wealth',
     ),
-    action('I collect less than necessary').gainResource('renown', 50).and(setCharacterFlag('jobNeglect')).log(
+    action('I collect less than necessary').changeResource('renown', 50).and(setCharacterFlag('jobNeglect')).log(
       'You tax the people less than necessary. They love you more, but you are not doing your job very well'
     ),
   ],

@@ -28,10 +28,10 @@ export const secretOverheard = createEvent.regular({
   getText: `While working at the tavern you overhear a few members of the council, well in their cups, talking about
     a fellow corrupt politician. This could be bad for the politician if it was publicised.`,
   actions: [
-    action('Ask for money to keep quiet').gainResource('coin', 25).and(setCharacterFlag('enemiesInHighPlaces')).log(
+    action('Ask for money to keep quiet').changeResource('coin', 25).and(setCharacterFlag('enemiesInHighPlaces')).log(
       'You got a corrupt politician to pay you money to keep their dirty secrets',
     ),
-    action('Spread rumours').gainResource('renown', 20).and(setCharacterFlag('enemiesInHighPlaces')).log(
+    action('Spread rumours').changeResource('renown', 20).and(setCharacterFlag('enemiesInHighPlaces')).log(
       'You spread rumours, which turn out to be true, about a politician. People think well of you for revealing this'
     ),
     action('Keep your mouth shut'),
@@ -44,7 +44,7 @@ export const aGoodNightAtWork = createEvent.regular({
   title: 'Busy night',
   getText: `The tavern was unusually full tonight. Though you end up exhausted, you have made good earnings tonight.`,
   actions: [
-    action('More money never hurts').gainResource('coin', 20),
+    action('More money never hurts').changeResource('coin', 20),
   ]
 });
 
@@ -193,7 +193,7 @@ export const leftovers = createEvent.regular({
   getText: _ => `You do not quite have large stockpiles of food, and a chance has presented itself
     for you to take some leftovers from the tavern`,
   actions: [
-    action('Excellent!').gainResource('food', 2).log('You picked up some leftovers from the tavern'),
+    action('Excellent!').changeResource('food', 2).log('You picked up some leftovers from the tavern'),
   ],
 });
 
@@ -204,7 +204,7 @@ export const adventurersSeekInformation = createEvent.regular({
   getText: `A group of adventurers stops you as you work in the tavern and try to ask you some questions, assuming that you keep
     an ear on the ground`,
   actions: [
-    action('I tell them what they want to know').when(_ => _.character.education >= 5).gainResource('coin', 25).gainResource('renown', 25).log(
+    action('I tell them what they want to know').when(_ => _.character.education >= 5).changeResource('coin', 25).changeResource('renown', 25).log(
       'You give the adventurers some information, and they pay you for it, and tell everybody how helpful you were',
     ),
     action(`I don't know nuthin`),
@@ -221,7 +221,7 @@ export const adventuringPartyFormsAtTavern = createEvent.regular({
     a beautiful tiefling bard, and a man in dark clothing who keeps to the corner and eyes everybody nervously. You realise that they are a new
     adventuring party about to form. This doesn't happen very often, and you'll surely get quite a few drinks from friends telling them this story`,
   actions: [
-    action('What a wonderful sight!').gainResource('renown', 50).log('You get to see an adventuring party form and tell the tale'),
+    action('What a wonderful sight!').changeResource('renown', 50).log('You get to see an adventuring party form and tell the tale'),
   ],
 });
 

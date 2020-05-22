@@ -49,7 +49,7 @@ export const customerMakesNewPurchase = createEvent.triggered({
   getText: _ => `You convince the customer that they were wrong, and that they should make an entirely new purchase as a way
     of getting what they want. They seem to be taken by your explanation`,
   actions: [
-    action('A bonus for me').gainResource('coin', 25).log('You manage to charm an angry customer into one ready to make another purchase'),
+    action('A bonus for me').changeResource('coin', 25).log('You manage to charm an angry customer into one ready to make another purchase'),
   ],
 });
 
@@ -100,7 +100,7 @@ export const customerLosesFight = createEvent.triggered({
   getText: _ => `You easily calm down the customer using a mace you keep down the counter. Word spreads about how you
     threw them out on the street`,
   actions: [
-    action('And they say retail is easy').gainResource('renown', 50).log(
+    action('And they say retail is easy').changeResource('renown', 50).log(
       'You deal with a difficult customer, though less than elegantly',
     ),
   ],
@@ -431,13 +431,13 @@ export const disasterAdventure = createEvent.regular({
     leave behind large amounts of coin and food`,
   actions: [
     action('Truly horrible').and(shrinkRetinueSize, shrinkRetinueSize)
-      .gainResource('coin', -inIntRange(50, 300))
-      .gainResource('food', -inIntRange(50, 300))
+      .changeResource('coin', -inIntRange(50, 300))
+      .changeResource('food', -inIntRange(50, 300))
       .log('A disaster strikes your group, resulting in great loses'),
     action('Let us turn back home')
       .and(shrinkRetinueSize, shrinkRetinueSize)
-      .gainResource('coin', -inIntRange(50, 300))
-      .gainResource('food', -inIntRange(50, 300))
+      .changeResource('coin', -inIntRange(50, 300))
+      .changeResource('food', -inIntRange(50, 300))
       .and(triggerEvent(endMerchantAdventure)),
   ],
 });
@@ -449,8 +449,8 @@ export const tradingPartnerDiscoveredAdventure = createEvent.regular({
   getText: _ => `While ${describeRoute(_)}, you find yourself discovering ${describeTradingPartner(_)}. You make a tidy profit
     there.`,
   actions: [
-    action('Adventure paying off').gainResource('coin', inIntRange(10, 300)).log('You make a tidy profit trading'),
-    action('Let us turn back home').gainResource('coin', inIntRange(10, 300)).and(triggerEvent(endMerchantAdventure)),
+    action('Adventure paying off').changeResource('coin', inIntRange(10, 300)).log('You make a tidy profit trading'),
+    action('Let us turn back home').changeResource('coin', inIntRange(10, 300)).and(triggerEvent(endMerchantAdventure)),
   ],
 });
 
@@ -461,8 +461,8 @@ export const largeFoodStoresDiscovered = createEvent.regular({
   getText: _ => `While ${describeRoute(_)}, you find yourself discovering ${describeTradingPartner(_)}. You acquire large stores
     of food from them`,
   actions: [
-    action('Adventure paying off').gainResource('food', inIntRange(100, 300)).log('You will eat well, after trading for large amounts of food'),
-    action('Let us turn back home').gainResource('food', inIntRange(10, 300)).and(triggerEvent(endMerchantAdventure)),
+    action('Adventure paying off').changeResource('food', inIntRange(100, 300)).log('You will eat well, after trading for large amounts of food'),
+    action('Let us turn back home').changeResource('food', inIntRange(10, 300)).and(triggerEvent(endMerchantAdventure)),
   ],
 });
 
@@ -473,8 +473,8 @@ export const newLandsDiscovered = createEvent.regular({
   getText: _ => `While ${describeRoute(_)}, you discover queer new lands, with unusual customs and knowledge unknown in your
     lands. Telling stories of this will increase your renown`,
   actions: [
-    action('Adventure paying off').gainResource('renown', inIntRange(10, 300)).log('You are gaining fame as an explorer'),
-    action('Let us turn back home').gainResource('renown', inIntRange(10, 300)).and(triggerEvent(endMerchantAdventure)),
+    action('Adventure paying off').changeResource('renown', inIntRange(10, 300)).log('You are gaining fame as an explorer'),
+    action('Let us turn back home').changeResource('renown', inIntRange(10, 300)).and(triggerEvent(endMerchantAdventure)),
   ],
 });
 

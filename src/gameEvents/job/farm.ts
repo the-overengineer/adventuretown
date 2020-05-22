@@ -136,7 +136,7 @@ export const sellAgriculturalRevolution = createEvent.regular({
     500 coins. While this will fatten your purse, it will also equalise the agricultural
     advantage you have over the region`,
   actions: [
-    action('Accept').gainResource('coin', 500).and(setWorldFlag('agriculturalRevolution', false)).log(
+    action('Accept').changeResource('coin', 500).and(setWorldFlag('agriculturalRevolution', false)).log(
       'You have sold agricultural secrets to a neighbouring town'
     ),
     action('Refuse'),

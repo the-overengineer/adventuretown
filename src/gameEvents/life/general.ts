@@ -11,6 +11,7 @@ import { triggerEvent } from 'utils/eventChain';
 import {
   action,
   eventCreator,
+  time,
 } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
@@ -105,13 +106,13 @@ export const noMoney = createEvent.regular({
     Life cannot go on like this for much longer`,
   actions: [
     action('Give up on life').do(triggerEvent(death)),
-    action('Sell food urgently').spendResource('food', 30).gainResource('coin', 15).log(
+    action('Sell food urgently').spendResource('food', 30).changeResource('coin', 15).log(
       'You sell some of your food at low prices to get coin',
     ),
-    action('Beg for coin').spendResource('renown', 50).gainResource('coin', 15).log(
+    action('Beg for coin').spendResource('renown', 50).changeResource('coin', 15).log(
       'You shame yourself begging for coin in the town square',
     ),
-    action('Sell your youngest into slavery').when(_ => _.relationships.children.length > 0).gainResource('coin', 50).and(removeLastChild).log(
+    action('Sell your youngest into slavery').when(_ => _.relationships.children.length > 0).changeResource('coin', 50).and(removeLastChild).log(
       'You have sold your youngest child into slavery. Their life will not be pleasant, but you can survive another day',
     ),
   ],
@@ -126,9 +127,9 @@ export const noFood = createEvent.regular({
   actions: [
     action('Endure').when(_ => _.character.physical > 0).do(changeStat('physical', -1)).log('Your body weakens, but you survive another day without food'),
     action('Give up on life').do(triggerEvent(death)),
-    action('Buy food urgently').spendResource('coin', 20).gainResource('food', 15).log('You buy food, at a high price'),
-    action('Beg for food').spendResource('renown', 30).gainResource('food', 15).log('You shame yourself by begging for food in the town square'),
-    action('Sell your youngest into slavery').when(_ => _.relationships.children.length > 0).gainResource('food', 50).and(removeLastChild).log(
+    action('Buy food urgently').spendResource('coin', 20).changeResource('food', 15).log('You buy food, at a high price'),
+    action('Beg for food').spendResource('renown', 30).changeResource('food', 15).log('You shame yourself by begging for food in the town square'),
+    action('Sell your youngest into slavery').when(_ => _.relationships.children.length > 0).changeResource('food', 50).and(removeLastChild).log(
       'You have sold your youngest child into slavery. Their life will not be pleasant, but you can survive another day',
     ),
   ],
@@ -139,7 +140,7 @@ export const sicknessFullRecovery = createEvent.triggered({
   getText: _ => `You wake up in the morning feeling much better. You have made a full recovery from your sickness`,
   actions: [
     action('Finally!').log('You have made a full recovery from the sickness'),
-    action('Donate to the gods in thanks').spendResource('coin', 10).gainResource('renown', 5).log(
+    action('Donate to the gods in thanks').spendResource('coin', 10).changeResource('renown', 5).log(
       `You have recovered fully from the sickness, and donate to the temple in thanks`,
     ),
   ],
@@ -157,7 +158,7 @@ export const sicknessDifficultRecovery = createEvent.triggered({
           changeStat('charm', -1 * inIntRange(1, 2)),
         ]),
       ).log('You have made a partial recovery from the sickness'),
-      action('Donate to the gods in thanks').spendResource('coin', 10).gainResource('renown', 5).and(
+      action('Donate to the gods in thanks').spendResource('coin', 10).changeResource('renown', 5).and(
         pickOne([
           changeStat('physical', -1 * inIntRange(1, 2)),
           changeStat('intelligence', -1 * inIntRange(1, 2)),
@@ -234,7 +235,7 @@ export const wishCoin = createEvent.triggered({
   title: 'Wish granted',
   getText: _ => `The djinn roars something out in a booming voice before he vanishes. As he does, you see a huge chest of gold stand before you`,
   actions: [
-    action('A wish well spent').gainResource('coin', 2_500).and(setCharacterFlag('djinnFound')).log(
+    action('A wish well spent').changeResource('coin', 2_500).and(setCharacterFlag('djinnFound')).log(
       'A djinn has granted you great wealth',
     ),
   ],
@@ -244,7 +245,7 @@ export const wishFame = createEvent.triggered({
   title: 'Wish granted',
   getText: _ => `The djinn roars something out in a booming voice before he vanishes. As he does, you hear the crowds cheering your name with joy`,
   actions: [
-    action('A wish well spent').gainResource('renown', 2_500).and(setCharacterFlag('djinnFound')).log(
+    action('A wish well spent').changeResource('renown', 2_500).and(setCharacterFlag('djinnFound')).log(
       'A djinn has granted you great fame',
     ),
   ],
@@ -695,7 +696,7 @@ export const slandered = createEvent.regular({
   getText: `You discover that you have been a victim of slander. Though the tales they tell of you are... probably not true, it will affect
     your standing in society`,
   actions: [
-    action('Why, if I find them...').gainResource('renown', -100).log('You have been a victim of slander, affecting your standing in the community'),
+    action('Why, if I find them...').changeResource('renown', -100).log('You have been a victim of slander, affecting your standing in the community'),
   ],
 });
 
@@ -1225,5 +1226,15 @@ export const oldLoseCharm = createEvent.regular({
   getText: `You are one of the oldest people in town. With advanced age, you notice that you are less attractive than in your youth`,
   actions: [
     action('I feel ancient').and(changeStat('charm', -1)).log('Your looks decay rapidly'),
+  ],
+});
+
+export const shamefulNotMarried = createEvent.regular({
+  meanTimeToHappen: time(5, 'years'),
+  condition: _ => getAge(_.character.dayOfBirth, _.daysPassed) >= 25 && _.relationships.spouse == null,
+  title: 'Unmarried',
+  getText: `The fact that you are not married at your age is causing some people to question what is wrong with you`,
+  actions: [
+    action('I should not be judger').resourceLosePercentage('renown', 10, 50, 500).log('People are questioning why you are still unmarried'),
   ],
 });

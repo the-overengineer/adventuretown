@@ -45,7 +45,7 @@ export const briberyAttempt = createEvent.regular({
     they offer a toothy smile "Surely some coins can forget that you ever saw me?"`,
   actions: [
     action('Accept the bribe').resourceGainPercentage('coin', 10).and(setCharacterFlag('bribery')).log('You took a bribe to ignore a crime'),
-    action('Reject the bribe').gainResource('renown', 25).and(setCharacterFlag('enemiesInHighPlaces')).log('You rejected a bribe, but might have made an enemy'),
+    action('Reject the bribe').changeResource('renown', 25).and(setCharacterFlag('enemiesInHighPlaces')).log('You rejected a bribe, but might have made an enemy'),
   ],
 });
 
@@ -118,8 +118,8 @@ export const blackMarketFound = createEvent.triggered({
   getText: `Your investigation has concluded. You observe the black market in the tunnels underneath the city making a livery business.
     You could close it up, of course. Or... you could make a deal`,
   actions: [
-    action('Bring in the guards!').do(setWorldFlag('blackMarket', false)).gainResource('renown', 250).log('You shut down the black market'),
-    action(`Let's talk price...`).gainResource('coin', 500).log('You take a large sum of money to keep the black market a secret'),
+    action('Bring in the guards!').do(setWorldFlag('blackMarket', false)).changeResource('renown', 250).log('You shut down the black market'),
+    action(`Let's talk price...`).changeResource('coin', 500).log('You take a large sum of money to keep the black market a secret'),
   ],
 });
 
@@ -312,7 +312,7 @@ export const neighbourDisputeSettled = createEvent.triggered({
   title: 'Dispute settled',
   getText: `With your assistance, the dispute has been settled. Your superiors take notice`,
   actions: [
-    action('Good!').gainResource('renown', 30).log('You settled a dispute'),
+    action('Good!').changeResource('renown', 30).log('You settled a dispute'),
   ],
 });
 
@@ -320,7 +320,7 @@ export const neighbourDisputeEscalated = createEvent.triggered({
   title: 'Dispute escalates',
   getText: `The dispute escalates into violence, and you had to get physically involved. Your superiors are not overly happy`,
   actions: [
-    action('I tried!').gainResource('renown', -20).log('You failed to resolve a dispute'),
+    action('I tried!').changeResource('renown', -20).log('You failed to resolve a dispute'),
   ],
 });
 
@@ -341,6 +341,6 @@ export const neighbourDispute = createEvent.regular({
           .multiplyByFactor(2, _ => _.character.intelligence >= 6)
           .multiplyByFactor(2, _ => _.character.intelligence >= 8)
     ),
-    action('Take a bribe to take a side').and(setCharacterFlag('bribery')).gainResource('coin', 25).and(triggerEvent(neighbourDisputeSettled)),
+    action('Take a bribe to take a side').and(setCharacterFlag('bribery')).changeResource('coin', 25).and(triggerEvent(neighbourDisputeSettled)),
   ],
 });

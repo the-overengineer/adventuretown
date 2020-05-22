@@ -7,7 +7,7 @@ import {
   IResources,
 } from 'types/state';
 import { notify } from './message';
-import { compose } from './functional';
+import { compose, clamp } from './functional';
 import { EventChainBuilder } from './eventChain';
 import { changeResource, changeResourcePercentage } from './resources';
 
@@ -117,15 +117,17 @@ export class ActionBuilder {
     return this.when(_ => _.resources[resource] >= amount).do(changeResource(resource, -amount));
   }
 
-  public resourceLosePercentage(resource: keyof IResources, percentage: number): this {
-    return this.do(changeResourcePercentage(resource, -percentage / 100));
+  public resourceLosePercentage(resource: keyof IResources, percentage: number, min?: number, max?: number): this {
+    const amount = -1 * clamp(percentage / 100, min, max);
+    return this.do(changeResourcePercentage(resource, amount));
   }
 
-  public resourceGainPercentage(resource: keyof IResources, percentage: number): this {
-    return this.do(changeResourcePercentage(resource, percentage / 100));
+  public resourceGainPercentage(resource: keyof IResources, percentage: number, min?: number, max?: number): this {
+    const amount = clamp(percentage / 100, min, max);
+    return this.do(changeResourcePercentage(resource, amount));
   }
 
-  public gainResource(resource: keyof IResources, amount: number): this {
+  public changeResource(resource: keyof IResources, amount: number): this {
     return this.do(changeResource(resource, amount));
   }
 
