@@ -160,7 +160,10 @@ export const eldestInherits = (keepResources: boolean = true) => (state: IGameSt
 };
 
 export const addSpouse = (state: IGameState): IGameState => {
-  const bornOn = Math.max(state.daysPassed - 14 * 365, state.character.dayOfBirth + 365 * inIntRange(-15, 15));
+  const yourDateOfBirth = state.character.dayOfBirth;
+  const offsetByFiveYears = 365 * inIntRange(-5, 5);
+  const minBirthDay = state.daysPassed - 16 * 365; // Minimum age is 16
+  const bornOn = Math.min(offsetByFiveYears + yourDateOfBirth, minBirthDay);
   return {
     ...state,
     relationships: {
