@@ -3,7 +3,7 @@ import {
   civilWarWon,
 } from 'gameEvents/town/general';
 import { triggerEvent } from 'utils/eventChain';
-import { eventCreator, action } from 'utils/events';
+import { eventCreator, action, time } from 'utils/events';
 import { compose } from 'utils/functional';
 import { notify } from 'utils/message';
 import {
@@ -13,8 +13,14 @@ import {
 import { changeResource } from 'utils/resources';
 import { setWorldFlag } from 'utils/setFlag';
 import { death } from './general';
+import { setTmp, getTmp, removeTmp } from 'utils/tmpBuffer';
 
 const ADVENTURERS_EVENT_PREFIX: number = 43_000;
+
+const REWARD = '@tmp/REWARD';
+const setReward = (amount: number) => setTmp(REWARD, amount);
+const getReward = getTmp(REWARD, 100);
+const clearReward = removeTmp(REWARD);
 
 const createEvent = eventCreator(ADVENTURERS_EVENT_PREFIX);
 
@@ -23,27 +29,21 @@ export const adventurersFail = createEvent.triggered({
   getText: _ => `The adventurers try their best, but they fail to complete their assigned
     quest. They return alive, but ragged and defeated`,
   actions: [
-    {
-      text: 'I thought they were better',
-      perform: notify('The band of adventurers fails their quest'),
-    },
+    action('I thought they were better').do(clearReward).log('The band of adventurers fails their quest'),
   ],
 });
 
 export const adventurersDie = createEvent.triggered({
   title: 'Adventurers perish',
   getText: _ => `The adventurers go boldly on their assigned quest. The next day, you hear
-    that they have found all of their bodies arranged near the road`,
+    that they have found their corpses not far from where you hear their target was`,
   actions: [
-    {
-      text: 'I thought they were better',
-      perform: compose(
-        setWorldFlag('adventurerKeep', false),
-        setWorldFlag('adventurers', false),
-        setWorldFlag('adventurersQuestCompleted', false),
-        notify('The adventuring party have died while on their quest'),
-      ),
-    },
+    action('I thought they were better')
+      .and(setWorldFlag('adventurerKeep', false))
+      .and(setWorldFlag('adventurers', false))
+      .and(setWorldFlag('adventurersQuestCompleted', false))
+      .and(clearReward)
+      .log('The adventuring party have died while on their quest'),
   ],
 });
 
@@ -173,60 +173,52 @@ export const adventurersSeekQuest = createEvent.regular({
   getText: _ => `The adventuring party has learned that you have a name, and that has excited them very much for some
     reason. They come to you and ask if you have a quest for them`,
   actions: [
-    {
-      condition: _ => _.characterFlags.kidnappedChild!,
-      text: `"My child has been kidnapped"`,
-      perform: triggerEvent(adventurersFail).withWeight(2)
+    action('"My child has been kidnapped"')
+      .when(_ => _.characterFlags.kidnappedChild!)
+      .do(
+        triggerEvent(adventurersFail).withWeight(2)
         .orTrigger(adventurersDie)
         .orTrigger(adventurersRescueChild).withWeight(3)
-        .toTransformer(),
-    },
-    {
-      condition: _ => _.worldFlags.vermin!,
-      text: '"Kill the giant rats"',
-      perform: triggerEvent(adventurersFail).withWeight(3)
+      ).and(setReward(250)),
+    action("Kill the giant rats")
+      .when(_ => _.worldFlags.vermin!)
+      .do(
+        triggerEvent(adventurersFail).withWeight(3)
         .orTrigger(adventurersDie)
         .orTrigger(adventurersHandleVermin).withWeight(6)
-        .toTransformer(),
-    },
-    {
-      condition: _ => _.worldFlags.goblins!,
-      text: '"Scatter the goblins"',
-      perform: triggerEvent(adventurersFail).withWeight(3)
+      ).and(setReward(100)),
+    action('"Scatter the goblins"')
+      .when(_ => _.worldFlags.goblins!)
+      .do(
+        triggerEvent(adventurersFail).withWeight(3)
         .orTrigger(adventurersDie)
         .orTrigger(adventurersHandleGoblins).withWeight(3)
-        .toTransformer(),
-    },
-    {
-      condition: _ => _.worldFlags.orcs!,
-      text: '"Slay the orcs"',
-      perform: triggerEvent(adventurersFail).withWeight(2)
+      ).and(setReward(200)),
+    action('"Slay the orcs"')
+      .when(_ => _.worldFlags.orcs!)
+      .do(
+        triggerEvent(adventurersFail).withWeight(2)
         .orTrigger(adventurersDie)
         .orTrigger(adventurersHandleOrcs).withWeight(2)
-        .toTransformer(),
-    },
-    {
-      condition: _ => _.worldFlags.bandits!,
-      text: '"Defeat the bandit chief"',
-      perform: triggerEvent(adventurersFail).withWeight(2)
+      ).and(setReward(500)),
+    action('"Defeat the bandit chief"')
+      .when(_ => _.worldFlags.bandits!)
+      .do(
+        triggerEvent(adventurersFail).withWeight(2)
         .orTrigger(adventurersDie)
         .orTrigger(adventurersHandleBandits).withWeight(2)
-        .toTransformer(),
-    },
-    action(`"Kill the dragon"`).when(_ => _.worldFlags.dragon!).do(
-      triggerEvent(adventurersFail).withWeight(2)
+      ).and(setReward(500)),
+    action('"Kill the dragon"')
+      .when(_ => _.worldFlags.dragon!)
+      .do(
+        triggerEvent(adventurersFail).withWeight(2)
         .orTrigger(adventurersDie).withWeight(8)
         .orTrigger(adventurersHandleDragon)
+      ).and(setReward(1_000)),
+    action('Invent quest in faraway land').when(_ => _.character.charm >= 6).and(triggerEvent(adventurersFarawayQuest)),
+    action('I have nothing for you').log(
+      `You had no quest for the adventurers. They leave confused. "But you have a name" one of them says sadly`,
     ),
-    {
-      condition: _ => _.character.charm >= 6,
-      text: 'Invent quest in faraway land',
-      perform: triggerEvent(adventurersFarawayQuest).toTransformer(),
-    },
-    {
-      text: '"I have nothing for you"',
-      perform: notify(`You had no quest for the adventurers. They leave confused. "But you have a name" one of them says sadly`),
-    },
   ],
 });
 
@@ -412,41 +404,34 @@ export const adventurersSeekAdvice = createEvent.regular({
 });
 
 export const adventurersWantReward = createEvent.regular({
-  meanTimeToHappen: 6 * 30,
+  meanTimeToHappen: time(5, 'months'),
   condition: _ => _.worldFlags.adventurersQuestCompleted! && (_.worldFlags.adventurerKeep! || _.worldFlags.adventurers!),
   title: 'Adventurers want reward',
   getText: _ => `The adventurers who have recently aided you appear at your door, demanding a reward for their heroic deeds`,
   actions: [
-    {
-      text: 'Pay them',
-      perform: compose(
-        changeResource('coin', -100),
-        setWorldFlag('adventurersQuestCompleted', false),
-        notify('You paid the adventurers handsomely for their services'),
-      ),
-    },
-    {
-      condition: _ => _.character.intelligence >= 4,
-      text: 'Reason with them',
-      perform: triggerEvent(adventurersAccuseDebateSuccess)
+    action('Pay them')
+      .when(_ => _.resources.coin >= getReward(_))
+      .do(_ => changeResource('coin', -1 * getReward(_))(_))
+      .and(clearReward)
+      .and(setWorldFlag('adventurersQuestCompleted', false))
+      .log('You paid the adventurers handsomely for their services'),
+    action('Reason with them')
+      .when(_ => _.character.intelligence >= 4)
+      .do(
+        triggerEvent(adventurersAccuseDebateSuccess)
           .multiplyByFactor(1.5, _ => _.character.intelligence >= 6)
           .multiplyByFactor(2, _ => _.character.intelligence >= 8)
         .orTrigger(adventurersAccuseDebateFailure).withWeight(2)
-        .toTransformer(),
-    },
-    {
-      condition: _ => _.character.charm >= 4,
-      text: 'Charm them',
-      perform: triggerEvent(adventurersAccuseCharmSuccess)
-          .multiplyByFactor(1.5, _ => _.character.charm >= 6)
-          .multiplyByFactor(2, _ => _.character.charm >= 8)
-        .orTrigger(adventurersAccuseCharmFailure).withWeight(2)
-        .toTransformer(),
-    },
-    {
-      text: 'Refuse them',
-      perform: triggerEvent(adventurersAttack).toTransformer(),
-    },
+      ),
+    action('Charm them')
+        .when(_ => _.character.charm >= 4)
+        .do(
+          triggerEvent(adventurersAccuseCharmSuccess)
+            .multiplyByFactor(1.5, _ => _.character.charm >= 6)
+            .multiplyByFactor(2, _ => _.character.charm >= 8)
+          .orTrigger(adventurersAccuseCharmFailure).withWeight(2)
+        ),
+    action('Refuse them').and(triggerEvent(adventurersAttack)),
   ]
 });
 
