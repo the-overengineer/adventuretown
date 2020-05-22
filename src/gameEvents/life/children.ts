@@ -359,7 +359,7 @@ export const childPlaying = createEvent.triggered({
 
 export const childAccidentOrPlay = createEvent.regular({
   meanTimeToHappen: 6 * 365,
-  condition: _ => _.relationships.children.length > 0,
+  condition: _ => _.relationships.children.filter((child) => getAge(child.dayOfBirth, _.daysPassed) < 14).length > 0,
   title: 'An accident?',
   getText: `You are in your home when you hear a horrible scream from outside! It is your child screaming, you realise with dread`,
   actions: [
