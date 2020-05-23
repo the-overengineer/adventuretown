@@ -962,7 +962,7 @@ export const inviteSettlers = createEvent.regular({
   getText: _ => `Due to the influence and renown you have in the area, you believe you could use your legend
     to spread the word about ${_.town.name} and get more people to settle the area, growing the town`,
   actions: [
-    action('Spread the word').changeResource('renown', 500).and(triggerEvent(settlersArrive).after(30)).log('You spread the word of your town and wait for people to arrive'),
+    action('Spread the word').spendResource('renown', 500).and(triggerEvent(settlersArrive).after(30)).log('You spread the word of your town and wait for people to arrive'),
     action('This is no concern of mine'),
   ],
 });
