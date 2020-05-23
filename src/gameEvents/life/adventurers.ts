@@ -14,6 +14,8 @@ import { changeResource } from 'utils/resources';
 import { setWorldFlag } from 'utils/setFlag';
 import { death } from './general';
 import { setTmp, getTmp, removeTmp } from 'utils/tmpBuffer';
+import { Size } from 'types/state';
+import { increaseSize } from 'utils/town';
 
 const ADVENTURERS_EVENT_PREFIX: number = 43_000;
 
@@ -464,5 +466,67 @@ export const civilWarTakeSide = createEvent.regular({
         .orTrigger(civilWarLost)
         .toTransformer(),
     },
+  ],
+});
+
+export const adventurersFlattered = createEvent.triggered({
+  title: 'Adventurers thankful',
+  getText: `The adventurers are very flattered by being thanked so publically for their work, and announce their intention to stay
+    here to protect the village. They thank you personally`,
+  actions: [
+    action('Good!').and(setWorldFlag('adventurerKeep')).and(setWorldFlag('adventurersQuestCompleted', false)).resourceGainPercentage('renown', 5, 50, 100),
+  ],
+});
+
+export const adventurersDisgusted = createEvent.triggered({
+  title: 'Adventurers unhappy',
+  getText: `The adventurers are unhappy with how this was handled and do not consider this to be enough to thank them for their work.
+    After some arguing, they decide to leave the town, naming you in particular to blame`,
+  actions: [
+    action('Ungrateful!')
+      .and(setWorldFlag('adventurerKeep', false))
+      .and(setWorldFlag('adventurers', false))
+      .and(setWorldFlag('adventurersQuestCompleted', false))
+      .resourceLosePercentage('renown', 5, 50, 100)
+      .log('The adventurers are unhappy with how you tried to thank them, and pick up to leave the town'),
+  ],
+});
+
+export const peopleStayAfterTheFestival = createEvent.triggered({
+  title: 'Festival expands population',
+  getText: `The festival is a success, and many people from surrounding settlements come to join it. Some decide to stay and build their
+    homes here, expanding the size of the town`,
+  actions: [
+    action('Good!').and(increaseSize).log('Many visitors to the festival decide to stay and help grow the town'),
+  ],
+});
+
+export const commemorateAdventurers = createEvent.regular({
+  meanTimeToHappen: time(18, 'months'),
+  condition: _ => _.worldFlags.adventurersQuestCompleted! && (_.worldFlags.adventurerKeep! || _.worldFlags.adventurers!),
+  title: 'Commemorating adventurers',
+  getText: `Given that the adventurers have helped the town, people have started talking about doing something to thank the adventurers.
+    If you helped finance this, it could help you gain recognition in society`,
+  actions: [
+    action('Build a statue')
+      .spendResource('coin', 200)
+      .changeResource('renown', 150)
+      .and(triggerEvent(adventurersFlattered).maybe(0.6).orTrigger(adventurersDisgusted).maybe(0.2).delayAll(7))
+      .log('You pay to have a statue of the adventuring party built'),
+    action('Organise a festival')
+      .spendResource('coin', 100)
+      .changeResource('renown', 50)
+      .and(
+        triggerEvent(adventurersFlattered).maybe(0.4)
+        .orTrigger(adventurersDisgusted).maybe(0.3)
+        .orTrigger(peopleStayAfterTheFestival).maybe(0.1).onlyWhen(_ => _.town.size < Size.Large)
+        .delayAll(7),
+      )
+      .log('You finance a festival to commemorate the adventurers'),
+    action('Influence others to action')
+      .spendResource('renown', 150)
+      .and(triggerEvent(adventurersFlattered).maybe(0.6).orTrigger(adventurersDisgusted).maybe(0.2).delayAll(7))
+      .log('You take the lead and push others to do something for the adventurers'),
+    action('Do nothing'),
   ],
 });
