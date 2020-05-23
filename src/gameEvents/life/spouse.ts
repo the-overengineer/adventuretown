@@ -488,13 +488,13 @@ export const spouseStatChangesBackground = createEvent.background({
   meanTimeToHappen: time(1, 'year'),
   condition: _ => _.relationships.spouse != null,
   action: action('').and(
-    triggerEvent(spouseStrengthIncreases).onlyWhen(_ => _.relationships.spouse!.physical < 5)
+    triggerEvent(spouseStrengthIncreases).onlyWhen(_ => _.relationships.spouse!.physical < 5).multiplyByFactor(3, _ => _.characterFlags.focusFamily!)
       .orTrigger(spouseStrengthDecreases).onlyWhen(_ => _.relationships.spouse!.physical > 0)
-      .orTrigger(spouseIntelligenceIncreases).onlyWhen(_ => _.relationships.spouse!.intelligence < 5)
+      .orTrigger(spouseIntelligenceIncreases).onlyWhen(_ => _.relationships.spouse!.intelligence < 5).multiplyByFactor(3, _ => _.characterFlags.focusFamily!)
       .orTrigger(spouseIntelligenceDecreases).onlyWhen(_ => _.relationships.spouse!.intelligence > 0)
-      .orTrigger(spouseEducationIncreases).onlyWhen(_ => _.relationships.spouse!.education < 5)
+      .orTrigger(spouseEducationIncreases).onlyWhen(_ => _.relationships.spouse!.education < 5).multiplyByFactor(3, _ => _.characterFlags.focusFamily!)
       .orTrigger(spouseEducationDecreases).onlyWhen(_ => _.relationships.spouse!.education > 0)
-      .orTrigger(spouseCharmIncreases).onlyWhen(_ => _.relationships.spouse!.charm < 5)
+      .orTrigger(spouseCharmIncreases).onlyWhen(_ => _.relationships.spouse!.charm < 5).multiplyByFactor(3, _ => _.characterFlags.focusFamily!)
       .orTrigger(spouseCharmDecreases).onlyWhen(_ => _.relationships.spouse!.charm > 0),
   ),
 });
