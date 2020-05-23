@@ -315,7 +315,7 @@ export const deathOfOldAge = createEvent.regular({
 });
 
 export const scandal = createEvent.regular({
-  meanTimeToHappen: 3 * 365,
+  meanTimeToHappen: time(3, 'years'),
   condition: _ => _.character.profession != null && _.resources.renown >= 50,
   title: 'Scandal at work!',
   getText: _ => `A bit of a mess happened in your place of business, and somehow you were the
@@ -326,7 +326,7 @@ export const scandal = createEvent.regular({
 });
 
 export const minorRepairs = createEvent.regular({
-  meanTimeToHappen: 2 * 365,
+  meanTimeToHappen: time(2.5, 'years'),
   condition: _ => _.resources.coin >= 20,
   title: 'Minor repairs',
   getText: _ => `As you look around your home, you notice that you need to do minor repairs. The door is tilted, the roof is leaking,
@@ -337,7 +337,7 @@ export const minorRepairs = createEvent.regular({
 });
 
 export const roofCollapsed = createEvent.regular({
-  meanTimeToHappen: 15 * 365,
+  meanTimeToHappen: time(15, 'years'),
   condition: _ => _.resources.coin >= 100,
   title: 'Roof collapsed!',
   getText: _ => `You knew your house wasn't the sturdiest building in the world, but you were very unpleasantly surprised when the latest
