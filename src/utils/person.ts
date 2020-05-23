@@ -370,3 +370,44 @@ export const worsenSpouseRelationship = (state: IGameState) => {
 };
 
 export const isAdult = (state: IGameState, character: ICharacter) => getAge(character.dayOfBirth, state.daysPassed) >= 14;
+
+export const flipGender = (gender: Gender) => gender === Gender.Male ? Gender.Female : Gender.Male;
+
+export const generateLoverDescription = (state: IGameState, otherGender: boolean = true): string => {
+  const ownGender = state.character.gender;
+  const gender = otherGender ? flipGender(ownGender) : ownGender;
+  const pronoun = gender === Gender.Male ? 'He' : 'She';
+  const possessive = gender === Gender.Male ? 'his' : 'her';
+  const height = pickOne(['short', 'of average height', 'tall']);
+  const build = pickOne(['slim', 'of average build', 'fit', 'muscled', 'fat', 'well-proportioned']);
+  const face = gender === Gender.Male
+    ? pickOne(['is bearded', 'is clean-shaven', 'has an aquiline face', 'has a bloated face', 'has an average-looking face', 'is exceedingly handsome'])
+    : pickOne(['is full-lipped', 'has a beautiful face', 'has an average-looking face', 'has a worn and unattractive face']);
+  const approach = pickOne(['confident', 'shy', 'jovial', 'direct', 'flirty']);
+  const hairColor = pickOne(['dark', 'blonde', 'drab brown', 'strawberry blonde', 'red']);
+  const eyeColor = pickOne(['brown', 'dark', 'blue', 'green', 'grey']);
+  const intelligence = pickOne(['somewhat dull', 'of average intelligence', 'quick of mind', 'exceedingly intelligent'])
+
+  let baseDescription = `${pronoun} is ${height} and ${build}, with ${hairColor} hair and ${eyeColor} eyes. You note that ${pronoun.toLocaleLowerCase()} ${face}.
+    ${pronoun} is quite ${approach} in ${possessive} interaction with you, and you have an impression that ${pronoun.toLocaleLowerCase()} is ${intelligence}.`;
+
+  if (Math.random() < 0.25) {
+    baseDescription += ` You can see some marks of an old disease on ${possessive} face.`;
+  }
+
+  if (Math.random() < 0.25) {
+    baseDescription += ` Many of ${possessive} teeth are missing`;
+  } else if (Math.random() < 0.25) {
+    baseDescription += ` You can note that ${possessive} teeth are especially well-maintained.`;
+  }
+
+  if (Math.random() < 0.25) {
+    baseDescription += ` ${pronoun} is exceedingly well-dressed and ${possessive} clothes are fashionable.`
+  } else if (Math.random() < 0.3) {
+    baseDescription += ` ${pronoun} is wearing dull and ill-fitting clothing.`;
+  } else {
+    baseDescription += ` ${pronoun} is wearing typical clothings for somebody in ${state.town.name}, not standing out from the crowd with that.`
+  }
+
+  return baseDescription;
+};

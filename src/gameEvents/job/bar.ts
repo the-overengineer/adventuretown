@@ -1,5 +1,4 @@
 import {
-  Gender,
   Profession,
   ProfessionLevel,
 } from 'types/state';
@@ -9,7 +8,7 @@ import {
   eventCreator,
   time,
 } from 'utils/events';
-import { changeStat } from 'utils/person';
+import { changeStat, generateLoverDescription } from 'utils/person';
 import { pickOne } from 'utils/random';
 import { changeResource } from 'utils/resources';
 import {
@@ -152,16 +151,11 @@ export const potentialAdventurerLover = createEvent.regular({
   meanTimeToHappen: 9 * 30, // 9 months
   title: 'Admired at the bar',
   getText: (s) => {
-    const otherPronoun = s.character.gender === Gender.Female ? 'He': 'She';
-    const beautyAdjective = s.character.gender === Gender.Male ? 'handsome' : 'beautiful';
-    return `
-      One day at the tavern, you notice a youthful adventurer catching your eye now and then.
-      ${otherPronoun} seems to be the leader of the group, decked out in expensive equipment,
-      spending coin like there is no tomorrow, and drawing attention from most other patrons.
-      ${otherPronoun} is a bit in the cups as ${otherPronoun.toLocaleLowerCase()} approaches you
-      with a confident smile. "I saw you from across the tavern and couldn't help but notice how
-      ${beautyAdjective} you are. Maybe you'd like to join me in my room later?" ${otherPronoun}
-      says without a hint of shame and a cocky smiles besides.
+    const description = generateLoverDescription(s);
+    return `One day at the tavern, while the group of adventurers are there, you notice that
+      one of them is glancing at you every now and then. After some time, the adventurer moves
+      away from the group and approaches you. ${description} After some initial words, the
+      adventurer proposes that you join them in their room later for some late-night activities.
     `;
   },
   actions: [

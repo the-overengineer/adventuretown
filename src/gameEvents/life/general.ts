@@ -24,6 +24,7 @@ import {
   removeLastChild,
   setLevel,
   worsenSpouseRelationship,
+  generateLoverDescription,
 } from 'utils/person';
 import {
   inIntRange,
@@ -39,6 +40,7 @@ import {
   setWorldFlag,
 } from 'utils/setFlag';
 import { getAge } from 'utils/time';
+import { hasLimitedRights } from 'utils/town';
 
 const GENERAL_LIFE_EVENT_PREFIX: number = 41_000;
 
@@ -896,8 +898,7 @@ export const loverAtWork = createEvent.regular({
     const otherPronoun = _.character.gender === Gender.Male ? 'she' : 'he';
 
     return `You find yourself working together with a ${otherNoun} whom you are slowly starting to fancy.
-      You could not say ${otherPronoun} is especially attractive, but you still feel drawn to them and
-      better when around them. You are certain they feel the same`;
+      You could not say ${otherPronoun} is especially exotic or well-off, but you feel drawn. ${generateLoverDescription(_)}`;
   },
   actions: [
     {
@@ -1238,3 +1239,21 @@ export const shamefulNotMarried = createEvent.regular({
     action('I should not be judger').resourceLosePercentage('renown', 10, 50, 500).log('People are questioning why you are still unmarried'),
   ],
 });
+
+export const aGoodCatchMarriageProposal = createEvent.regular({
+  meanTimeToHappen: time(5, 'years')
+    .modify(0.5, _ => _.resources.renown >= 500)
+    .modify(0.5, _ => _.resources.coin >= 500)
+    .modify(0.5, _ => _.character.charm >= 6)
+    .modify(2, _ => _.resources.coin < 200)
+    .modify(2, _ => _.resources.renown < 200)
+    .modify(2, _ => _.character.charm < 4),
+  condition: _ => (_.resources.coin > 200 || _.resources.renown > 200) && _.relationships.spouse == null && hasLimitedRights(_, _.character),
+  title: 'A proposal',
+  getText: _ => `Due to your position in society, while still remaining unmarried, you have started catching the eye of potential suitors. Finally,
+    one of them approaches you and proposes marriage to you. ${generateLoverDescription(_)}`,
+  actions: [
+    action('Accept').and(addSpouse).log('You have accepted a marriage proposal'),
+    action('Refuse').log('You have rejected a proposal of marriage'),
+  ],
+})
