@@ -156,16 +156,8 @@ export const closeToPhysicalPeak = createEvent.regular({
   getText: _ => `You are very close to your physical peak. You are not certain whether you can become
     much stronger and fitter without some supernatural means`,
   actions: [
-    {
-      text: 'Continue',
-    },
-    {
-      text: 'Relax your routine',
-      perform: compose(
-        setCharacterFlag('focusPhysical', false),
-        notify('You have stopped focusing on exercise so much'),
-      ),
-    },
+    action('Continue'),
+    action('Relax your routine').and(triggerEvent(chooseFocus)).log('You have stopped focusing on exercise so much'),
   ],
 });
 
@@ -215,16 +207,8 @@ export const closeToIntelligencePeak = createEvent.regular({
   getText: _ => `You have thought often and well, and spoken to many wise people.
     You don't think you can improve your mind much more without magical means`,
   actions: [
-    {
-      text: 'Continue',
-    },
-    {
-      text: 'Relax your routine',
-      perform: compose(
-        setCharacterFlag('focusIntelligence', false),
-        notify('You have stopped exercising your mind so much'),
-      ),
-    },
+    action('Continue'),
+    action('Relax your routine').and(triggerEvent(chooseFocus)).log('You have stopped focusing on exercising your mind so much'),
   ],
 });
 
@@ -274,16 +258,8 @@ export const closeToEducationPeak = createEvent.regular({
   getText: _ => `Very rarely do you learn something new these days, and it is getting harder and harder
     to find books on topics you are not already an expert on. You are uncertain whether`,
   actions: [
-    {
-      text: 'Continue',
-    },
-    {
-      text: 'Relax your routine',
-      perform: compose(
-        setCharacterFlag('focusEducation', false),
-        notify('You have stopped focusing so much on gathering knowledge'),
-      ),
-    },
+    action('Continue'),
+    action('Relax your routine').and(triggerEvent(chooseFocus)).log('You have stopped focusing on gathering knowledge so much'),
   ],
 });
 
@@ -334,16 +310,8 @@ export const closeToCharmPeak = createEvent.regular({
     You are the topic of conversation in almost every tavern. You don't think there is much more
     you can do to improve yourself in that regard`,
   actions: [
-    {
-      text: 'Continue',
-    },
-    {
-      text: 'Relax your routine',
-      perform: compose(
-        setCharacterFlag('focusCharm', false),
-        notify('You have stopped focusing so much on your appearance and personality'),
-      ),
-    },
+    action('Continue'),
+    action('Relax your routine').and(triggerEvent(chooseFocus)).log('You have stopped focusing on your appearance and personality so much'),
   ],
 });
 
