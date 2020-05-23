@@ -118,13 +118,11 @@ export class ActionBuilder {
   }
 
   public resourceLosePercentage(resource: keyof IResources, percentage: number, min?: number, max?: number): this {
-    const amount = -1 * clamp(percentage / 100, min, max);
-    return this.do(changeResourcePercentage(resource, amount));
+    return this.do(changeResourcePercentage(resource, -percentage / 100, min, max));
   }
 
   public resourceGainPercentage(resource: keyof IResources, percentage: number, min?: number, max?: number): this {
-    const amount = clamp(percentage / 100, min, max);
-    return this.do(changeResourcePercentage(resource, amount));
+    return this.do(changeResourcePercentage(resource, percentage / 100, min, max));
   }
 
   public changeResource(resource: keyof IResources, amount: number): this {

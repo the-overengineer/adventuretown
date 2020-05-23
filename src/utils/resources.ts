@@ -1,4 +1,5 @@
 import { IGameState, IResources, ICharacterFinances } from 'types/state';
+import { clamp } from './functional';
 
 export const changeResource = (resource: keyof IResources, amount: number) =>
   (state: IGameState): IGameState => ({
@@ -9,12 +10,12 @@ export const changeResource = (resource: keyof IResources, amount: number) =>
     },
   });
 
-export const changeResourcePercentage = (resource: keyof IResources, percentage: number) =>
+export const changeResourcePercentage = (resource: keyof IResources, percentage: number, min?: number, max?: number) =>
   (state: IGameState): IGameState => ({
     ...state,
     resources: {
       ...state.resources,
-      [resource]: Math.max(0, state.resources[resource] + Math.floor(percentage * state.resources[resource])),
+      [resource]: Math.max(0, state.resources[resource] + clamp(Math.floor(percentage * state.resources[resource]), min, max)),
     },
   });
 
