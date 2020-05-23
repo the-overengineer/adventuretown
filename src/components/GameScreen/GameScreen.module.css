@@ -29,6 +29,21 @@
   flex-direction: row;
 }
 
+.PauseOverlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 32px;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
 .TownDescription {
   max-width: 820px;
   font-size: 15px;

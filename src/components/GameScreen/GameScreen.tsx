@@ -93,6 +93,13 @@ export class GameScreen extends React.PureComponent<IGameScreen> {
         <main className={styles.Mat}>
           { event != null ? <EventPopup event={event} /> : null }
           <div className={styles.Screen}>
+            {
+              !isRunning ? (
+                <div className={styles.PauseOverlay}>
+                  Paused
+                </div>
+              ) : null
+            }
             <div className={styles.TownAscii}>
               {asciiTown}
             </div>
