@@ -9,6 +9,7 @@ import { triggerEvent } from 'utils/eventChain';
 import {
   action,
   eventCreator,
+  time,
 } from 'utils/events';
 import {
   isInCouncil,
@@ -141,7 +142,7 @@ export const campaignBribery = createEvent.regular({
 });
 
 export const campaignPromises = createEvent.regular({
-  meanTimeToHappen: 3 * 30,
+  meanTimeToHappen: time(6, 'months'),
   condition: _ => _.characterFlags.campaign!,
   title: 'Promises',
   getText: _ => `You could advance in your political campaign by making promises to change things when in office`,
