@@ -30,6 +30,7 @@ import {
   removeChild,
   insertChild,
   changeCharacterState,
+  removeLastChild,
 } from 'utils/person';
 import { changeResource } from 'utils/resources';
 import {
@@ -546,4 +547,31 @@ export const childOfferedMarriageBg = createEvent.background({
     const child = pickOne(_.relationships.children.filter((child) => isAdult(_, child) && hasLimitedRights(_, child)));
     return setTmpPerson(child, childForMarriage)(_);
   }).and(triggerEvent(childProposed)),
+});
+
+export const leaveChildAtTemple = createEvent.regular({
+  meanTimeToHappen: time(1, 'year'),
+  condition: _ => _.worldFlags.temple!
+    && _.relationships.children.filter((child) => getAge(child.dayOfBirth, _.daysPassed) < 1).length > 0
+    && (_.finances.foodExpenses >= _.finances.foodIncome),
+  title: 'Too many mouths',
+  getText: `With so many mouths to feed, you are finding it hard to feed your family. An idea occurs to you - you could
+    leave your newborn child at the temple steps. The temple would surely take care of the child, and they would not
+    want for food`,
+  actions: [
+    action('Leave it at the template').and(removeLastChild).log('You left your child at the footsteps of the temple, since you could not feed them'),
+    action('Keep the child'),
+  ],
+});
+
+export const childLeftAtTheTemple = createEvent.regular({
+  meanTimeToHappen: time(5, 'years'),
+  condition: _ => _.resources.renown >= 200 && _.worldFlags.temple! && _.relationships.children.filter((child) => !isAdult(_, child)).length === 0,
+  title: 'Child left at the temple',
+  getText: `A child was left at the temple footsteps. The priests approach you and ask whether you wish to adopt the child,
+    as you have no small children of your own and are a person with some influence in the town`,
+  actions: [
+    action('Adopt the child').and(createChild).log('You adopted a child left at the temple steps'),
+    action('Refuse'),
+  ],
 });
