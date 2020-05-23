@@ -9,7 +9,7 @@ import {
   time,
 } from 'utils/events';
 import { changeStat, generateLoverDescription } from 'utils/person';
-import { pickOne } from 'utils/random';
+import { pickOne, inIntRange } from 'utils/random';
 import { changeResource } from 'utils/resources';
 import {
   pregnancyChance,
@@ -130,12 +130,12 @@ export const aNightOfFun = createEvent.triggered({
 });
 
 export const adventurerLover = createEvent.triggered({
-  title: 'Adventurer lover',
+  title: 'Lover',
   getText: _ => `You spend an enjoyable night. In the morning, when the drink has cleared from your heads, the lust is still there.
-    The cocky adventurer and you keep enjoying each others' company well into the next morning, and when you are forced to part the
-    adventurer suggests that this should become a regular occurrence.`,
+    Your lover from last night and you keep enjoying each others' company well into the next morning, and when you are forced to part the
+    person suggests that this should become a regular occurrence.`,
   actions: [
-    action('Reject them').do(pregnancyChance('pregnantLover')).log('A fun night with an adventurer'),
+    action('Reject them').do(pregnancyChance('pregnantLover')).log('A fun night with a lover'),
     action('A lover would be nice').do(pregnancyChance('pregnantLover')).and(setCharacterFlag('lover')).log(
       'You liked last night very much, hopefully it will happen again',
     ),
@@ -243,4 +243,133 @@ export const famineTavernRobbed = createEvent.regular({
       'Large amounts of supplies were stolen from your tavern, incurring a large loss for you',
     ),
   ],
-})
+});
+
+export const ramblingDrunk = createEvent.triggered({
+  title: 'Rambling drunk',
+  getText: `The person you started talking to turns out to be a drunk, just rambling about their life`,
+  actions: [
+    action('A waste of time'),
+  ],
+});
+
+export const talkInvestmentBetrayed = createEvent.triggered({
+  title: 'Failed investment',
+  getText: `The person whom you supported vanished, and seemingly has no plan to return your investment`,
+  actions: [
+    action('Curses!').log('Your investment was a failure, and the person skipped town'),
+  ],
+});
+
+export const talkInvestmentFailed = createEvent.triggered({
+  title: 'Failed investment',
+  getText: `The person whom you supported failed to make any profit out of their investment, and you will not see the money`,
+  actions: [
+    action('Curses!').log('Your investment was a failure, and the person did not manage to start their business'),
+  ],
+});
+
+export const talkInvestmentWorked = createEvent.triggered({
+  title: 'Investment returned',
+  getText: `The person in whom you invested returns and informs you that their business idea succeeded! They hand you some of the profits`,
+  actions: [
+    action('Excellent!').changeResource('coin', inIntRange(75, 100)).log('Your investment was returned and you made some money'),
+  ],
+});
+
+export const talkInvestmentOpportunity = createEvent.triggered({
+  title: 'Investment opportunity',
+  getText: `After a drink, the person you started talking to mentions a business idea that they have. They seem to want you to invest in them. The
+    idea sounds plausible to you, but not a guaranteed success`,
+  actions: [
+    action('Invest').spendResource('coin', 50).and(
+      triggerEvent(talkInvestmentBetrayed)
+        .orTrigger(talkInvestmentFailed).withWeight(2)
+        .orTrigger(talkInvestmentWorked)
+          .multiplyByFactor(0.5, _ => _.character.intelligence < 2)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 4)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 6)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 8)
+          .delayAll(14),
+    ),
+    action('Convince other to invest').spendResource('renown', 75).and(
+      triggerEvent(talkInvestmentBetrayed)
+        .orTrigger(talkInvestmentFailed).withWeight(2)
+        .orTrigger(talkInvestmentWorked)
+          .multiplyByFactor(0.5, _ => _.character.intelligence < 2)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 4)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 6)
+          .multiplyByFactor(2, _ => _.character.intelligence >= 8)
+          .delayAll(14),
+    ),
+    action('Do not invest'),
+  ],
+});
+
+export const talkWisePerson = createEvent.triggered({
+  title: 'Interesting conversation',
+  getText: `The person you talked to starts some interesting conversations about things that you never considered. It goes on for a while,
+    and is fairly interesting`,
+  actions: [
+    action('Educational!').when(_ => _.character.education < 4).and(changeStat('intelligence', 1)).log('You learned something conversing to a stranger'),
+    action('A good talk').when(_ => _.character.intelligence >= 4).log('You had an interesting conversation with a stranger in a tavern'),
+  ],
+});
+
+export const talkMocked = createEvent.triggered({
+  title: 'Mocked!',
+  getText: `The person you started talking to is very unpleasant to you and keeps mocking you. The other tavern patrons start laughing at you`,
+  actions: [
+    action('Rude!').resourceLosePercentage('renown', 5, 25, 100)
+  ],
+});
+
+export const talkLoverOpportunity = createEvent.triggered({
+  title: 'Interesting talk',
+  getText: `You have a long and interesting talk with this person, and at the end of the conversation they propose that you move this conversation
+    to their room. You have a feeling that they mean to do more than just talk`,
+  actions: [
+    action(`I'm married!`).when(_ => _.relationships.spouse != null),
+    action('Reject the advances').log(`You chose not to entangle yourself with a person in the tavern`),
+    action('Welcome the advances').do(
+      triggerEvent(aNightOfFun).orTrigger(adventurerLover).multiplyByFactor(3, _ => _.character.charm >= 5),
+    ),
+  ],
+});
+
+export const pleasantTalk = createEvent.triggered({
+  title: 'Pleasant conversation',
+  getText: `You spend an enjoyable few hours in conversation, discussing mundane matters`,
+  actions: [
+    action('It was nice!'),
+  ],
+});
+
+export const talkComplaints = createEvent.triggered({
+  title: 'Complaints',
+  getText: 'The other person keeps complaining about their life, their troubles having brought them to the tavern in the first place',
+  actions: [
+    action('Give them advice').when(_ => _.character.intelligence >= 4 || _.character.education >= 4).log('You give some advice to a troubled patron'),
+    action('Comfort them').when(_ => _.character.charm >= 4).log('You offer some comforting words to a troubled patron'),
+    action('Leave them to it'),
+  ],
+});
+
+export const barConversationStarted = createEvent.regular({
+  meanTimeToHappen: time(9, 'months'),
+  condition: _ => _.character.profession === Profession.BarWorker || _.characterFlags.focusFun!,
+  title: 'Conversation started',
+  getText: `A patron at the tavern seems eager to start a conversation with you`,
+  actions: [
+    action('Talk to them').do(
+      triggerEvent(talkComplaints)
+        .orTrigger(pleasantTalk)
+        .orTrigger(talkLoverOpportunity)
+        .orTrigger(talkMocked)
+        .orTrigger(talkWisePerson)
+        .orTrigger(talkInvestmentOpportunity)
+        .orTrigger(ramblingDrunk),
+    ),
+    action('Ignore them'),
+  ],
+});
