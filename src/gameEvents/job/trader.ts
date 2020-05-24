@@ -9,6 +9,8 @@ import { triggerEvent } from 'utils/eventChain';
 import {
   action,
   eventCreator,
+  time,
+  bgAction,
 } from 'utils/events';
 import { compose } from 'utils/functional';
 import { changeStat } from 'utils/person';
@@ -514,7 +516,7 @@ export const deathOnTheTrip = createEvent.regular({
 });
 
 export const expeditionVanishes = createEvent.regular({
-  meanTimeToHappen: 12 * 365,
+  meanTimeToHappen: time(10, 'years'),
   condition: _ => _.characterFlags.onMerchantAdventure!,
   title: 'Expedition vanishes',
   getText: _ => `Your expedition was last seen several days ago, ${describeRoute(_)}. After that, you have all vanished
@@ -524,9 +526,7 @@ export const expeditionVanishes = createEvent.regular({
   ],
 });
 
-export const turnsToSea = createEvent.regular({
-  meanTimeToHappen: 9 * 30,
-  condition: _ => _.characterFlags.onMerchantAdventure! && getRoute(_) !== Route.Sea,
+export const turnsToSea = createEvent.triggered({
   title: 'The sea awaits!',
   getText: _ => `Your advance ${describeRoute(_)} goes no further, and you find yourself facing the sea. Will you acquire ships and continue?`,
   actions: [
@@ -535,9 +535,7 @@ export const turnsToSea = createEvent.regular({
   ],
 });
 
-export const turnsToDesert = createEvent.regular({
-  meanTimeToHappen: 9 * 30,
-  condition: _ => _.characterFlags.onMerchantAdventure! && getRoute(_) !== Route.Desert,
+export const turnsToDesert = createEvent.triggered({
   title: 'The hot deserts!',
   getText: _ => `Your advance ${describeRoute(_)} goes no further, and you find yourself before a vast desert. Will you buy camels and continue?`,
   actions: [
@@ -546,9 +544,7 @@ export const turnsToDesert = createEvent.regular({
   ],
 });
 
-export const turnsToJungle = createEvent.regular({
-  meanTimeToHappen: 9 * 30,
-  condition: _ => _.characterFlags.onMerchantAdventure! && getRoute(_) !== Route.Jungle,
+export const turnsToJungle = createEvent.triggered({
   title: 'Thick jungle!',
   getText: _ => `Your advance ${describeRoute(_)} goes no further, and you find yourself on the edge of a thick jungle. Will you find local porters and continue?`,
   actions: [
@@ -557,13 +553,22 @@ export const turnsToJungle = createEvent.regular({
   ],
 });
 
-export const turnsToRoad = createEvent.regular({
-  meanTimeToHappen: 9 * 30,
-  condition: _ => _.characterFlags.onMerchantAdventure! && getRoute(_) !== Route.Road,
+export const turnsToRoad = createEvent.triggered({
   title: 'A road before you!',
   getText: _ => `Your advance ${describeRoute(_)} goes no further, and you find yourself on a large trading road. Will you purchase carts and continue?`,
   actions: [
     action('The adventure continues').spendResource('coin', 100).and(setRoute(Route.Road)).log('Your journey continues on the roads'),
     action('Let us turn back home').and(triggerEvent(endMerchantAdventure)),
   ],
+});
+
+export const turnToDifferentPlace = createEvent.background({
+  meanTimeToHappen: time(9, 'months'),
+  condition: _ => _.characterFlags.onMerchantAdventure!,
+  action: bgAction().do(
+    triggerEvent(turnsToDesert).onlyWhen(_ => getRoute(_) !== Route.Desert)
+      .orTrigger(turnsToJungle).onlyWhen(_ => getRoute(_) !== Route.Jungle)
+      .orTrigger(turnsToSea).onlyWhen(_ => getRoute(_) !== Route.Sea)
+      .orTrigger(turnsToRoad).onlyWhen(_ => getRoute(_) !== Route.Road),
+  ),
 });
