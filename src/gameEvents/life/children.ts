@@ -559,7 +559,7 @@ export const leaveChildAtTemple = createEvent.regular({
     leave your newborn child at the temple steps. The temple would surely take care of the child, and they would not
     want for food`,
   actions: [
-    action('Leave it at the template').and(removeLastChild).log('You left your child at the footsteps of the temple, since you could not feed them'),
+    action('Leave it at the temple').and(removeLastChild).log('You left your child at the footsteps of the temple, since you could not feed them'),
     action('Keep the child'),
   ],
 });
