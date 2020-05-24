@@ -65,7 +65,7 @@ export const spouseFired = createEvent.regular({
     and cannot help support the family anymore`,
   actions: [
     action('I am sure it is not your fault').do(fireSpouse).do(improveSpouseRelationship).log('Your spouse has lost their job'),
-    action('Blame them').when(_ => !isOppressed(_, _.character)).do(worsenSpouseRelationship).log('Your spouse has lost their job, and you chided them for it'),
+    action('Blame them').when(_ => !isOppressed(_, _.character)).do(fireSpouse).do(worsenSpouseRelationship).log('Your spouse has lost their job, and you chided them for it'),
   ],
 });
 
