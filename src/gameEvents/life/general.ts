@@ -1236,7 +1236,7 @@ export const shamefulNotMarried = createEvent.regular({
   title: 'Unmarried',
   getText: `The fact that you are not married at your age is causing some people to question what is wrong with you`,
   actions: [
-    action('I should not be judger').resourceLosePercentage('renown', 10, 50, 500).log('People are questioning why you are still unmarried'),
+    action('I should not be judged').resourceLosePercentage('renown', 10, 50, 500).log('People are questioning why you are still unmarried'),
   ],
 });
 
