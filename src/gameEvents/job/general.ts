@@ -393,7 +393,7 @@ export const traineeMakesOneMistake = createEvent.triggered({
 
 export const givenTrainee = createEvent.regular({
   meanTimeToHappen: time(2, 'years'),
-  condition: _ => _.character.profession != null,
+  condition: _ => _.character.profession != null && _.character.professionLevel === ProfessionLevel.Medium,
   title: 'Trainee assigned',
   getText: `A new employee has joined the business, and you have been tasked with making sure that they learn the ropes
     of doing the work.`,
