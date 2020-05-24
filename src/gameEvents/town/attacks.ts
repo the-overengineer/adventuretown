@@ -832,7 +832,7 @@ export const dragonAttacks = createEvent.regular({
   meanTimeToHappen: 9 * 30,
   condition: _ => _.worldFlags.dragon!,
   title: 'Dragon attacks',
-  getText: _ => `First you hear the heavy wings beat. Then, you see the breath of fire in the evening sky. Moment later, the dragon soars down towards
+  getText: _ => `First you hear the heavy wings beat. Then, you see the breath of fire in the evening sky. Moments later, the dragon soars down towards
     the town, starting to attack it${_.character.profession === Profession.Guard ? `. You and the rest of the guard stand ready to fight` : ''}`,
   actions: [
     action('Gods help us!').do(
