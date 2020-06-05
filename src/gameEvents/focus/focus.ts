@@ -318,7 +318,7 @@ export const closeToCharmPeak = createEvent.regular({
 export const pennySaved = createEvent.regular({
   meanTimeToHappen: 6 * 30,
   condition: _ => _.characterFlags.focusWealth!,
-  title: 'Copper saved, copped earned',
+  title: 'Copper saved, copper earned',
   getText: _ => `You have been carefully saving every copper. It took some time,
     but when you look in your copper tin, you see that you have saved a considerable
     amount at the end of the day`,
