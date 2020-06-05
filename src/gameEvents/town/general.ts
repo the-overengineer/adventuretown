@@ -949,7 +949,7 @@ export const granaryExhausted = createEvent.regular({
 
 export const settlersArrive = createEvent.triggered({
   title: 'Settlers arrive',
-  getText: _ => `Drawn by the rumours you spread about ${_.town.name} and the sheer weight of your name, new familiar arrive into town and its size grows`,
+  getText: _ => `Drawn by the rumours you spread about ${_.town.name} and the sheer weight of your name, new families arrive into town and its size grows`,
   actions: [
     action('I have done well').and(increaseSize).log('You have managed to grow the town through your reputation'),
   ],

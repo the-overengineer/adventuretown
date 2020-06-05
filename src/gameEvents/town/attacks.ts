@@ -774,7 +774,7 @@ export const dragonEatsPeople = createEvent.triggered({
       triggerEvent(dragonEatsSlaves).withWeight(2).onlyWhen(_ => _.characterFlags.slaves!)
         .orTrigger(neighbourEaten).withWeight(2)
         .orTrigger(dragonEatsChild).withWeight(2).onlyWhen(_ => _.relationships.children.length > 0)
-        .orTrigger(dragonEatsSpouse).withWeight(2)
+        .orTrigger(dragonEatsSpouse).withWeight(2).onlyWhen(_ => _.relationships.spouse != null)
         .orTrigger(dragonEatsYou),
     ),
   ],

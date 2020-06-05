@@ -634,7 +634,7 @@ export const demotedForGenderQuota = createEvent.regular({
     && _.town.equality === ClassEquality.Equal,
   title: 'Promoted due to gender',
   getText: _ => `With the town leaders pushing for equality, they have noticed that there are not enough ${_.character.gender === Gender.Male ? 'women' : 'men'} in
-    leadership positions. Therefore, they have taken away your job and given it to you ${_.character.gender === Gender.Male ? 'female' : 'male'} employee`,
+    leadership positions. Therefore, they have taken away your job and given it to your ${_.character.gender === Gender.Male ? 'female' : 'male'} employee`,
   actions: [
     action('Is this equality?').do(setLevel(ProfessionLevel.Medium)).log(
       'You have been demoted from a leadership position to fill a gender quota',
