@@ -66,7 +66,7 @@ export const barFightHideBad = createEvent.triggered({
 
 export const barFightFightOk = createEvent.triggered({
   title: 'Cracking skulls',
-  getText: _ => `You go in with your own bottle in hand, waving around. When the coast clear, the rowdiest of the bunch are on the ground and the rest scatter`,
+  getText: _ => `You go in with your own bottle in hand, waving around. When the coast clears, the rowdiest of the bunch are on the ground and the rest scatter`,
   actions: [
     action('I feel stronger!').when(_ => _.character.physical < 6).do(changeStat('physical', 1)).log('You broke up a fight, learning something of fighting in the process'),
     action('That was easy!').when(_ => _.character.physical >= 6).log('You broke up a fight without breaking a sweat'),
